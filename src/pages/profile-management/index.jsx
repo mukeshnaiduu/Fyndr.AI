@@ -177,7 +177,7 @@ const ProfileManagement = () => {
         sidebar={
           <div className="p-6 h-full">
             {/* Sidebar content can be implemented here if needed */}
-            <ProfileCompletionMeter progress={70} />
+            <ProfileCompletionMeter userProfile={userProfile} />
             
             <div className="mt-6">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">PROFILE SECTIONS</h3>
