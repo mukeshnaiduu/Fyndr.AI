@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core Colors */
+    --color-background: #fafbff; /* near-white with blue undertone */
+    --color-foreground: #1e293b; /* deep slate */
+    --color-border: rgba(255, 255, 255, 0.2); /* glassmorphic border */
+    --color-input: #f1f5ff; /* elevated surface */
+    --color-ring: #a78bfa; /* soft purple */
+    --color-card: #f1f5ff; /* elevated surface */
+    --color-card-foreground: #1e293b; /* deep slate */
+    --color-popover: #ffffff; /* white */
+    --color-popover-foreground: #1e293b; /* deep slate */
+    --color-muted: #f1f5ff; /* elevated surface */
+    --color-muted-foreground: #64748b; /* medium slate */
+
+    /* Brand Colors */
+    --color-primary: #a78bfa; /* soft purple */
+    --color-primary-foreground: #ffffff; /* white */
+    --color-secondary: #cfd8ff; /* light periwinkle */
+    --color-secondary-foreground: #1e293b; /* deep slate */
+
+    /* State Colors */
+    --color-destructive: #ef4444; /* clear red */
+    --color-destructive-foreground: #ffffff; /* white */
+    --color-accent: #fb923c; /* warm orange */
+    --color-accent-foreground: #ffffff; /* white */
+    --color-success: #4ade80; /* vibrant green */
+    --color-success-foreground: #ffffff; /* white */
+    --color-warning: #fbbf24; /* balanced amber */
+    --color-warning-foreground: #1e293b; /* deep slate */
+    --color-error: #ef4444; /* clear red */
+    --color-error-foreground: #ffffff; /* white */
+    
+    /* RGB values for opacity variants */
+    --color-primary-rgb: 167, 139, 250;
+    --color-accent-rgb: 251, 146, 60;
+    --color-error-rgb: 239, 68, 68;
+  }
+  
+  .dark {
+    /* Core Colors - Dark Mode */
+    --color-background: #0f172a; /* dark blue-gray */
+    --color-foreground: #f1f5f9; /* light gray */
+    --color-border: rgba(255, 255, 255, 0.1); /* darker glassmorphic border */
+    --color-input: #1e293b; /* dark elevated surface */
+    --color-ring: #a78bfa; /* keep purple */
+    --color-card: #1e293b; /* dark elevated surface */
+    --color-card-foreground: #f1f5f9; /* light gray */
+    --color-popover: #0f172a; /* dark blue-gray */
+    --color-popover-foreground: #f1f5f9; /* light gray */
+    --color-muted: #1e293b; /* dark elevated surface */
+    --color-muted-foreground: #94a3b8; /* medium gray */
+
+    /* Brand Colors - Slightly adjusted for dark mode */
+    --color-primary: #b197fc; /* slightly lighter purple for dark mode */
+    --color-primary-foreground: #ffffff; /* white */
+    --color-secondary: #334155; /* darker periwinkle for dark mode */
+    --color-secondary-foreground: #f1f5f9; /* light gray */
+  }
+
+  :root {
+    /* Glassmorphic Effects */
+    --glassmorphic-bg: rgba(255, 255, 255, 0.1);
+    --glassmorphic-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    --glow-primary: 0 0 20px rgba(167, 139, 250, 0.3);
+    --glow-accent: 0 0 20px rgba(251, 146, 60, 0.3);
+
+    /* Animation Variables */
+    --spring-stiffness: 400;
+    --spring-damping: 30;
+    --transition-standard: 300ms ease-in-out;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Typography Classes */
+  .font-heading {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-caption {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-data {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Glassmorphic Components */
+  .glassmorphic {
+    background: var(--glassmorphic-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--glassmorphic-shadow);
+    border: 1px solid var(--color-border);
+  }
+
+  /* Glow Effects */
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+
+  .glow-accent {
+    box-shadow: var(--glow-accent);
+  }
+
+  /* Animation Classes */
+  .spring-transition {
+    transition: all var(--transition-standard);
+  }
+
+  /* Reduced Motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-muted);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+  }
+}
+
+@layer components {
+  /* Elevation System */
+  .elevation-1 {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .elevation-2 {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .elevation-3 {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Ripple Effect */
+  .ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ripple::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease-out, height 0.3s ease-out;
+  }
+
+  .ripple:active::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  /* Morphing Blob Animation */
+  @keyframes blob-morph {
+    0%, 100% {
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+    50% {
+      border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    }
+  }
+
+  .blob-animate {
+    animation: blob-morph 6s ease-in-out infinite;
+  }
+
+  /* Particle Animation */
+  @keyframes float-particle {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translateY(-20px) rotate(180deg);
+      opacity: 0.6;
+    }
+  }
+
+  .particle-float {
+    animation: float-particle 4s ease-in-out infinite;
+  }
+
+  /* Stagger Animation Delays */
+  .stagger-1 { animation-delay: 0ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 200ms; }
+  .stagger-4 { animation-delay: 300ms; }
+  .stagger-5 { animation-delay: 400ms; }
+}
