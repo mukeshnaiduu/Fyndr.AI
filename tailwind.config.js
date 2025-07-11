@@ -103,6 +103,13 @@ export default {
       backdropFilter: {
         'glass': 'blur(16px)',
       },
+      zIndex: {
+        'header': '50',
+        'sidebar': '40',
+        'modal': '60',
+        'overlay': '55',
+        'dropdown': '45',
+      },
     },
   },
   plugins: [

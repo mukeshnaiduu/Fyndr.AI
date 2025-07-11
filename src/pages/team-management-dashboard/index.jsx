@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 import Input from 'components/ui/Input';
-import MainLayout from 'components/layout/MainLayout'
-import SidebarLayout from 'components/layout/SidebarLayout';
+import MainLayout from 'components/layout/MainLayout';
 import TeamMetricsCard from './components/TeamMetricsCard';
 import TeamMemberCard from './components/TeamMemberCard';
 import InviteTeamModal from './components/InviteTeamModal';
@@ -238,15 +237,8 @@ const TeamManagementDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
-      <Helmet>
-        <title>Team Management Dashboard - HireHub AI</title>
-        <meta name="description" content="Manage your hiring team members, assign roles, and oversee collaborative workflows efficiently with HireHub AI's comprehensive team management dashboard." />
-      </Helmet>
-
-      <Header />
-
-      <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8">
+    <MainLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
           <div>
@@ -409,7 +401,7 @@ const TeamManagementDashboard = () => {
         user={selectedUser}
         onSave={handleUserSave}
       />
-    </div>
+    </MainLayout>
   );
 };
 

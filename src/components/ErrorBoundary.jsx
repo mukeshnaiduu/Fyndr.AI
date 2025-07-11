@@ -4,17 +4,17 @@ import Icon from "./AppIcon";
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true };
+    return { hasError: true, error };
   }
 
   componentDidCatch(error, errorInfo) {
+    this.setState({ error, errorInfo });
     error.__ErrorBoundary = true;
     window.__COMPONENT_ERROR__?.(error, errorInfo);
-    // console.log("Error caught by ErrorBoundary:", error, errorInfo);
   }
 
   render() {
@@ -33,6 +33,14 @@ class ErrorBoundary extends React.Component {
             <div className="flex flex-col gap-1 text-center">
               <h1 className="text-2xl font-medium text-neutral-800">Something went wrong</h1>
               <p className="text-neutral-600 text-base w w-8/12 mx-auto">We encountered an unexpected error while processing your request.</p>
+              {this.state.error && (
+                <pre className="bg-red-50 text-red-700 text-xs p-2 mt-4 rounded overflow-x-auto max-h-48">
+                  {this.state.error.toString()}
+                  {this.state.errorInfo && (
+                    <div>{this.state.errorInfo.componentStack}</div>
+                  )}
+                </pre>
+              )}
             </div>
             <div className="flex justify-center items-center mt-6">
               <button

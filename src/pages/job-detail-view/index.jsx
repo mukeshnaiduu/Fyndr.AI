@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import MainLayout from 'components/layout/MainLayout'
-import SidebarLayout from 'components/layout/SidebarLayout';
+import MainLayout from 'components/layout/MainLayout';
 import JobHeader from './components/JobHeader';
 import MatchPercentage from './components/MatchPercentage';
 import JobDescription from './components/JobDescription';
@@ -195,17 +194,15 @@ We offer competitive compensation, comprehensive benefits, and a flexible work e
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <JobHeader 
-        jobData={jobData}
-        onBookmark={handleBookmark}
-        onShare={handleShare}
-        onApply={handleApply}
-      />
+    <MainLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <JobHeader 
+          jobData={jobData}
+          onBookmark={handleBookmark}
+          onShare={handleShare}
+          onApply={handleApply}
+        />
 
-      <div className="max-w-7xl mx-auto px-4 lg:px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-8">
@@ -250,7 +247,7 @@ We offer competitive compensation, comprehensive benefits, and a flexible work e
         isApplied={isApplied}
         applicationDeadline={jobData.applicationDeadline}
       />
-    </div>
+    </MainLayout>
   );
 };
 

@@ -180,8 +180,8 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
                 id="logo-upload"
               />
               <label htmlFor="logo-upload">
-                <Button variant="outline" size="sm" asChild>
-                  <span className="cursor-pointer">Choose File</span>
+                <Button variant="outline" size="sm">
+                  Choose File
                 </Button>
               </label>
             </div>

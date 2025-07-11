@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import MainLayout from 'components/layout/MainLayout'
-import SidebarLayout from 'components/layout/SidebarLayout';
 import CandidateHeader from './components/CandidateHeader';
 import CandidateProfile from './components/CandidateProfile';
 import EvaluationPanel from './components/EvaluationPanel';
@@ -202,70 +201,72 @@ const CandidateProfileEvaluationInterface = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <div className="pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Candidate Header */}
-          <CandidateHeader candidate={candidate} onAction={handleAction} />
-          
-          {/* Main Content Area */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Left Sidebar - Navigation */}
-            <div className="lg:col-span-1">
-              <div className="glassmorphic-card p-4 sticky top-24">
-                <h3 className="font-semibold text-foreground mb-4">View Options</h3>
-                <nav className="space-y-2">
-                  {viewOptions.map((option) => (
-                    <button
-                      key={option.id}
-                      onClick={() => setActiveView(option.id)}
-                      className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        activeView === option.id
-                          ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-white/10'
-                      }`}
-                    >
-                      <Icon name={option.icon} size={16} />
-                      <span>{option.label}</span>
-                    </button>
-                  ))}
-                </nav>
-                
-                {/* Quick Stats */}
-                <div className="mt-6 pt-4 border-t border-white/10">
-                  <h4 className="font-medium text-foreground mb-3">Quick Stats</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Applied:</span>
-                      <span className="text-foreground font-medium">{candidate.appliedDate}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Position:</span>
-                      <span className="text-foreground font-medium">{candidate.position}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Experience:</span>
-                      <span className="text-foreground font-medium">{candidate.experience} years</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Match Score:</span>
-                      <span className="text-success font-medium">{candidate.matchScore}%</span>
+    <MainLayout title={candidate.name + ' - Candidate Profile'} description="Evaluate and review candidate details">
+      <div className="flex flex-1">
+        <main className="flex-1 pt-16">
+          <div className="pt-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              {/* Candidate Header */}
+              <CandidateHeader candidate={candidate} onAction={handleAction} />
+              
+              {/* Main Content Area */}
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Left Sidebar - Navigation */}
+                <div className="lg:col-span-1">
+                  <div className="glassmorphic-card p-4 sticky top-24">
+                    <h3 className="font-semibold text-foreground mb-4">View Options</h3>
+                    <nav className="space-y-2">
+                      {viewOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          onClick={() => setActiveView(option.id)}
+                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            activeView === option.id
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-white/10'
+                          }`}
+                        >
+                          <Icon name={option.icon} size={16} />
+                          <span>{option.label}</span>
+                        </button>
+                      ))}
+                    </nav>
+
+                    {/* Quick Stats */}
+                    <div className="mt-6 pt-4 border-t border-white/10">
+                      <h4 className="font-medium text-foreground mb-3">Quick Stats</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Applied:</span>
+                          <span className="text-foreground font-medium">{candidate.appliedDate}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Position:</span>
+                          <span className="text-foreground font-medium">{candidate.position}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Experience:</span>
+                          <span className="text-foreground font-medium">{candidate.yearsOfExperience} years</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Match Score:</span>
+                          <span className="text-success font-medium">{candidate.matchScore}%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
+                
+                {/* Main Content */}
+                <div className="lg:col-span-3">
+                  {renderMainContent()}
+                </div>
               </div>
             </div>
-            
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              {renderMainContent()}
-            </div>
           </div>
-        </div>
+        </main>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

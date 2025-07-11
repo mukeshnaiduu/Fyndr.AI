@@ -3,7 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 import Button from 'components/ui/Button';
-import AppHeader from 'components/ui/AppHeader';
+import Navbar from 'components/ui/Navbar';
 import AuthenticatedSidebar from 'components/ui/AuthenticatedSidebar';
 import NotificationCard from './components/NotificationCard';
 import NotificationFilters from './components/NotificationFilters';
@@ -27,6 +27,7 @@ const NotificationsCenter = () => {
     startDate: '',
     endDate: ''
   });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -363,7 +364,7 @@ const NotificationsCenter = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <AppHeader />
+        <Navbar />
         <AuthenticatedSidebar />
         <main className="ml-0 md:ml-16 lg:ml-64 pt-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -389,119 +390,120 @@ const NotificationsCenter = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader />
-      <AuthenticatedSidebar />
-      
-      <main className="ml-0 md:ml-16 lg:ml-64 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Page Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-heading font-heading-bold text-foreground mb-2">
-                Notifications Center
-              </h1>
-              <p className="text-muted-foreground">
-                Manage all your notifications in one place
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                iconName="RefreshCw"
-                iconPosition="left"
-                iconSize={16}
-                onClick={() => window.location.reload()}
-              >
-                Refresh
-              </Button>
-              <Button
-                variant="outline"
-                iconName="Settings"
-                iconPosition="left"
-                iconSize={16}
-              >
-                Settings
-              </Button>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="mb-6">
-            <NotificationFilters
-              filters={filters}
-              onFiltersChange={setFilters}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              notificationCounts={counts}
-              onClearFilters={handleClearFilters}
-            />
-          </div>
-
-          {/* Bulk Actions */}
-          <AnimatePresence>
-            {selectedNotifications.length > 0 && (
-              <div className="mb-6">
-                <BulkActions
-                  selectedCount={selectedNotifications.length}
-                  totalCount={filteredNotifications.length}
-                  onSelectAll={handleSelectAll}
-                  onDeselectAll={handleDeselectAll}
-                  onMarkAllRead={handleMarkAllRead}
-                  onMarkAllUnread={handleMarkAllUnread}
-                  onArchiveSelected={handleArchiveSelected}
-                  onDeleteSelected={handleDeleteSelected}
-                  isAllSelected={selectedNotifications.length === filteredNotifications.length}
-                />
+    <div className="flex flex-col min-h-screen bg-background">
+      <Navbar toggleNavbar={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
+      <div className="flex flex-1">
+        <AuthenticatedSidebar />
+        <main className="flex-1 ml-0 md:ml-16 lg:ml-64 pt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Page Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-3xl font-heading font-heading-bold text-foreground mb-2">
+                  Notifications Center
+                </h1>
+                <p className="text-muted-foreground">
+                  Manage all your notifications in one place
+                </p>
               </div>
-            )}
-          </AnimatePresence>
-
-          {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Notifications List */}
-            <div className="lg:col-span-3">
-              {filteredNotifications.length > 0 ? (
-                <div className="space-y-4">
-                  {filteredNotifications.map((notification, index) => (
-                    <NotificationCard
-                      key={notification.id}
-                      notification={notification}
-                      isSelected={selectedNotifications.includes(notification.id)}
-                      onSelect={handleNotificationSelect}
-                      onMarkRead={handleMarkRead}
-                      onArchive={handleArchive}
-                      onReply={handleReply}
-                      index={index}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  type={getEmptyStateType()}
-                  onClearFilters={handleClearFilters}
-                />
-              )}
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="outline"
+                  iconName="RefreshCw"
+                  iconPosition="left"
+                  iconSize={16}
+                  onClick={() => window.location.reload()}
+                >
+                  Refresh
+                </Button>
+                <Button
+                  variant="outline"
+                  iconName="Settings"
+                  iconPosition="left"
+                  iconSize={16}
+                >
+                  Settings
+                </Button>
+              </div>
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              <NotificationStats stats={stats} />
-              <QuickFilters
-                activeFilter={activeQuickFilter}
-                onFilterChange={setActiveQuickFilter}
-                counts={counts}
+            {/* Filters */}
+            <div className="mb-6">
+              <NotificationFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                notificationCounts={counts}
+                onClearFilters={handleClearFilters}
               />
             </div>
-          </div>
-        </div>
-      </main>
 
-      {/* Ambient Particles */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/10 rounded-full particle-float"></div>
-        <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-accent/10 rounded-full particle-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-secondary/10 rounded-full particle-float" style={{ animationDelay: '4s' }}></div>
+            {/* Bulk Actions */}
+            <AnimatePresence>
+              {selectedNotifications.length > 0 && (
+                <div className="mb-6">
+                  <BulkActions
+                    selectedCount={selectedNotifications.length}
+                    totalCount={filteredNotifications.length}
+                    onSelectAll={handleSelectAll}
+                    onDeselectAll={handleDeselectAll}
+                    onMarkAllRead={handleMarkAllRead}
+                    onMarkAllUnread={handleMarkAllUnread}
+                    onArchiveSelected={handleArchiveSelected}
+                    onDeleteSelected={handleDeleteSelected}
+                    isAllSelected={selectedNotifications.length === filteredNotifications.length}
+                  />
+                </div>
+              )}
+            </AnimatePresence>
+
+            {/* Main Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Notifications List */}
+              <div className="lg:col-span-3">
+                {filteredNotifications.length > 0 ? (
+                  <div className="space-y-4">
+                    {filteredNotifications.map((notification, index) => (
+                      <NotificationCard
+                        key={notification.id}
+                        notification={notification}
+                        isSelected={selectedNotifications.includes(notification.id)}
+                        onSelect={handleNotificationSelect}
+                        onMarkRead={handleMarkRead}
+                        onArchive={handleArchive}
+                        onReply={handleReply}
+                        index={index}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    type={getEmptyStateType()}
+                    onClearFilters={handleClearFilters}
+                  />
+                )}
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-6">
+                <NotificationStats stats={stats} />
+                <QuickFilters
+                  activeFilter={activeQuickFilter}
+                  onFilterChange={setActiveQuickFilter}
+                  counts={counts}
+                />
+              </div>
+            </div>
+          </div>
+        </main>
+
+        {/* Ambient Particles */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/10 rounded-full particle-float"></div>
+          <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-accent/10 rounded-full particle-float" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-secondary/10 rounded-full particle-float" style={{ animationDelay: '4s' }}></div>
+        </div>
       </div>
     </div>
   );

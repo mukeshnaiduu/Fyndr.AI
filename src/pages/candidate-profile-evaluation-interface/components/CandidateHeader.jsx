@@ -53,7 +53,7 @@ const CandidateHeader = ({ candidate, onAction }) => {
               </div>
               <div className="flex items-center space-x-1">
                 <Icon name="Briefcase" size={16} />
-                <span>{candidate.experience} years experience</span>
+                <span>{candidate.yearsOfExperience} years experience</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Icon name="DollarSign" size={16} />

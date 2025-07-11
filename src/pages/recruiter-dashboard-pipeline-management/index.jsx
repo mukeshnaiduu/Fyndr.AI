@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import MainLayout from 'components/layout/MainLayout'
-import SidebarLayout from 'components/layout/SidebarLayout';
 import { RoleProvider } from 'components/ui/RoleBasedNavigation';
 import RoleBasedNavigation from 'components/ui/RoleBasedNavigation';
 import UserProfileDropdown from 'components/ui/UserProfileDropdown';
@@ -13,8 +11,7 @@ import QuickActionCards from './components/QuickActionCards';
 import ActivityFeed from './components/ActivityFeed';
 import JobPostingManagement from './components/JobPostingManagement';
 import DEIMetrics from './components/DEIMetrics';
-import Icon from 'components/AppIcon';
-import Button from 'components/ui/Button';
+import MainLayout from 'components/layout/MainLayout';
 
 const RecruiterDashboard = () => {
   const [activeView, setActiveView] = useState('overview');
@@ -115,73 +112,9 @@ const RecruiterDashboard = () => {
 
   return (
     <RoleProvider>
-      <div className="min-h-screen bg-background">
-        <Header />
-        
-        <div className="flex pt-16">
-          {/* Sidebar */}
-          <div className={`fixed left-0 top-16 h-[calc(100vh-4rem)] glassmorphic border-r border-white/20 transition-all duration-300 z-40 ${
-            sidebarCollapsed ? 'w-16' : 'w-64'
-          }`}>
-            <div className="p-4">
-              {/* Sidebar Toggle */}
-              <div className="flex items-center justify-between mb-6">
-                {!sidebarCollapsed && (
-                  <h2 className="text-lg font-semibold text-foreground">Recruiter Hub</h2>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  iconName={sidebarCollapsed ? "ChevronRight" : "ChevronLeft"}
-                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="hover:bg-white/10"
-                />
-              </div>
-
-              {/* Search */}
-              {!sidebarCollapsed && (
-                <div className="mb-6">
-                  <SearchInterface
-                    placeholder="Search candidates, jobs..."
-                    onSearch={handleSearch}
-                    onFilterChange={handleFilterChange}
-                  />
-                </div>
-              )}
-
-              {/* Navigation */}
-              <nav className="space-y-2">
-                {navigationItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveView(item.id)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 hover:scale-105 ${
-                      activeView === item.id
-                        ? 'bg-primary/20 text-primary border border-primary/30' :'text-foreground hover:bg-white/10'
-                    }`}
-                    title={sidebarCollapsed ? item.label : undefined}
-                  >
-                    <Icon name={item.icon} size={20} />
-                    {!sidebarCollapsed && (
-                      <span className="font-medium">{item.label}</span>
-                    )}
-                  </button>
-                ))}
-              </nav>
-
-              {/* Role-based Navigation */}
-              {!sidebarCollapsed && (
-                <div className="mt-8">
-                  <RoleBasedNavigation />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className={`flex-1 transition-all duration-300 ${
-            sidebarCollapsed ? 'ml-16' : 'ml-64'
-          }`}>
+      <MainLayout title={navigationItems.find(item => item.id === activeView)?.label || 'Dashboard'} description="Manage your recruitment pipeline and track hiring metrics">
+        <div className="flex flex-1">
+          <main className="flex-1 pt-16">
             <div className="p-6">
               {/* Header Actions */}
               <div className="flex items-center justify-between mb-6">
@@ -203,9 +136,9 @@ const RecruiterDashboard = () => {
               {/* Dynamic Content */}
               {viewComponents[activeView]}
             </div>
-          </div>
+          </main>
         </div>
-      </div>
+      </MainLayout>
     </RoleProvider>
   );
 };
