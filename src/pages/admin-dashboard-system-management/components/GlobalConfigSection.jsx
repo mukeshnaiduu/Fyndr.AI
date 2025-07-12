@@ -10,7 +10,7 @@ const GlobalConfigSection = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   const [generalSettings, setGeneralSettings] = useState({
-    platformName: 'HireHub AI',
+    platformName: 'Fyndr.AI',
     platformDescription: 'AI-powered hiring and learning platform',
     supportEmail: 'support@hirehub.ai',
     maintenanceMode: false,
@@ -43,12 +43,12 @@ const GlobalConfigSection = () => {
   });
 
   const [emailSettings, setEmailSettings] = useState({
-    smtpHost: 'smtp.hirehub.ai',
+    smtpHost: 'smtp.fyndrai.com',
     smtpPort: '587',
-    smtpUsername: 'noreply@hirehub.ai',
+    smtpUsername: 'noreply@fyndrai.com',
     smtpPassword: '••••••••',
-    fromEmail: 'noreply@hirehub.ai',
-    fromName: 'HireHub AI',
+    fromEmail: 'noreply@fyndrai.com',
+    fromName: 'Fyndr.AI',
     emailTemplatesEnabled: true
   });
 

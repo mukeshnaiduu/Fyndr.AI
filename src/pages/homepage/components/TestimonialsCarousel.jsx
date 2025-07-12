@@ -15,7 +15,7 @@ const TestimonialsCarousel = () => {
       role: "Senior Software Engineer",
       company: "TechCorp",
       avatar: "https://images.unsplash.com/photo-1494790108755-2616b332c3c8?w=150&h=150&fit=crop&crop=face",
-      content: `HireHub AI transformed my job search completely. The AI-powered matching connected me with opportunities I never would have found otherwise. The interview preparation tools were incredibly helpful, and I landed my dream job within 3 weeks!`,
+      content: `Fyndr.AI transformed my job search completely. The AI-powered matching connected me with opportunities I never would have found otherwise. The interview preparation tools were incredibly helpful, and I landed my dream job within 3 weeks!`,
       rating: 5,
       skills: ["React", "Node.js", "Python", "AWS"],
       outcome: "Hired in 3 weeks",
@@ -27,7 +27,7 @@ const TestimonialsCarousel = () => {
       role: "Head of Talent Acquisition",
       company: "InnovateLabs",
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-      content: `As a recruiter, HireHub AI has been a game-changer. The bias-free screening and intelligent candidate matching have improved our hiring quality by 40%. The platform saves us countless hours while finding better candidates.`,
+      content: `As a recruiter, Fyndr.AI has been a game-changer. The bias-free screening and intelligent candidate matching have improved our hiring quality by 40%. The platform saves us countless hours while finding better candidates.`,
       rating: 5,
       skills: ["Talent Acquisition", "AI Screening", "Team Building"],
       outcome: "40% better quality",
@@ -39,7 +39,7 @@ const TestimonialsCarousel = () => {
       role: "VP of Engineering",
       company: "StartupXYZ",
       avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      content: `HireHub AI helped us scale our engineering team from 5 to 50 people in just 6 months. The analytics dashboard gives us incredible insights into our hiring funnel, and the collaboration tools keep our entire team aligned.`,
+      content: `Fyndr.AI helped us scale our engineering team from 5 to 50 people in just 6 months. The analytics dashboard gives us incredible insights into our hiring funnel, and the collaboration tools keep our entire team aligned.`,
       rating: 5,
       skills: ["Engineering Leadership", "Team Scaling", "Analytics"],
       outcome: "10x team growth",
@@ -63,7 +63,7 @@ const TestimonialsCarousel = () => {
       role: "HR Director",
       company: "GlobalTech",
       avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=face",
-      content: `The compliance tracking and bias-free hiring features ensure we meet all diversity goals while maintaining high standards. HireHub AI has made our hiring process more efficient and equitable.`,
+      content: `The compliance tracking and bias-free hiring features ensure we meet all diversity goals while maintaining high standards. Fyndr.AI has made our hiring process more efficient and equitable.`,
       rating: 5,
       skills: ["HR Management", "Compliance", "Diversity"],
       outcome: "100% compliance",
@@ -131,7 +131,7 @@ const TestimonialsCarousel = () => {
             Success Stories
           </h2>
           <p className="text-lg text-muted-foreground font-body leading-relaxed max-w-2xl mx-auto">
-            Hear from thousands of professionals who transformed their careers and hiring processes with HireHub AI.
+            Hear from thousands of professionals who transformed their careers and hiring processes with Fyndr.AI.
           </p>
         </motion.div>
 

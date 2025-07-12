@@ -1,5 +1,5 @@
 /**
- * Centralized route definitions for the integrated HireHub AI platform
+ * Centralized route definitions for the integrated Fyndr.AI platform
  * This helps maintain consistency across the merged repositories
  */
 

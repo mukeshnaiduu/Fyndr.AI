@@ -1,4 +1,4 @@
-# HireHub AI Merge Report
+# Fyndr.AI Merge Report
 
 ## Overview
 
@@ -6,7 +6,7 @@ This document summarizes the process and outcomes of merging four separate HireH
 
 ## Repositories Merged
 
-1. **HireHub AI - A**
+1. **Fyndr.AI - A**
 
    - Homepage & Landing Pages
    - Authentication & User Management
@@ -15,7 +15,7 @@ This document summarizes the process and outcomes of merging four separate HireH
    - About & Contact Pages
    - Notifications Center
 
-2. **HireHub AI - B**
+2. **Fyndr.AI - B**
 
    - AI-Powered Job Feed Dashboard
    - AI Resume Builder
@@ -24,7 +24,7 @@ This document summarizes the process and outcomes of merging four separate HireH
    - Recruiter/Employer Onboarding Wizard
    - Team Management Dashboard
 
-3. **HireHub AI - C**
+3. **Fyndr.AI - C**
 
    - Course Detail & Learning Interface
    - AI Career Coach Chat Interface
@@ -33,7 +33,7 @@ This document summarizes the process and outcomes of merging four separate HireH
    - Job Search & Application Hub
    - Admin Dashboard & System Management
 
-4. **HireHub AI - D**
+4. **Fyndr.AI - D**
    - Interview Practice Video Sessions
    - Mentorship Platform
    - Resource Library

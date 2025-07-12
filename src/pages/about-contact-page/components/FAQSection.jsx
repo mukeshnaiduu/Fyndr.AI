@@ -15,20 +15,20 @@ const FAQSection = () => {
       answer: "Our AI analyzes resumes, cover letters, and interview responses using natural language processing and machine learning algorithms. The system evaluates candidates based on skills, experience, and cultural fit while actively working to eliminate unconscious bias. All AI decisions are transparent and can be reviewed by human recruiters to ensure fairness and accuracy."
     },
     {
-      question: "Is my personal data secure on HireHub AI?",
+      question: "Is my personal data secure on Fyndr.AI?",
       answer: "Absolutely. We implement enterprise-grade security measures including end-to-end encryption, secure data storage, and compliance with GDPR, CCPA, and other privacy regulations. Your personal information is never shared without explicit consent, and you have full control over your data visibility and privacy settings."
     },
     {
       question: "What types of interviews can I conduct on the platform?",
-      answer: "HireHub AI supports various interview formats including one-on-one video interviews, panel interviews, technical coding assessments with real-time collaboration, whiteboard sessions, screen sharing for presentations, and AI-assisted behavioral interviews. All sessions can be recorded for later review with participant consent."
+      answer: "Fyndr.AI supports various interview formats including one-on-one video interviews, panel interviews, technical coding assessments with real-time collaboration, whiteboard sessions, screen sharing for presentations, and AI-assisted behavioral interviews. All sessions can be recorded for later review with participant consent."
     },
     {
       question: "How much does HireHub AI cost?",
       answer: "We offer flexible pricing plans for different user types. Job seekers can use basic features for free, while premium features are available through subscription. Recruiters and employers have tiered pricing based on company size and feature requirements. Contact our sales team for custom enterprise solutions and volume discounts."
     },
     {
-      question: "Can I integrate HireHub AI with my existing HR systems?",
-      answer: "Yes, HireHub AI offers robust API integrations with popular HR systems including Workday, BambooHR, Greenhouse, and many others. Our technical team provides comprehensive support for custom integrations and can work with your IT department to ensure seamless data flow between systems."
+      question: "Can I integrate Fyndr.AI with my existing HR systems?",
+      answer: "Yes, Fyndr.AI offers robust API integrations with popular HR systems including Workday, BambooHR, Greenhouse, and many others. Our technical team provides comprehensive support for custom integrations and can work with your IT department to ensure seamless data flow between systems."
     },
     {
       question: "What kind of support do you provide?",

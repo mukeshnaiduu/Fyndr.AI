@@ -15,7 +15,7 @@ const WizardLayout = ({ children, onSaveAndExit, showSaveOption = true }) => {
               <Icon name="Zap" size={20} color="white" />
             </div>
             <span className="font-heading font-bold text-xl bg-gradient-primary bg-clip-text text-transparent">
-              HireHub AI
+              Fyndr.AI
             </span>
           </div>
 
@@ -58,7 +58,8 @@ const WizardLayout = ({ children, onSaveAndExit, showSaveOption = true }) => {
       {/* Footer */}
       <footer className="mt-auto py-6 text-center text-sm text-muted-foreground">
         <div className="flex items-center justify-center space-x-4">
-          <span>© {new Date().getFullYear()} HireHub AI</span>
+          <span>© {new Date().getFullYear()} Fyndr.AI</span>
+              © {new Date().getFullYear()} Fyndr.AI
           <span>•</span>
           <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
           <span>•</span>

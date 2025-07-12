@@ -88,7 +88,7 @@ const CompletionStep = ({ data }) => {
         </div>
         
         <h1 className="text-3xl font-bold text-foreground mb-4">
-          Welcome to HireHub AI! 🎉
+          Welcome to Fyndr.AI! 🎉
         </h1>
         <p className="text-lg text-muted-foreground mb-2">
           Your account has been successfully set up
@@ -208,7 +208,7 @@ const CompletionStep = ({ data }) => {
           <div className="flex-1">
             <h4 className="font-semibold text-foreground mb-2">Need Help Getting Started?</h4>
             <p className="text-sm text-muted-foreground mb-4">
-              Our team is here to help you make the most of HireHub AI. Access our resources or contact support.
+              Our team is here to help you make the most of Fyndr.AI. Access our resources or contact support.
             </p>
             
             <div className="flex flex-wrap gap-3">

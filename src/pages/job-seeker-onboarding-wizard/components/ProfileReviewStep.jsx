@@ -340,7 +340,7 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
               <Icon name="CheckCircle" size={32} color="white" />
             </div>
             <h3 className="text-xl font-bold text-foreground mb-2">
-              Welcome to HireHub AI!
+              Welcome to Fyndr.AI!
             </h3>
             <p className="text-muted-foreground mb-4">
               Your profile has been created successfully. We're now finding the perfect job matches for you.

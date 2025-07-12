@@ -16,7 +16,7 @@ const AuthenticationPage = () => {
   const navigate = useNavigate();
 
   const welcomeTexts = {
-    login: "Welcome back to HireHub AI",
+    login: "Welcome back to Fyndr.AI",
     register: "Join the future of hiring"
   };
 

@@ -305,7 +305,7 @@ const VirtualCareerFair = () => {
   };
 
   useEffect(() => {
-    document.title = 'Virtual Career Fair - HireHub AI';
+    document.title = 'Virtual Career Fair - Fyndr.AI';
   }, []);
 
   return (

@@ -77,7 +77,7 @@ const FooterSection = () => {
                   </div>
                   <div>
                     <h3 className="text-xl font-heading font-heading-bold text-foreground tracking-wide">
-                      HireHub AI
+                      Fyndr.AI
                     </h3>
                     <p className="text-xs text-muted-foreground font-caption">
                       Intelligent Hiring Platform
@@ -256,7 +256,7 @@ const FooterSection = () => {
               transition={{ duration: 0.6 }}
               className="flex items-center space-x-4 text-xs text-muted-foreground"
             >
-              <span>© {currentYear} HireHub AI. All rights reserved.</span>
+              <span>© {currentYear} Fyndr.AI. All rights reserved.</span>
               <div className="flex items-center space-x-2">
                 <Icon name="Shield" size={14} className="text-success" />
                 <span>SOC 2 Compliant</span>

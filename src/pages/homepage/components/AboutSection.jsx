@@ -85,7 +85,7 @@ const AboutSection = () => {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-heading-bold text-foreground mb-4 tracking-wide">
-            About HireHub AI
+            About Fyndr.AI
           </h2>
           <p className="text-lg text-muted-foreground font-body leading-relaxed max-w-3xl mx-auto">
             We're on a mission to transform the future of hiring through artificial intelligence and human-centered design.

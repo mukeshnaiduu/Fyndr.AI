@@ -1,4 +1,4 @@
-# Navigation Integration for HireHub AI
+# Navigation Integration for Fyndr.AI
 
 ## Overview
 

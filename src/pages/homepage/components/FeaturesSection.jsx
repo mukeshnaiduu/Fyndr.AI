@@ -85,7 +85,7 @@ const FeaturesSection = () => {
             Powerful Features
           </h2>
           <p className="text-lg text-muted-foreground font-body leading-relaxed max-w-3xl mx-auto">
-            Discover the cutting-edge tools and capabilities that make HireHub AI the most advanced hiring platform in the market.
+            Discover the cutting-edge tools and capabilities that make Fyndr.AI the most advanced hiring platform in the market.
           </p>
         </motion.div>
 

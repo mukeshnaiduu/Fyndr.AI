@@ -99,7 +99,7 @@ const HeroSection = () => {
             </div>
             <div>
               <h1 className="text-3xl sm:text-4xl font-heading font-heading-bold text-foreground tracking-wide">
-                HireHub AI
+                Fyndr.AI
               </h1>
               <p className="text-sm text-muted-foreground font-caption">
                 Intelligent Hiring Platform

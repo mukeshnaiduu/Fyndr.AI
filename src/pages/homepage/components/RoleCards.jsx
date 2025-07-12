@@ -101,7 +101,7 @@ const RoleCards = () => {
             Choose Your Path
           </h2>
           <p className="text-lg text-muted-foreground font-body leading-relaxed max-w-2xl mx-auto">
-            Whether you're seeking opportunities, finding talent, or building teams, HireHub AI has the perfect solution for your needs.
+            Whether you're seeking opportunities, finding talent, or building teams, Fyndr.AI has the perfect solution for your needs.
           </p>
         </motion.div>
 

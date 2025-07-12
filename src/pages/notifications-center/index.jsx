@@ -74,7 +74,7 @@ const NotificationsCenter = () => {
     },
     {
       id: 4,
-      sender: "HireHub AI System",
+      sender: "Fyndr.AI System",
       avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
       title: "Profile Optimization Tip",
       message: "Your profile is 85% complete! Add 2 more skills and a professional summary to increase your visibility to recruiters by 40%.",
@@ -116,7 +116,7 @@ const NotificationsCenter = () => {
       sender: "Michael Rodriguez",
       avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
       title: "Connection Request",
-      message: "I\'d like to connect with you on HireHub AI. I\'m a Senior Developer at Google and I think we could have some great conversations about React development.",
+      message: "I\'d like to connect with you on Fyndr.AI. I\'m a Senior Developer at Google and I think we could have some great conversations about React development.",
       type: "message",
       priority: "low",
       timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),

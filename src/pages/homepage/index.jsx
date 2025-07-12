@@ -15,9 +15,9 @@ const Homepage = () => {
 
   return (
     <MainLayout
-      title="HireHub AI - Intelligent Hiring Platform | AI-Powered Recruitment"
-      description="Transform your hiring process with HireHub AI's intelligent recruitment platform. AI-powered screening, bias-free interviews, and smart candidate matching for job seekers, recruiters, and employers."
-      ogTitle="HireHub AI - Intelligent Hiring Platform"
+      title="Fyndr.AI - Intelligent Hiring Platform | AI-Powered Recruitment"
+      description="Transform your hiring process with Fyndr.AI's intelligent recruitment platform. AI-powered screening, bias-free interviews, and smart candidate matching for job seekers, recruiters, and employers."
+      ogTitle="Fyndr.AI - Intelligent Hiring Platform"
       ogDescription="Revolutionize your hiring process with AI-powered recruitment solutions"
       canonicalPath="/homepage"
       fullWidth
