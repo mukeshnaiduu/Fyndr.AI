@@ -36,10 +36,10 @@ const Footer = () => {
 
   // Social media links
   const socialLinks = [
-    { label: 'Twitter', href: 'https://twitter.com/hirehubai', icon: 'Twitter' },
-    { label: 'LinkedIn', href: 'https://linkedin.com/company/hirehubai', icon: 'Linkedin' },
-    { label: 'GitHub', href: 'https://github.com/hirehubai', icon: 'Github' },
-    { label: 'Instagram', href: 'https://instagram.com/hirehubai', icon: 'Instagram' },
+    { label: 'Twitter', href: 'https://twitter.com/fyndrai', icon: 'Twitter' },
+    { label: 'LinkedIn', href: 'https://linkedin.com/company/fyndrai', icon: 'Linkedin' },
+    { label: 'GitHub', href: 'https://github.com/fyndrai', icon: 'Github' },
+    { label: 'Instagram', href: 'https://instagram.com/fyndrai', icon: 'Instagram' },
   ];
 
   return (
@@ -54,7 +54,7 @@ const Footer = () => {
                 <Icon name="Zap" size={20} color="white" />
               </div>
               <span className="font-bold text-lg text-foreground">
-                HireHub<span className="text-primary">AI</span>
+                Fyndr<span className="text-primary">AI</span>
               </span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs">
@@ -103,7 +103,7 @@ const Footer = () => {
         {/* Footer bottom section with copyright and policies */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center">
           <p className="text-xs text-muted-foreground">
-            &copy; {currentYear} HireHub AI. All rights reserved.
+            &copy; {currentYear} FyndrAI. All rights reserved.
           </p>
           
           <div className="mt-4 sm:mt-0 flex flex-wrap justify-center space-x-4">

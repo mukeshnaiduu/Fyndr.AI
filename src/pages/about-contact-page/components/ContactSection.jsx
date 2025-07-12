@@ -40,7 +40,7 @@ const ContactSection = () => {
     {
       type: 'email',
       label: 'Email Us',
-      value: 'hello@hirehubai.com',
+      value: 'hello@fyndrai.com',
       icon: 'Mail',
       description: 'General inquiries and support'
     },
@@ -61,10 +61,10 @@ const ContactSection = () => {
   ];
 
   const socialLinks = [
-    { name: 'LinkedIn', icon: 'Linkedin', url: 'https://linkedin.com/company/hirehubai', color: '#0077B5' },
-    { name: 'Twitter', icon: 'Twitter', url: 'https://twitter.com/hirehubai', color: '#1DA1F2' },
-    { name: 'GitHub', icon: 'Github', url: 'https://github.com/hirehubai', color: '#333' },
-    { name: 'YouTube', icon: 'Youtube', url: 'https://youtube.com/hirehubai', color: '#FF0000' }
+    { name: 'LinkedIn', icon: 'Linkedin', url: 'https://linkedin.com/company/fyndrai', color: '#0077B5' },
+    { name: 'Twitter', icon: 'Twitter', url: 'https://twitter.com/fyndrai', color: '#1DA1F2' },
+    { name: 'GitHub', icon: 'Github', url: 'https://github.com/fyndrai', color: '#333' },
+    { name: 'YouTube', icon: 'Youtube', url: 'https://youtube.com/fyndrai', color: '#FF0000' }
   ];
 
   const handleInputChange = (e) => {

@@ -36,10 +36,10 @@ const FooterSection = () => {
   };
 
   const socialLinks = [
-    { name: 'Twitter', icon: 'Twitter', url: 'https://twitter.com/hirehubai', color: 'hover:text-blue-400' },
-    { name: 'LinkedIn', icon: 'Linkedin', url: 'https://linkedin.com/company/hirehubai', color: 'hover:text-blue-600' },
-    { name: 'GitHub', icon: 'Github', url: 'https://github.com/hirehubai', color: 'hover:text-gray-400' },
-    { name: 'YouTube', icon: 'Youtube', url: 'https://youtube.com/hirehubai', color: 'hover:text-red-500' }
+    { name: 'Twitter', icon: 'Twitter', url: 'https://twitter.com/fyndrai', color: 'hover:text-blue-400' },
+    { name: 'LinkedIn', icon: 'Linkedin', url: 'https://linkedin.com/company/fyndrai', color: 'hover:text-blue-600' },
+    { name: 'GitHub', icon: 'Github', url: 'https://github.com/fyndrai', color: 'hover:text-gray-400' },
+    { name: 'YouTube', icon: 'Youtube', url: 'https://youtube.com/fyndrai', color: 'hover:text-red-500' }
   ];
 
   const handleLinkClick = (path) => {

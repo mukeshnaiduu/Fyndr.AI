@@ -13,10 +13,10 @@ const AboutContactPage = () => {
 
   return (
     <MainLayout 
-      title="About Us & Contact - HireHub AI | Intelligent Hiring Platform"
-      description="Learn about HireHub AI's mission to revolutionize hiring through AI. Meet our team, get answers to FAQs, and contact us for support or partnerships."
-      ogTitle="About Us & Contact - HireHub AI"
-      ogDescription="Discover HireHub AI's mission, meet our expert team, and get in touch for support or partnerships."
+      title="About Us & Contact - FyndrAI | Intelligent Hiring Platform"
+      description="Learn about FyndrAI's mission to revolutionize hiring through AI. Meet our team, get answers to FAQs, and contact us for support or partnerships."
+      ogTitle="About Us & Contact - FyndrAI"
+      ogDescription="Discover FyndrAI's mission, meet our expert team, and get in touch for support or partnerships."
       canonicalPath="/about-contact-page"
     >
       <div className="min-h-screen bg-background">
@@ -47,7 +47,7 @@ const AboutContactPage = () => {
                   </div>
                   <div>
                     <h3 className="text-xl font-heading font-heading-bold text-foreground">
-                      HireHub AI
+                      FyndrAI
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Intelligent Hiring Platform
@@ -122,7 +122,7 @@ const AboutContactPage = () => {
                   </li>
                   <li>
                     <span className="text-muted-foreground">
-                      hello@hirehubai.com
+                      hello@fyndrai.com
                     </span>
                   </li>
                 </ul>
@@ -132,7 +132,7 @@ const AboutContactPage = () => {
             {/* Bottom Bar */}
             <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row items-center justify-between">
               <p className="text-muted-foreground text-sm">
-                © {new Date().getFullYear()} HireHub AI. All rights reserved.
+                © {new Date().getFullYear()} FyndrAI. All rights reserved.
               </p>
               <div className="flex items-center space-x-6 mt-4 md:mt-0">
                 <a href="#" className="text-muted-foreground hover:text-primary text-sm spring-transition">

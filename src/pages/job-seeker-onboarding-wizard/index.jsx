@@ -166,7 +166,7 @@ const JobSeekerOnboardingWizard = () => {
             <p className="text-xs text-muted-foreground">
               Need help? Contact our support team at{' '}
               <a href="mailto:support@hirehubai.com" className="text-primary hover:underline">
-                support@hirehubai.com
+                support@fyndrai.com
               </a>
             </p>
           </div>
