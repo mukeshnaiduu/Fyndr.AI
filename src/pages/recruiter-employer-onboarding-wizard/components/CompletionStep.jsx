@@ -42,7 +42,7 @@ const CompletionStep = ({ data }) => {
   useEffect(() => {
     // Trigger confetti animation
     setShowConfetti(true);
-    
+
     // Animate setup steps
     const timer = setInterval(() => {
       setCurrentStep(prev => {
@@ -73,9 +73,8 @@ const CompletionStep = ({ data }) => {
                 animationDuration: `${2 + Math.random() * 2}s`
               }}
             >
-              <div className={`w-2 h-2 rounded-full ${
-                ['bg-primary', 'bg-secondary', 'bg-accent', 'bg-success'][Math.floor(Math.random() * 4)]
-              }`} />
+              <div className={`w-2 h-2 rounded-full ${['bg-primary', 'bg-secondary', 'bg-accent', 'bg-success'][Math.floor(Math.random() * 4)]
+                }`} />
             </div>
           ))}
         </div>
@@ -86,7 +85,7 @@ const CompletionStep = ({ data }) => {
         <div className="w-24 h-24 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
           <Icon name="Check" size={48} color="white" />
         </div>
-        
+
         <h1 className="text-3xl font-bold text-foreground mb-4">
           Welcome to Fyndr.AI! 🎉
         </h1>
@@ -101,27 +100,24 @@ const CompletionStep = ({ data }) => {
       {/* Setup Progress */}
       <div className="glass-card p-6 rounded-card">
         <h3 className="text-lg font-semibold text-foreground mb-6">Setup Complete</h3>
-        
+
         <div className="space-y-4">
           {setupSteps.map((step, index) => (
             <div
               key={index}
-              className={`flex items-center space-x-3 transition-all duration-500 ${
-                index <= currentStep ? 'opacity-100' : 'opacity-50'
-              }`}
+              className={`flex items-center space-x-3 transition-all duration-500 ${index <= currentStep ? 'opacity-100' : 'opacity-50'
+                }`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-                index <= currentStep ? 'bg-success' : 'bg-muted'
-              }`}>
-                <Icon 
-                  name={index <= currentStep ? 'Check' : step.icon} 
-                  size={16} 
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${index <= currentStep ? 'bg-success' : 'bg-muted'
+                }`}>
+                <Icon
+                  name={index <= currentStep ? 'Check' : step.icon}
+                  size={16}
                   color={index <= currentStep ? 'white' : 'currentColor'}
                 />
               </div>
-              <span className={`text-sm font-medium ${
-                index <= currentStep ? 'text-foreground' : 'text-muted-foreground'
-              }`}>
+              <span className={`text-sm font-medium ${index <= currentStep ? 'text-foreground' : 'text-muted-foreground'
+                }`}>
                 {step.label}
               </span>
             </div>
@@ -132,7 +128,7 @@ const CompletionStep = ({ data }) => {
       {/* Account Summary */}
       <div className="glass-card p-6 rounded-card">
         <h3 className="text-lg font-semibold text-foreground mb-4">Account Summary</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <div className="flex justify-between">
@@ -148,7 +144,7 @@ const CompletionStep = ({ data }) => {
               <span className="text-foreground font-medium capitalize">{data.billingCycle}</span>
             </div>
           </div>
-          
+
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Team Members:</span>
@@ -173,7 +169,7 @@ const CompletionStep = ({ data }) => {
       {/* Next Steps */}
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-6">Recommended Next Steps</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {nextSteps.map((step, index) => (
             <Link
@@ -184,14 +180,14 @@ const CompletionStep = ({ data }) => {
               <div className={`w-12 h-12 ${step.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                 <Icon name={step.icon} size={24} color="white" />
               </div>
-              
+
               <h4 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                 {step.title}
               </h4>
               <p className="text-sm text-muted-foreground">
                 {step.description}
               </p>
-              
+
               <div className="flex items-center space-x-1 mt-4 text-primary group-hover:translate-x-1 transition-transform duration-300">
                 <span className="text-sm font-medium">Get started</span>
                 <Icon name="ArrowRight" size={16} />
@@ -210,7 +206,7 @@ const CompletionStep = ({ data }) => {
             <p className="text-sm text-muted-foreground mb-4">
               Our team is here to help you make the most of Fyndr.AI. Access our resources or contact support.
             </p>
-            
+
             <div className="flex flex-wrap gap-3">
               <Button variant="outline" size="sm" iconName="Book" iconPosition="left">
                 Documentation
@@ -233,7 +229,7 @@ const CompletionStep = ({ data }) => {
             Go to Dashboard
           </Button>
         </Link>
-        
+
         <p className="text-sm text-muted-foreground mt-4">
           Ready to transform your hiring process? Let's get started!
         </p>

@@ -55,7 +55,7 @@ const SomePage = () => {
   return (
     <>
       <Helmet>
-        <title>Page Title - HireHub AI</title>
+        <title>Page Title - Fyndr.AI</title>
       </Helmet>
       <Header />
       <div className="container mx-auto py-8">{/* Content */}</div>
@@ -94,7 +94,7 @@ const Dashboard = () => {
   return (
     <>
       <Helmet>
-        <title>Dashboard - HireHub AI</title>
+        <title>Dashboard - Fyndr.AI</title>
       </Helmet>
       <Header />
       <div className="flex">

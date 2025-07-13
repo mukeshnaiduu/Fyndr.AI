@@ -26,23 +26,23 @@ const Homepage = () => {
     >
       {/* Main Content - Homepage has its own custom layout */}
       <div className="relative">
-          {/* Hero Section */}
-          <HeroSection />
-          
-          {/* Role Selection Cards */}
-          <RoleCards />
-          
-          {/* Features Section */}
-          <FeaturesSection />
-          
-          {/* Testimonials Carousel */}
-          <TestimonialsCarousel />
-          
-          {/* About Section */}
-          <AboutSection />
-          
-          {/* Footer */}
-          <FooterSection />
+        {/* Hero Section */}
+        <HeroSection />
+
+        {/* Role Selection Cards */}
+        <RoleCards />
+
+        {/* Features Section */}
+        <FeaturesSection />
+
+        {/* Testimonials Carousel */}
+        <TestimonialsCarousel />
+
+        {/* About Section */}
+        <AboutSection />
+
+        {/* Footer */}
+        <FooterSection />
       </div>
     </MainLayout>
   );

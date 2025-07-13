@@ -1,33 +1,52 @@
 // components/ui/Select.jsx - Shadcn style Select
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useTheme } from "../ThemeProvider";
 import { ChevronDown, Check, Search, X } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "./Button";
 import Input from "./Input";
 
-const Select = React.forwardRef(({
-    className,
-    options = [],
-    value,
-    defaultValue,
-    placeholder = "Select an option",
-    multiple = false,
-    disabled = false,
-    required = false,
-    label,
-    description,
-    error,
-    searchable = false,
-    clearable = false,
-    loading = false,
-    id,
-    name,
-    onChange,
-    onOpenChange,
-    ...props
-}, ref) => {
+const Select = React.forwardRef((props, ref) => {
+    const containerRef = useRef(null);
+    const {
+        className,
+        options = [],
+        value,
+        defaultValue,
+        placeholder = "Select an option",
+        multiple = false,
+        disabled = false,
+        required = false,
+        label,
+        description,
+        error,
+        searchable = false,
+        clearable = false,
+        loading = false,
+        id,
+        name,
+        onChange,
+        onOpenChange,
+        ...rest
+    } = props;
+    const { theme } = useTheme();
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        if (!isOpen) return;
+        function handleClickOutside(event) {
+            if (containerRef.current && !containerRef.current.contains(event.target)) {
+                setIsOpen(false);
+                onOpenChange?.(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onOpenChange]);
 
     // Generate unique ID if not provided
     const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
@@ -99,29 +118,33 @@ const Select = React.forwardRef(({
     const hasValue = multiple ? value?.length > 0 : value !== undefined && value !== '';
 
     return (
-        <div className={cn("relative", className)}>
+        <div ref={containerRef} className={cn("relative", className)}>
             {label && (
-                <label
-                    htmlFor={selectId}
-                    className={cn(
-                        "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block",
-                        error ? "text-destructive" : "text-foreground"
-                    )}
-                >
-                    {label}
-                    {required && <span className="text-destructive ml-1">*</span>}
-                </label>
+                <div className="flex items-center mb-1">
+                    <label
+                        htmlFor={selectId}
+                        className={cn(
+                            "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+                            error ? "text-destructive" : theme === 'dark' ? "text-[#e0e7ff]" : "text-foreground"
+                        )}
+                    >
+                        {label}
+                        {required && <span className="text-destructive ml-1">*</span>}
+                    </label>
+                </div>
             )}
 
-            <div className="relative">
+            <div className="relative flex items-center gap-2">
                 <button
                     ref={ref}
                     id={selectId}
                     type="button"
                     className={cn(
-                        "flex h-10 w-full items-center justify-between rounded-md border border-input bg-white text-black px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                        "relative flex h-10 w-full items-center flex-nowrap rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                        theme === 'dark' ? "bg-[#23232a] text-[#e0e7ff] border-[#334155]" : "bg-white text-black border-input",
                         error && "border-destructive focus:ring-destructive",
-                        !hasValue && "text-muted-foreground"
+                        !hasValue && (theme === 'dark' ? "text-[#94a3b8]" : "text-muted-foreground"),
+                        "mt-0 gap-2"
                     )}
                     onClick={handleToggle}
                     disabled={disabled}
@@ -129,29 +152,25 @@ const Select = React.forwardRef(({
                     aria-haspopup="listbox"
                     {...props}
                 >
-                    <span className="truncate">{getSelectedDisplay()}</span>
-
-                    <div className="flex items-center gap-1">
-                        {loading && (
-                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                        )}
-
-                        {clearable && hasValue && !loading && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-4 w-4"
-                                onClick={handleClear}
-                            >
-                                <X className="h-3 w-3" />
-                            </Button>
-                        )}
-
-                        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
-                    </div>
+                    <span className={cn("truncate text-left", theme === 'dark' ? "text-[#e0e7ff]" : "text-foreground")}>{getSelectedDisplay()}</span>
+                    {loading && (
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                    )}
+                    {clearable && hasValue && !loading && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-4 w-4 p-0"
+                            onClick={handleClear}
+                            tabIndex={-1}
+                        >
+                            <X className="h-3 w-3" />
+                        </Button>
+                    )}
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
                 </button>
 
                 {/* Hidden native select for form submission */}
@@ -174,7 +193,7 @@ const Select = React.forwardRef(({
 
                 {/* Dropdown */}
                 {isOpen && (
-                    <div className="absolute z-50 w-full mt-1 bg-white text-black border border-border rounded-md shadow-md">
+                    <div className={cn("absolute left-0 z-50 w-full mt-1 border rounded-md shadow-md", theme === 'dark' ? "bg-[#23232a] text-[#e0e7ff] border-[#334155]" : "bg-white text-black border-border")}>
                         {searchable && (
                             <div className="p-2 border-b">
                                 <div className="relative">
@@ -199,8 +218,9 @@ const Select = React.forwardRef(({
                                     <div
                                         key={option.value}
                                         className={cn(
-                                            "relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                                            isSelected(option.value) && "bg-primary text-primary-foreground",
+                                            "relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none",
+                                            theme === 'dark' ? "hover:bg-[#18181b] hover:text-[#7dd3fc]" : "hover:bg-accent hover:text-accent-foreground",
+                                            isSelected(option.value) && (theme === 'dark' ? "bg-primary text-[#e0e7ff]" : "bg-primary text-primary-foreground"),
                                             option.disabled && "pointer-events-none opacity-50"
                                         )}
                                         onClick={() => !option.disabled && handleOptionSelect(option)}

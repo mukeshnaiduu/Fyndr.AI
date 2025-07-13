@@ -25,7 +25,7 @@ const SecurityMonitoringSection = () => {
       id: 2,
       timestamp: '2024-07-09 14:30:15',
       event: 'Successful login',
-      user: 'admin@hirehub.com',
+      user: 'admin@fyndrai.com',
       ip: '10.0.0.1',
       severity: 'low',
       status: 'allowed',
@@ -132,7 +132,7 @@ const SecurityMonitoringSection = () => {
 
   const handleThreatAction = (threatId, action) => {
     console.log(`Threat action: ${action} for threat:`, threatId);
-    setThreats(prev => prev.map(threat => 
+    setThreats(prev => prev.map(threat =>
       threat.id === threatId ? { ...threat, status: action } : threat
     ));
   };
@@ -140,8 +140,8 @@ const SecurityMonitoringSection = () => {
   const renderLogsTab = () => {
     const filteredLogs = securityLogs.filter(log => {
       const matchesSearch = log.event.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           log.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           log.ip.includes(searchQuery);
+        log.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.ip.includes(searchQuery);
       const matchesSeverity = selectedSeverity === 'all' || log.severity === selectedSeverity;
       return matchesSearch && matchesSeverity;
     });
@@ -163,7 +163,7 @@ const SecurityMonitoringSection = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground mb-2">
                   <div>
                     <span className="font-medium">User:</span> {log.user}
@@ -175,10 +175,10 @@ const SecurityMonitoringSection = () => {
                     <span className="font-medium">Time:</span> {log.timestamp}
                   </div>
                 </div>
-                
+
                 <p className="text-sm text-muted-foreground">{log.details}</p>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -223,7 +223,7 @@ const SecurityMonitoringSection = () => {
                   </span>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-muted-foreground mb-2">
                 <div>
                   <span className="font-medium">Source:</span> {threat.source}
@@ -239,7 +239,7 @@ const SecurityMonitoringSection = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
@@ -318,7 +318,7 @@ const SecurityMonitoringSection = () => {
           </div>
           <div className="text-2xl font-bold text-error">3</div>
         </div>
-        
+
         <div className="glassmorphic-surface p-4 rounded-lg">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Blocked IPs</span>
@@ -326,7 +326,7 @@ const SecurityMonitoringSection = () => {
           </div>
           <div className="text-2xl font-bold text-warning">127</div>
         </div>
-        
+
         <div className="glassmorphic-surface p-4 rounded-lg">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Failed Logins</span>
@@ -334,7 +334,7 @@ const SecurityMonitoringSection = () => {
           </div>
           <div className="text-2xl font-bold text-error">45</div>
         </div>
-        
+
         <div className="glassmorphic-surface p-4 rounded-lg">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">Security Score</span>
@@ -351,17 +351,15 @@ const SecurityMonitoringSection = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'bg-primary/20 text-primary border border-primary/30' :'text-muted-foreground hover:text-foreground hover:bg-white/10'
-              }`}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+                  ? 'bg-primary/20 text-primary border border-primary/30' : 'text-muted-foreground hover:text-foreground hover:bg-white/10'
+                }`}
             >
               <Icon name={tab.icon} size={16} />
               <span>{tab.label}</span>
               {tab.count > 0 && (
-                <span className={`px-2 py-0.5 rounded-full text-xs ${
-                  activeTab === tab.id ? 'bg-primary/20 text-primary' : 'bg-white/10 text-muted-foreground'
-                }`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id ? 'bg-primary/20 text-primary' : 'bg-white/10 text-muted-foreground'
+                  }`}>
                   {tab.count}
                 </span>
               )}

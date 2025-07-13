@@ -23,10 +23,10 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
 
   // Mock credentials for different roles
   const mockCredentials = {
-    job_seeker: { email: 'jobseeker@hirehub.ai', password: 'JobSeeker123!' },
-    recruiter: { email: 'recruiter@hirehub.ai', password: 'Recruiter123!' },
-    employer: { email: 'employer@hirehub.ai', password: 'Employer123!' },
-    administrator: { email: 'admin@hirehub.ai', password: 'Admin123!' }
+    job_seeker: { email: 'jobseeker@fyndrai.com', password: 'JobSeeker123!' },
+    recruiter: { email: 'recruiter@fyndrai.com', password: 'Recruiter123!' },
+    employer: { email: 'employer@fyndrai.com', password: 'Employer123!' },
+    administrator: { email: 'admin@fyndrai.com', password: 'Admin123!' }
   };
 
   const validateForm = () => {
@@ -81,7 +81,7 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -90,7 +90,7 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     // Check mock credentials for login
@@ -101,8 +101,8 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
 
       if (!isValidCredentials) {
         setErrors({
-          email: 'Invalid credentials. Try: jobseeker@hirehub.ai / JobSeeker123!',
-          password: 'Invalid credentials. Try: jobseeker@hirehub.ai / JobSeeker123!'
+          email: 'Invalid credentials. Try: jobseeker@fyndrai.com / JobSeeker123!',
+          password: 'Invalid credentials. Try: jobseeker@fyndrai.com / JobSeeker123!'
         });
         return;
       }
@@ -112,7 +112,7 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-sm mx-auto bg-white/95 dark:bg-neutral-900 dark:shadow-xl rounded-squircle p-6 shadow-lg">
       {mode === 'register' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
@@ -139,51 +139,47 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
       )}
 
       <Input
-        label="Email Address"
+        label={<span className="text-foreground">Email Address</span>}
         type="email"
-        placeholder="Enter your email"
+        placeholder="Enter your email address"
         value={formData.email}
         onChange={(e) => handleInputChange('email', e.target.value)}
         error={errors.email}
         required
         disabled={isLoading}
+        inputClassName="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300"
       />
+      {errors.email && (
+        <p className="text-xs text-error mt-1">{errors.email}</p>
+      )}
 
-      <div className="space-y-2">
-        <Input
-          label="Password"
-          type={showPassword ? "text" : "password"}
-          placeholder="Enter your password"
-          value={formData.password}
-          onChange={(e) => handleInputChange('password', e.target.value)}
-          error={errors.password}
-          required
-          disabled={isLoading}
+      <Input
+        label={<span className="text-foreground">Password</span>}
+        type={showPassword ? "text" : "password"}
+        placeholder="Enter your password"
+        value={formData.password}
+        onChange={(e) => handleInputChange('password', e.target.value)}
+        inputClassName="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300"
+        error={errors.password}
+        required
+        disabled={isLoading}
+      />
+      <Checkbox
+        label="Show password"
+        checked={showPassword}
+        onChange={(e) => setShowPassword(e.target.checked)}
+        size="sm"
+      />
+      {errors.password && (
+        <p className="text-xs text-error mt-1">{errors.password}</p>
+      )}
+
+      {formData.password.length > 0 && (
+        <PasswordStrengthIndicator
+          password={formData.password}
+          isVisible={formData.password.length > 0}
         />
-        <div className="flex items-center justify-between">
-          <Checkbox
-            label="Show password"
-            checked={showPassword}
-            onChange={(e) => setShowPassword(e.target.checked)}
-            size="sm"
-          />
-          {mode === 'login' && (
-            <button
-              type="button"
-              className="text-sm text-primary hover:text-primary/80 spring-transition"
-            >
-              Forgot password?
-            </button>
-          )}
-        </div>
-        
-        {mode === 'register' && (
-          <PasswordStrengthIndicator 
-            password={formData.password} 
-            isVisible={formData.password.length > 0}
-          />
-        )}
-      </div>
+      )}
 
       {mode === 'register' && (
         <>
@@ -204,6 +200,9 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
               onChange={(e) => setShowConfirmPassword(e.target.checked)}
               size="sm"
             />
+            {errors.confirmPassword && (
+              <p className="text-xs text-error mt-1">{errors.confirmPassword}</p>
+            )}
           </div>
 
           <RoleSelector
@@ -211,6 +210,9 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
             onRoleChange={(value) => handleInputChange('role', value)}
             error={errors.role}
           />
+          {errors.role && (
+            <p className="text-xs text-error mt-1">{errors.role}</p>
+          )}
 
           <div className="space-y-3">
             <Checkbox
@@ -220,6 +222,9 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
               error={errors.agreeToTerms}
               required
             />
+            {errors.agreeToTerms && (
+              <p className="text-xs text-error mt-1">{errors.agreeToTerms}</p>
+            )}
           </div>
         </>
       )}
@@ -252,10 +257,10 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
           Demo Credentials:
         </h4>
         <div className="space-y-1 text-xs font-data">
-          <div className="text-muted-foreground">Job Seeker: jobseeker@hirehub.ai / JobSeeker123!</div>
-          <div className="text-muted-foreground">Recruiter: recruiter@hirehub.ai / Recruiter123!</div>
-          <div className="text-muted-foreground">Employer: employer@hirehub.ai / Employer123!</div>
-          <div className="text-muted-foreground">Admin: admin@hirehub.ai / Admin123!</div>
+          <div className="text-muted-foreground">Job Seeker: jobseeker@fyndrai.com / JobSeeker123!</div>
+          <div className="text-muted-foreground">Recruiter: recruiter@fyndrai.com / Recruiter123!</div>
+          <div className="text-muted-foreground">Employer: employer@fyndrai.com / Employer123!</div>
+          <div className="text-muted-foreground">Admin: admin@fyndrai.com / Admin123!</div>
         </div>
       </div>
     </form>

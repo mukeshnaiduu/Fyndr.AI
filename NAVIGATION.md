@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides details on the newly integrated navigation system for the HireHub AI platform. The navigation has been redesigned to provide a consistent user experience across all pages from the four merged repositories.
+This document provides details on the newly integrated navigation system for the Fyndr.AI platform. The navigation has been redesigned to provide a consistent user experience across all pages from the four merged repositories.
 
 ## Components Added
 

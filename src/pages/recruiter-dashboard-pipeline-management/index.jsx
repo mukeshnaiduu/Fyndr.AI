@@ -112,7 +112,7 @@ const RecruiterDashboard = () => {
 
   return (
     <RoleProvider>
-      <MainLayout title={navigationItems.find(item => item.id === activeView)?.label || 'Dashboard'} description="Manage your recruitment pipeline and track hiring metrics">
+      <MainLayout title={(navigationItems.find(item => item.id === activeView)?.label || 'Dashboard') + ' - Fyndr.AI'} description="Manage your recruitment pipeline and track hiring metrics">
         <div className="flex flex-1">
           <main className="flex-1 pt-16">
             <div className="p-6">
@@ -126,7 +126,7 @@ const RecruiterDashboard = () => {
                     Manage your recruitment pipeline and track hiring metrics
                   </p>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <NotificationCenter />
                   <UserProfileDropdown />

@@ -76,10 +76,10 @@ const AppHeader = () => {
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl font-heading font-heading-bold text-foreground tracking-wide">
-                  HireHub AI
+                  Fyndr.AI
                 </h1>
                 <p className="text-xs text-muted-foreground font-caption">
-                  Intelligent Hiring Platform
+                  Intelligent Career Platform
                 </p>
               </div>
             </button>
@@ -91,11 +91,10 @@ const AppHeader = () => {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-squircle spring-transition ripple ${
-                  isActivePath(item.path)
+                className={`flex items-center space-x-2 px-4 py-2 rounded-squircle spring-transition ripple ${isActivePath(item.path)
                     ? 'bg-primary text-primary-foreground glow-primary'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
+                  }`}
               >
                 <Icon name={item.icon} size={18} />
                 <span className="font-body font-body-medium tracking-wide">
@@ -176,11 +175,10 @@ const AppHeader = () => {
                   navigate(item.path);
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center space-x-3 w-full px-4 py-3 rounded-squircle spring-transition ${
-                  isActivePath(item.path)
+                className={`flex items-center space-x-3 w-full px-4 py-3 rounded-squircle spring-transition ${isActivePath(item.path)
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
+                  }`}
               >
                 <Icon name={item.icon} size={20} />
                 <span className="font-body font-body-medium tracking-wide">

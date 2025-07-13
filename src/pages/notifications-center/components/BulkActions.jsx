@@ -3,16 +3,16 @@ import { motion } from 'framer-motion';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 
-const BulkActions = ({ 
-  selectedCount, 
+const BulkActions = ({
+  selectedCount,
   totalCount,
-  onSelectAll, 
-  onDeselectAll, 
-  onMarkAllRead, 
+  onSelectAll,
+  onDeselectAll,
+  onMarkAllRead,
   onMarkAllUnread,
   onArchiveSelected,
   onDeleteSelected,
-  isAllSelected 
+  isAllSelected
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
@@ -39,7 +39,7 @@ const BulkActions = ({
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="glassmorphic rounded-squircle p-4 border elevation-2 glow-primary"
+        className="glassmorphic rounded-squircle p-4 border elevation-2 glow-primary dark:bg-neutral-900/80"
       >
         <div className="flex items-center justify-between">
           {/* Selection Info */}
@@ -51,7 +51,7 @@ const BulkActions = ({
                 onChange={handleSelectToggle}
                 className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2"
               />
-              <span className="text-sm font-body font-body-medium text-foreground">
+              <span className="text-sm font-body font-body-medium text-foreground dark:text-white">
                 {selectedCount} of {totalCount} selected
               </span>
             </div>
@@ -176,7 +176,7 @@ const BulkActions = ({
             </div>
 
             <p className="text-sm text-muted-foreground mb-6">
-              Are you sure you want to delete {selectedCount} selected notification{selectedCount > 1 ? 's' : ''}? 
+              Are you sure you want to delete {selectedCount} selected notification{selectedCount > 1 ? 's' : ''}?
               This will permanently remove them from your notification history.
             </p>
 

@@ -70,7 +70,7 @@ const ContactSection = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -103,17 +103,17 @@ const ContactSection = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     setIsSubmitting(false);
     setIsSubmitted(true);
-    
+
     // Reset form after success
     setTimeout(() => {
       setFormData({
@@ -144,7 +144,7 @@ const ContactSection = () => {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-background to-card/50">
+    <section className="py-20 bg-gradient-to-b from-background to-card/50 dark:from-neutral-950 dark:to-neutral-900/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -160,16 +160,16 @@ const ContactSection = () => {
               Contact Us
             </span>
           </div>
-          
+
           <h2 className="text-4xl md:text-5xl font-heading font-heading-bold text-foreground mb-6">
             Get in{" "}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Touch
             </span>
           </h2>
-          
+
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Have questions about HireHub AI? Need support? Want to explore partnership opportunities? We'd love to hear from you.
+            Have questions about Fyndr.AI? Need support? Want to explore partnership opportunities? We'd love to hear from you.
           </p>
         </motion.div>
 
@@ -220,7 +220,7 @@ const ContactSection = () => {
                     error={errors.name}
                     required
                   />
-                  
+
                   <Input
                     label="Email Address"
                     name="email"
@@ -242,7 +242,7 @@ const ContactSection = () => {
                     value={formData.company}
                     onChange={handleInputChange}
                   />
-                  
+
                   <Select
                     label="Your Role"
                     options={roleOptions}
@@ -263,7 +263,7 @@ const ContactSection = () => {
                     error={errors.subject}
                     required
                   />
-                  
+
                   <Select
                     label="Priority"
                     options={priorityOptions}
@@ -282,9 +282,8 @@ const ContactSection = () => {
                     placeholder="Tell us how we can help you..."
                     value={formData.message}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 bg-input border rounded-squircle text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent spring-transition resize-none ${
-                      errors.message ? 'border-error' : 'border-border'
-                    }`}
+                    className={`w-full px-4 py-3 bg-input border rounded-squircle text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent spring-transition resize-none ${errors.message ? 'border-error' : 'border-border'
+                      }`}
                   />
                   {errors.message && (
                     <p className="mt-1 text-sm text-error">{errors.message}</p>
@@ -326,7 +325,7 @@ const ContactSection = () => {
                     <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent/20 rounded-squircle flex items-center justify-center flex-shrink-0 group-hover:scale-110 spring-transition">
                       <Icon name={info.icon} size={24} className="text-primary" />
                     </div>
-                    
+
                     <div className="flex-1">
                       <h4 className="text-lg font-heading font-heading-semibold text-foreground mb-1">
                         {info.label}
@@ -334,22 +333,22 @@ const ContactSection = () => {
                       <p className="text-muted-foreground text-sm mb-2">
                         {info.description}
                       </p>
-                      
+
                       <div className="flex items-center space-x-2">
                         <span className="text-foreground font-body font-body-medium">
                           {info.value}
                         </span>
-                        
+
                         {(info.type === 'email' || info.type === 'phone') && (
                           <button
                             onClick={() => copyToClipboard(info.value, info.type)}
                             className="p-1 text-muted-foreground hover:text-primary spring-transition"
                             title="Copy to clipboard"
                           >
-                            <Icon 
-                              name={copiedItem === info.type ? "Check" : "Copy"} 
-                              size={16} 
-                              className={copiedItem === info.type ? "text-success" : ""} 
+                            <Icon
+                              name={copiedItem === info.type ? "Check" : "Copy"}
+                              size={16}
+                              className={copiedItem === info.type ? "text-success" : ""}
                             />
                           </button>
                         )}
@@ -370,7 +369,7 @@ const ContactSection = () => {
                   width="100%"
                   height="100%"
                   loading="lazy"
-                  title="HireHub AI Office Location"
+                  title="Fyndr.AI Office Location"
                   referrerPolicy="no-referrer-when-downgrade"
                   src="https://www.google.com/maps?q=37.7749,-122.4194&z=14&output=embed"
                   className="border-0"
@@ -384,9 +383,9 @@ const ContactSection = () => {
                 Follow Us
               </h4>
               <p className="text-muted-foreground text-sm mb-6">
-                Stay updated with the latest news and insights from HireHub AI.
+                Stay updated with the latest news and insights from Fyndr.AI.
               </p>
-              
+
               <div className="flex items-center space-x-4">
                 {socialLinks.map((social, index) => (
                   <button

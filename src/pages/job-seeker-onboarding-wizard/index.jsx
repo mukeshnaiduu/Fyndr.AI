@@ -55,7 +55,7 @@ const JobSeekerOnboardingWizard = () => {
   useEffect(() => {
     const savedData = localStorage.getItem('jobSeekerOnboardingData');
     const savedStep = localStorage.getItem('jobSeekerOnboardingStep');
-    
+
     if (savedData) {
       try {
         setFormData(JSON.parse(savedData));
@@ -63,7 +63,7 @@ const JobSeekerOnboardingWizard = () => {
         console.error('Error loading saved data:', error);
       }
     }
-    
+
     if (savedStep) {
       setCurrentStep(parseInt(savedStep));
     }
@@ -101,7 +101,7 @@ const JobSeekerOnboardingWizard = () => {
     // Clear saved progress
     localStorage.removeItem('jobSeekerOnboardingData');
     localStorage.removeItem('jobSeekerOnboardingStep');
-    
+
     // Navigate to dashboard (handled in ProfileReviewStep)
   };
 
@@ -118,7 +118,7 @@ const JobSeekerOnboardingWizard = () => {
   }
 
   return (
-    <WizardLayout 
+    <WizardLayout
       onSaveAndExit={handleSaveAndExit}
       showSaveOption={currentStep < steps.length}
     >
@@ -161,11 +161,11 @@ const JobSeekerOnboardingWizard = () => {
               <span>Auto-Save Enabled</span>
             </div>
           </div>
-          
+
           <div className="text-center mt-4">
             <p className="text-xs text-muted-foreground">
               Need help? Contact our support team at{' '}
-              <a href="mailto:support@hirehubai.com" className="text-primary hover:underline">
+              <a href="mailto:support@fyndrai.com" className="text-primary hover:underline">
                 support@fyndrai.com
               </a>
             </p>

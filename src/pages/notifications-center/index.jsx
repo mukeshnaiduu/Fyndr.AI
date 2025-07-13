@@ -28,6 +28,7 @@ const NotificationsCenter = () => {
     endDate: ''
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showNavbar, setShowNavbar] = useState(true);
 
   const navigate = useNavigate();
 
@@ -361,12 +362,15 @@ const NotificationsCenter = () => {
     return 'all';
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <AuthenticatedSidebar />
-        <main className="ml-0 md:ml-16 lg:ml-64 pt-16">
+  // Remove Navbar from inside isLoading conditional
+
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      {showNavbar && (
+        <Navbar toggleNavbar={() => setShowNavbar(false)} key={showNavbar ? 'navbar-visible' : 'navbar-hidden'} />
+      )}
+      <main className={`flex-1${showNavbar ? ' mt-16' : ''}`}>
+        {isLoading ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="animate-pulse space-y-6">
               <div className="h-8 bg-muted rounded-squircle w-1/3"></div>
@@ -384,23 +388,13 @@ const NotificationsCenter = () => {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Navbar toggleNavbar={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
-      <div className="flex flex-1">
-        <AuthenticatedSidebar />
-        <main className="flex-1 ml-0 md:ml-16 lg:ml-64 pt-16">
+        ) : (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Page Header */}
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-heading font-heading-bold text-foreground mb-2">
-                  Notifications Center
+                  Notifications Center - Fyndr.AI
                 </h1>
                 <p className="text-muted-foreground">
                   Manage all your notifications in one place
@@ -459,51 +453,36 @@ const NotificationsCenter = () => {
             </AnimatePresence>
 
             {/* Main Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Notifications List */}
-              <div className="lg:col-span-3">
-                {filteredNotifications.length > 0 ? (
-                  <div className="space-y-4">
-                    {filteredNotifications.map((notification, index) => (
-                      <NotificationCard
-                        key={notification.id}
-                        notification={notification}
-                        isSelected={selectedNotifications.includes(notification.id)}
-                        onSelect={handleNotificationSelect}
-                        onMarkRead={handleMarkRead}
-                        onArchive={handleArchive}
-                        onReply={handleReply}
-                        index={index}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    type={getEmptyStateType()}
-                    onClearFilters={handleClearFilters}
+            <div className="space-y-4">
+              {filteredNotifications.length > 0 ? (
+                filteredNotifications.map((notification, index) => (
+                  <NotificationCard
+                    key={notification.id}
+                    notification={notification}
+                    isSelected={selectedNotifications.includes(notification.id)}
+                    onSelect={handleNotificationSelect}
+                    onMarkRead={handleMarkRead}
+                    onArchive={handleArchive}
+                    onReply={handleReply}
+                    index={index}
                   />
-                )}
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
-                <NotificationStats stats={stats} />
-                <QuickFilters
-                  activeFilter={activeQuickFilter}
-                  onFilterChange={setActiveQuickFilter}
-                  counts={counts}
+                ))
+              ) : (
+                <EmptyState
+                  type={getEmptyStateType()}
+                  onClearFilters={handleClearFilters}
                 />
-              </div>
+              )}
             </div>
           </div>
-        </main>
+        )}
+      </main>
 
-        {/* Ambient Particles */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/10 rounded-full particle-float"></div>
-          <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-accent/10 rounded-full particle-float" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-secondary/10 rounded-full particle-float" style={{ animationDelay: '4s' }}></div>
-        </div>
+      {/* Ambient Particles */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/10 rounded-full particle-float"></div>
+        <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-accent/10 rounded-full particle-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-secondary/10 rounded-full particle-float" style={{ animationDelay: '4s' }}></div>
       </div>
     </div>
   );

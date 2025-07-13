@@ -19,8 +19,8 @@ import { cn } from '../../utils/cn';
  * @param {string} props.ogDescription - Open Graph description
  * @param {string} props.canonicalPath - Canonical URL path
  */
-const MainLayout = ({ 
-  children, 
+const MainLayout = ({
+  children,
   title,
   description,
   className,
@@ -37,7 +37,7 @@ const MainLayout = ({
       {/* Meta tags */}
       {(title || description || ogTitle || ogDescription || canonicalPath) && (
         <Helmet>
-          {title && <title>{title} - HireHub AI</title>}
+          {title && <title>{title} - Fyndr.AI</title>}
           {description && <meta name="description" content={description} />}
           {ogTitle && <meta property="og:title" content={ogTitle} />}
           {ogDescription && <meta property="og:description" content={ogDescription} />}
@@ -48,7 +48,7 @@ const MainLayout = ({
       <div className="min-h-screen bg-background flex flex-col">
         {/* Main content area */}
         <div className={cn(
-          "flex-grow w-full", 
+          "flex-grow w-full",
           !noPadding && "px-4 py-6 sm:px-6 lg:px-8",
           className
         )}>
@@ -59,7 +59,7 @@ const MainLayout = ({
             {children}
           </div>
         </div>
-        
+
         {/* Footer */}
         {!hideFooter && <Footer />}
       </div>

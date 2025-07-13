@@ -70,7 +70,7 @@ const ChatPanel = ({ participants, currentUser }) => {
 
       setMessages(prev => [...prev, message]);
       setNewMessage('');
-      
+
       // Simulate response after 2 seconds
       setTimeout(() => {
         const otherParticipant = participants.find(p => p.id !== currentUser.id);
@@ -82,7 +82,7 @@ const ChatPanel = ({ participants, currentUser }) => {
             "Interesting perspective.",
             "I agree with your approach."
           ];
-          
+
           const response = {
             id: Date.now() + 1,
             sender: otherParticipant,
@@ -90,7 +90,7 @@ const ChatPanel = ({ participants, currentUser }) => {
             timestamp: new Date(),
             type: 'text'
           };
-          
+
           setMessages(prev => [...prev, response]);
         }
       }, 2000);
@@ -105,9 +105,9 @@ const ChatPanel = ({ participants, currentUser }) => {
   };
 
   const formatTime = (timestamp) => {
-    return timestamp.toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return timestamp.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -135,17 +135,17 @@ const ChatPanel = ({ participants, currentUser }) => {
   ];
 
   return (
-    <div className="h-full flex flex-col glassmorphic rounded-squircle">
+    <div className="h-full flex flex-col glassmorphic dark:glassmorphic-dark rounded-squircle">
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center space-x-3">
-          <Icon name="MessageCircle" size={20} className="text-primary" />
-          <h3 className="font-heading font-heading-semibold text-foreground">
+          <Icon name="MessageCircle" size={20} className="text-primary dark:text-primary-dark" />
+          <h3 className="font-heading font-heading-semibold text-foreground dark:text-foreground-dark">
             Chat
           </h3>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-xs text-muted-foreground font-data">
+          <span className="text-xs text-muted-foreground dark:text-muted-foreground-dark font-data">
             {participants.length} participants
           </span>
           <Button
@@ -167,11 +167,10 @@ const ChatPanel = ({ participants, currentUser }) => {
             <div className={`max-w-xs lg:max-w-sm ${isCurrentUser(message.sender) ? 'order-2' : 'order-1'}`}>
               {/* Message Bubble */}
               <div
-                className={`px-4 py-2 rounded-squircle ${
-                  isCurrentUser(message.sender)
-                    ? 'bg-primary text-primary-foreground ml-4'
-                    : 'bg-muted text-foreground mr-4'
-                } ${message.type === 'quick' ? 'bg-accent text-accent-foreground' : ''}`}
+                className={`px-4 py-2 rounded-squircle ${isCurrentUser(message.sender)
+                    ? 'bg-primary text-primary-foreground dark:bg-primary-dark dark:text-primary-foreground-dark ml-4'
+                    : 'bg-muted text-foreground dark:bg-muted-dark dark:text-foreground-dark mr-4'
+                  } ${message.type === 'quick' ? 'bg-accent text-accent-foreground dark:bg-accent-dark dark:text-accent-foreground-dark' : ''}`}
               >
                 <p className="text-sm font-body break-words">
                   {message.content}
@@ -179,14 +178,13 @@ const ChatPanel = ({ participants, currentUser }) => {
               </div>
 
               {/* Message Info */}
-              <div className={`flex items-center space-x-2 mt-1 px-2 ${
-                isCurrentUser(message.sender) ? 'justify-end' : 'justify-start'
-              }`}>
-                <span className="text-xs text-muted-foreground font-data">
+              <div className={`flex items-center space-x-2 mt-1 px-2 ${isCurrentUser(message.sender) ? 'justify-end' : 'justify-start'
+                }`}>
+                <span className="text-xs text-muted-foreground dark:text-muted-foreground-dark font-data">
                   {formatTime(message.timestamp)}
                 </span>
                 {!isCurrentUser(message.sender) && (
-                  <span className="text-xs text-muted-foreground font-caption">
+                  <span className="text-xs text-muted-foreground dark:text-muted-foreground-dark font-caption">
                     {message.sender.name}
                   </span>
                 )}
@@ -194,11 +192,10 @@ const ChatPanel = ({ participants, currentUser }) => {
             </div>
 
             {/* Avatar */}
-            <div className={`w-8 h-8 rounded-full flex-shrink-0 ${
-              isCurrentUser(message.sender) ? 'order-1 mr-2' : 'order-2 ml-2'
-            }`}>
-              <div className="w-full h-full bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
-                <span className="text-xs font-heading font-heading-bold text-white">
+            <div className={`w-8 h-8 rounded-full flex-shrink-0 ${isCurrentUser(message.sender) ? 'order-1 mr-2' : 'order-2 ml-2'
+              }`}>
+              <div className="w-full h-full bg-gradient-to-br from-primary to-accent dark:from-primary-dark dark:to-accent-dark rounded-full flex items-center justify-center">
+                <span className="text-xs font-heading font-heading-bold text-white dark:text-white">
                   {message.sender.name.charAt(0)}
                 </span>
               </div>
@@ -209,13 +206,13 @@ const ChatPanel = ({ participants, currentUser }) => {
         {/* Typing Indicator */}
         {typingUsers.length > 0 && (
           <div className="flex justify-start">
-            <div className="flex items-center space-x-2 bg-muted px-4 py-2 rounded-squircle">
+            <div className="flex items-center space-x-2 bg-muted dark:bg-muted-dark px-4 py-2 rounded-squircle">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-muted-foreground dark:bg-muted-foreground-dark rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-muted-foreground dark:bg-muted-foreground-dark rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-muted-foreground dark:bg-muted-foreground-dark rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
-              <span className="text-xs text-muted-foreground">typing...</span>
+              <span className="text-xs text-muted-foreground dark:text-muted-foreground-dark">typing...</span>
             </div>
           </div>
         )}
@@ -230,7 +227,7 @@ const ChatPanel = ({ participants, currentUser }) => {
             <button
               key={index}
               onClick={() => sendQuickMessage(message)}
-              className="text-xs bg-secondary text-secondary-foreground px-3 py-1 rounded-full hover:bg-secondary/80 spring-transition"
+              className="text-xs bg-secondary text-secondary-foreground dark:bg-secondary-dark dark:text-secondary-foreground-dark px-3 py-1 rounded-full hover:bg-secondary/80 dark:hover:bg-secondary-dark/80 spring-transition"
             >
               {message}
             </button>
@@ -249,7 +246,7 @@ const ChatPanel = ({ participants, currentUser }) => {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="resize-none"
+              className="resize-none bg-muted dark:bg-muted-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
             />
           </div>
           <Button
@@ -259,15 +256,15 @@ const ChatPanel = ({ participants, currentUser }) => {
             disabled={!newMessage.trim()}
             iconName="Send"
             iconSize={16}
-            className="flex-shrink-0"
+            className="flex-shrink-0 bg-primary text-primary-foreground dark:bg-primary-dark dark:text-primary-foreground-dark"
           />
         </form>
       </div>
 
       {/* Ambient Particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-squircle">
-        <div className="absolute top-16 left-4 w-1 h-1 bg-primary/20 rounded-full particle-float"></div>
-        <div className="absolute bottom-20 right-6 w-1.5 h-1.5 bg-accent/30 rounded-full particle-float" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-16 left-4 w-1 h-1 bg-primary/30 dark:bg-primary/40 rounded-full particle-float"></div>
+        <div className="absolute bottom-20 right-6 w-1.5 h-1.5 bg-accent/40 dark:bg-accent/50 rounded-full particle-float" style={{ animationDelay: '4s' }}></div>
       </div>
     </div>
   );

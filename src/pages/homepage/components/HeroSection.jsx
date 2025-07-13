@@ -32,8 +32,10 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-card to-secondary/20">
+      {/* Overlay for better text contrast */}
+      <div className="absolute inset-0 bg-black/20 z-10" />
       {/* Animated Background Blobs */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
           className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-3xl"
           animate={{
@@ -77,7 +79,7 @@ const HeroSection = () => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -196,8 +198,8 @@ const HeroSection = () => {
         </motion.div>
       </div>
 
-      {/* Floating Particles */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* Floating Particles - hide on mobile for overlap prevention */}
+      <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/30 rounded-full particle-float"></div>
         <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-accent/40 rounded-full particle-float" style={{ animationDelay: '2s' }}></div>
         <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-secondary/35 rounded-full particle-float" style={{ animationDelay: '4s' }}></div>

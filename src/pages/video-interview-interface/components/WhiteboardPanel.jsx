@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTheme } from 'components/ThemeProvider';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 
 const WhiteboardPanel = () => {
+  const { theme } = useTheme();
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentTool, setCurrentTool] = useState('pen');
   const [currentColor, setCurrentColor] = useState('#a78bfa');
@@ -51,12 +53,12 @@ const WhiteboardPanel = () => {
 
   const handleMouseDown = (e) => {
     if (currentTool === 'text') return;
-    
+
     setIsDrawing(true);
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     setCurrentPath([{ x, y }]);
     setRedoStack([]);
     setCanRedo(false);
@@ -64,17 +66,17 @@ const WhiteboardPanel = () => {
 
   const handleMouseMove = (e) => {
     if (!isDrawing) return;
-    
+
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     setCurrentPath(prev => [...prev, { x, y }]);
   };
 
   const handleMouseUp = () => {
     if (!isDrawing) return;
-    
+
     setIsDrawing(false);
     if (currentPath.length > 0) {
       const newPath = {
@@ -84,7 +86,7 @@ const WhiteboardPanel = () => {
         color: currentColor,
         strokeWidth: strokeWidth
       };
-      
+
       setPaths(prev => [...prev, newPath]);
       setCurrentPath([]);
       setCanUndo(true);
@@ -121,12 +123,12 @@ const WhiteboardPanel = () => {
 
   const renderPath = (path) => {
     if (path.points.length < 2) return null;
-    
+
     let pathData = `M ${path.points[0].x} ${path.points[0].y}`;
     for (let i = 1; i < path.points.length; i++) {
       pathData += ` L ${path.points[i].x} ${path.points[i].y}`;
     }
-    
+
     return (
       <path
         key={path.id}
@@ -142,12 +144,12 @@ const WhiteboardPanel = () => {
 
   const renderCurrentPath = () => {
     if (currentPath.length < 2) return null;
-    
+
     let pathData = `M ${currentPath[0].x} ${currentPath[0].y}`;
     for (let i = 1; i < currentPath.length; i++) {
       pathData += ` L ${currentPath[i].x} ${currentPath[i].y}`;
     }
-    
+
     return (
       <path
         d={pathData}
@@ -162,114 +164,75 @@ const WhiteboardPanel = () => {
   };
 
   return (
-    <div className="h-full flex flex-col glassmorphic rounded-squircle">
-      {/* Whiteboard Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center space-x-3">
-          <Icon name="PenTool" size={20} className="text-primary" />
-          <h3 className="font-heading font-heading-semibold text-foreground">
-            Whiteboard
-          </h3>
+    <div className={`h-full flex flex-row rounded-squircle ${theme === 'dark' ? 'bg-[#18181b]' : 'glassmorphic'}`}>
+      {/* Settings Sidebar */}
+      <div className={`flex flex-col items-start gap-6 p-4 border-r min-w-[200px] max-w-[240px] overflow-y-auto ${theme === 'dark' ? 'bg-[#23232a] border-[#334155]' : 'bg-white border-border'}`}>
+        {/* Whiteboard Header */}
+        <div className="flex items-center gap-2 mb-2">
+          <Icon name="PenTool" size={20} className={theme === 'dark' ? 'text-[#38bdf8]' : 'text-primary'} />
+          <h3 className={`font-heading font-heading-semibold ${theme === 'dark' ? 'text-[#e0e7ff]' : 'text-foreground'}`}>Whiteboard</h3>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleUndo}
-            disabled={!canUndo}
-            iconName="Undo"
-            iconSize={16}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRedo}
-            disabled={!canRedo}
-            iconName="Redo"
-            iconSize={16}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleClear}
-            iconName="Trash2"
-            iconSize={16}
-            className="text-error hover:text-error"
-          />
+        {/* Actions */}
+        <div className="flex items-center gap-2 mb-4">
+          <Button variant="ghost" size="icon" onClick={handleUndo} disabled={!canUndo} iconName="Undo" iconSize={16} />
+          <Button variant="ghost" size="icon" onClick={handleRedo} disabled={!canRedo} iconName="Redo" iconSize={16} />
+          <Button variant="ghost" size="icon" onClick={handleClear} iconName="Trash2" iconSize={16} className="text-error hover:text-error" />
         </div>
-      </div>
-
-      {/* Tools Panel */}
-      <div className="p-4 border-b border-border space-y-4">
         {/* Drawing Tools */}
-        <div className="flex flex-wrap gap-2">
-          {tools.map((tool) => (
-            <Button
-              key={tool.id}
-              variant={currentTool === tool.id ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCurrentTool(tool.id)}
-              iconName={tool.icon}
-              iconPosition="left"
-              iconSize={16}
-              className="flex-shrink-0"
-            >
-              {tool.name}
-            </Button>
-          ))}
+        <div className="flex flex-col gap-2 w-full">
+          <span className={`text-sm font-body font-body-medium mb-1 ${theme === 'dark' ? 'text-[#94a3b8]' : 'text-foreground'}`}>Tools:</span>
+          <div className="flex flex-wrap gap-2">
+            {tools.map((tool) => (
+              <Button
+                key={tool.id}
+                variant={currentTool === tool.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentTool(tool.id)}
+                iconName={tool.icon}
+                iconPosition="left"
+                iconSize={16}
+                className="flex-shrink-0"
+              >
+                {tool.name}
+              </Button>
+            ))}
+          </div>
         </div>
-
         {/* Color Palette */}
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-body font-body-medium text-foreground">
-            Color:
-          </span>
-          <div className="flex space-x-2">
+        <div className="flex flex-col gap-2 w-full mt-4">
+          <span className={`text-sm font-body font-body-medium mb-1 ${theme === 'dark' ? 'text-[#94a3b8]' : 'text-foreground'}`}>Color:</span>
+          <div className="flex flex-wrap gap-2">
             {colors.map((color) => (
               <button
                 key={color}
                 onClick={() => setCurrentColor(color)}
-                className={`w-6 h-6 rounded-full border-2 spring-transition ${
-                  currentColor === color ? 'border-foreground scale-110' : 'border-border'
-                }`}
+                className={`w-6 h-6 rounded-full border-2 spring-transition ${currentColor === color ? 'border-foreground scale-110' : 'border-border'}`}
                 style={{ backgroundColor: color }}
               />
             ))}
           </div>
         </div>
-
         {/* Stroke Width */}
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-body font-body-medium text-foreground">
-            Size:
-          </span>
-          <div className="flex space-x-2">
+        <div className="flex flex-col gap-2 w-full mt-4">
+          <span className={`text-sm font-body font-body-medium mb-1 ${theme === 'dark' ? 'text-[#94a3b8]' : 'text-foreground'}`}>Size:</span>
+          <div className="flex flex-wrap gap-2">
             {strokeWidths.map((width) => (
               <button
                 key={width}
                 onClick={() => setStrokeWidth(width)}
-                className={`w-8 h-8 rounded-squircle border-2 flex items-center justify-center spring-transition ${
-                  strokeWidth === width ? 'border-primary bg-primary/10' : 'border-border'
-                }`}
+                className={`w-8 h-8 rounded-squircle border-2 flex items-center justify-center spring-transition ${strokeWidth === width ? 'border-primary bg-primary/10' : 'border-border'}`}
               >
-                <div
-                  className="rounded-full bg-foreground"
-                  style={{ 
-                    width: `${Math.min(width, 6)}px`, 
-                    height: `${Math.min(width, 6)}px` 
-                  }}
-                />
+                <div className="rounded-full bg-foreground" style={{ width: `${Math.min(width, 6)}px`, height: `${Math.min(width, 6)}px` }} />
               </button>
             ))}
           </div>
         </div>
       </div>
-
       {/* Canvas Area */}
       <div className="flex-1 relative overflow-hidden">
         <svg
           ref={canvasRef}
-          className="w-full h-full cursor-crosshair bg-white/50 rounded-b-squircle"
+          className={`w-full h-full cursor-crosshair rounded-b-squircle ${theme === 'dark' ? 'bg-[#18181b]' : 'bg-white/50'}`}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -277,41 +240,24 @@ const WhiteboardPanel = () => {
         >
           {/* Grid Pattern */}
           <defs>
-            <pattern
-              id="grid"
-              width="20"
-              height="20"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 20 0 L 0 0 0 20"
-                fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="0.5"
-                opacity="0.3"
-              />
+            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke={theme === 'dark' ? '#334155' : '#e2e8f0'} strokeWidth="0.5" opacity="0.3" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
-          
           {/* Rendered Paths */}
           {paths.map(renderPath)}
-          
           {/* Current Path */}
           {renderCurrentPath()}
         </svg>
-
         {/* Collaborative Cursors */}
-        <div className="absolute top-4 left-4 glassmorphic px-3 py-1.5 rounded-squircle">
+        <div className={`absolute top-4 left-4 px-3 py-1.5 rounded-squircle ${theme === 'dark' ? 'bg-[#23232a] text-[#e0e7ff]' : 'glassmorphic text-foreground'}`}>
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-            <span className="text-xs text-foreground font-body font-body-medium">
-              2 users active
-            </span>
+            <span className="text-xs font-body font-body-medium">2 users active</span>
           </div>
         </div>
       </div>
-
       {/* Ambient Particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-squircle">
         <div className="absolute top-20 left-8 w-1 h-1 bg-primary/20 rounded-full particle-float"></div>

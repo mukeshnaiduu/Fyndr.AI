@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTheme } from 'components/ThemeProvider';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 import Select from 'components/ui/Select';
 
 const CodeEditorPanel = () => {
+  const { theme } = useTheme();
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('javascript');
-  const [theme, setTheme] = useState('light');
+  // Theme is now controlled by app context
   const [fontSize, setFontSize] = useState(14);
   const [isCollaborating, setIsCollaborating] = useState(true);
   const [collaborators, setCollaborators] = useState([]);
@@ -22,10 +24,7 @@ const CodeEditorPanel = () => {
     { value: 'sql', label: 'SQL' }
   ];
 
-  const themes = [
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' }
-  ];
+  // Theme selection removed; use app theme
 
   const fontSizes = [
     { value: 12, label: '12px' },
@@ -43,7 +42,7 @@ const CodeEditorPanel = () => {
 function fibonacci(n) {
   if (n <= 1) return n;
   return fibonacci(n - 1) + fibonacci(n - 2);
-}
+        const [fontSize, setFontSize] = useState(14); // Font size state
 
 console.log(fibonacci(10));`,
       python: `# Welcome to the coding interview!
@@ -182,47 +181,21 @@ ORDER BY total_spent DESC;`
   };
 
   const getThemeClasses = () => {
-    return theme === 'dark' ?'bg-gray-900 text-gray-100 border-gray-700' :'bg-white text-gray-900 border-gray-300';
+    return theme === 'dark' ? 'bg-gray-900 text-gray-100 border-gray-700' : 'bg-white text-gray-900 border-gray-300';
   };
 
   return (
-    <div className="h-full flex flex-col glassmorphic rounded-squircle">
-      {/* Code Editor Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center space-x-3">
-          <Icon name="Code" size={20} className="text-primary" />
-          <h3 className="font-heading font-heading-semibold text-foreground">
-            Code Editor
-          </h3>
+    <div className={`h-full flex flex-row rounded-squircle ${theme === 'dark' ? 'bg-[#18181b]' : 'glassmorphic'}`}>
+      {/* Settings Sidebar */}
+      <div className={`flex flex-col items-start gap-6 p-6 border-r ${theme === 'dark' ? 'bg-[#23232a] border-[#334155]' : 'bg-white border-border'} min-w-[270px]`}>
+        <div className="flex items-center gap-2 mb-2">
+          <Icon name="Code" size={20} className={theme === 'dark' ? 'text-[#38bdf8]' : 'text-primary'} />
+          <h3 className={`font-heading font-heading-semibold ${theme === 'dark' ? 'text-[#e0e7ff]' : 'text-foreground'}`}>Code Editor</h3>
         </div>
-        <div className="flex items-center space-x-2">
-          {isCollaborating && (
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-              <span className="text-xs text-success font-body font-body-medium">
-                Live
-              </span>
-            </div>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRunCode}
-            iconName="Play"
-            iconSize={16}
-            className="text-success hover:text-success"
-          />
-        </div>
-      </div>
-
-      {/* Editor Controls */}
-      <div className="p-4 border-b border-border">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-col gap-4 w-full">
           {/* Language Selection */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-body font-body-medium text-foreground">
-              Language:
-            </span>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-body font-body-medium ${theme === 'dark' ? 'text-[#94a3b8]' : 'text-foreground'}`}>Language:</span>
             <Select
               options={languages}
               value={language}
@@ -230,25 +203,10 @@ ORDER BY total_spent DESC;`
               className="w-32"
             />
           </div>
-
-          {/* Theme Selection */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-body font-body-medium text-foreground">
-              Theme:
-            </span>
-            <Select
-              options={themes}
-              value={theme}
-              onChange={setTheme}
-              className="w-24"
-            />
-          </div>
-
+          {/* Theme selection removed; app theme is used */}
           {/* Font Size */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-body font-body-medium text-foreground">
-              Size:
-            </span>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-body font-body-medium ${theme === 'dark' ? 'text-[#94a3b8]' : 'text-foreground'}`}>Size:</span>
             <Select
               options={fontSizes}
               value={fontSize}
@@ -256,9 +214,8 @@ ORDER BY total_spent DESC;`
               className="w-20"
             />
           </div>
-
           {/* Action Buttons */}
-          <div className="flex items-center space-x-2 ml-auto">
+          <div className="flex items-center gap-2 mt-2">
             <Button
               variant="ghost"
               size="sm"
@@ -266,6 +223,7 @@ ORDER BY total_spent DESC;`
               iconName="AlignLeft"
               iconPosition="left"
               iconSize={14}
+              className={theme === 'dark' ? 'text-[#38bdf8] hover:text-[#7dd3fc]' : ''}
             >
               Format
             </Button>
@@ -276,6 +234,7 @@ ORDER BY total_spent DESC;`
               iconName="Copy"
               iconPosition="left"
               iconSize={14}
+              className={theme === 'dark' ? 'text-[#38bdf8] hover:text-[#7dd3fc]' : ''}
             >
               Copy
             </Button>
@@ -286,88 +245,105 @@ ORDER BY total_spent DESC;`
               iconName="Download"
               iconPosition="left"
               iconSize={14}
+              className={theme === 'dark' ? 'text-[#38bdf8] hover:text-[#7dd3fc]' : ''}
             >
               Save
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Code Editor */}
-      <div className="flex-1 relative">
-        <textarea
-          ref={textareaRef}
-          value={code}
-          onChange={handleCodeChange}
-          className={`w-full h-full p-4 font-data resize-none focus:outline-none ${getThemeClasses()}`}
-          style={{ fontSize: `${fontSize}px` }}
-          placeholder={`Start coding in ${language}...`}
-          spellCheck={false}
-        />
-
-        {/* Collaborator Cursors */}
-        {isCollaborating && collaborators.map((collaborator) => (
-          <div
-            key={collaborator.id}
-            className="absolute pointer-events-none"
-            style={{
-              top: `${collaborator.cursor.line * 1.5}rem`,
-              left: `${collaborator.cursor.column * 0.6}rem`,
-              color: collaborator.color
-            }}
-          >
-            <div className="flex items-center space-x-1">
-              <div 
-                className="w-0.5 h-4 animate-pulse"
-                style={{ backgroundColor: collaborator.color }}
-              />
-              <span 
-                className="text-xs px-2 py-1 rounded text-white font-body font-body-medium"
-                style={{ backgroundColor: collaborator.color }}
-              >
-                {collaborator.name}
-              </span>
-            </div>
+        {/* Collaboration Status */}
+        {isCollaborating && (
+          <div className="flex items-center gap-2 mt-4">
+            <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+            <span className="text-xs text-success font-body font-body-medium">Live</span>
           </div>
-        ))}
-
-        {/* Line Numbers */}
-        <div className="absolute left-0 top-0 p-4 text-muted-foreground font-data text-right select-none pointer-events-none">
-          {code.split('\n').map((_, index) => (
-            <div key={index} style={{ fontSize: `${fontSize}px`, lineHeight: '1.5' }}>
-              {index + 1}
-            </div>
-          ))}
-        </div>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRunCode}
+          iconName="Play"
+          iconSize={16}
+          className={theme === 'dark' ? 'text-success hover:text-success' : 'text-success hover:text-success'}
+        />
       </div>
-
-      {/* Status Bar */}
-      <div className="flex items-center justify-between p-3 border-t border-border text-xs text-muted-foreground">
-        <div className="flex items-center space-x-4">
-          <span>Lines: {code.split('\n').length}</span>
-          <span>Characters: {code.length}</span>
-          <span>Language: {language.toUpperCase()}</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          {collaborators.map((collaborator) => (
-            <div
-              key={collaborator.id}
-              className="flex items-center space-x-1"
-            >
+      {/* Code Editor Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Code Editor - Fix overlap and dark mode */}
+        <div className="flex-1 relative flex">
+          {/* Line Numbers Column */}
+          <div className={`h-full py-4 px-2 text-muted-foreground font-data text-right select-none pointer-events-none border-r border-border bg-background ${theme === 'dark' ? 'bg-[#23232a] border-[#334155] text-[#7dd3fc]' : 'bg-white border-gray-300 text-gray-400'}`} style={{ minWidth: '3rem' }}>
+            {code.split('\n').map((_, index) => (
+              <div key={index} style={{ fontSize: `${fontSize}px`, lineHeight: '1.5' }}>
+                {index + 1}
+              </div>
+            ))}
+          </div>
+          {/* Code Textarea */}
+          <div className="flex-1 h-full relative">
+            <textarea
+              ref={textareaRef}
+              value={code}
+              onChange={handleCodeChange}
+              className={`w-full h-full p-4 font-data resize-none focus:outline-none border ${theme === 'dark' ? 'bg-[#18181b] text-[#e0e7ff] border-[#334155] placeholder:text-[#64748b]' : 'bg-white text-gray-900 border-gray-300'}`}
+              style={{ fontSize: `${fontSize}px`, lineHeight: '1.5', minHeight: '100%', caretColor: theme === 'dark' ? '#38bdf8' : undefined }}
+              placeholder={`Start coding in ${language}...`}
+              spellCheck={false}
+            />
+            {/* Collaborator Cursors */}
+            {isCollaborating && collaborators.map((collaborator) => (
               <div
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: collaborator.color }}
-              />
-              <span>{collaborator.name}</span>
-            </div>
-          ))}
+                key={collaborator.id}
+                className="absolute pointer-events-none"
+                style={{
+                  top: `${collaborator.cursor.line * 1.5}rem`,
+                  left: `${collaborator.cursor.column * 0.6}rem`,
+                  color: collaborator.color
+                }}
+              >
+                <div className="flex items-center space-x-1">
+                  <div
+                    className="w-0.5 h-4 animate-pulse"
+                    style={{ backgroundColor: collaborator.color }}
+                  />
+                  <span
+                    className="text-xs px-2 py-1 rounded text-white font-body font-body-medium"
+                    style={{ backgroundColor: collaborator.color }}
+                  >
+                    {collaborator.name}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      {/* Ambient Particles */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-squircle">
-        <div className="absolute top-24 left-12 w-1 h-1 bg-primary/20 rounded-full particle-float"></div>
-        <div className="absolute bottom-32 right-8 w-1.5 h-1.5 bg-accent/30 rounded-full particle-float" style={{ animationDelay: '5s' }}></div>
+        {/* Status Bar */}
+        <div className={`flex items-center justify-between p-3 border-t border-border text-xs ${theme === 'dark' ? 'bg-[#23232a] text-[#94a3b8]' : 'text-muted-foreground'}`}>
+          <div className="flex items-center space-x-4">
+            <span>Lines: {code.split('\n').length}</span>
+            <span>Characters: {code.length}</span>
+            <span>Language: {language.toUpperCase()}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            {collaborators.map((collaborator) => (
+              <div
+                key={collaborator.id}
+                className="flex items-center space-x-1"
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: collaborator.color }}
+                />
+                <span className={theme === 'dark' ? 'text-[#e0e7ff]' : ''}>{collaborator.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Ambient Particles */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-squircle">
+          <div className="absolute top-24 left-12 w-1 h-1 bg-primary/20 rounded-full particle-float"></div>
+          <div className="absolute bottom-32 right-8 w-1.5 h-1.5 bg-accent/30 rounded-full particle-float" style={{ animationDelay: '5s' }}></div>
+        </div>
       </div>
     </div>
   );

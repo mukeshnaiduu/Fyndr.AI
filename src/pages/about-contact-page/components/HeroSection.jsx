@@ -46,7 +46,7 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-card to-secondary/20">
+    <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-card to-secondary/20 dark:from-neutral-950 dark:via-neutral-900 dark:to-secondary/40">
       {/* Animated Background Blobs */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -91,7 +91,7 @@ const HeroSection = () => {
             </div>
             <div className="text-left">
               <h1 className="text-2xl font-heading font-heading-bold text-foreground tracking-wide">
-                HireHub AI
+                Fyndr.AI
               </h1>
               <p className="text-sm text-muted-foreground font-caption">
                 Intelligent Hiring Platform
@@ -110,20 +110,19 @@ const HeroSection = () => {
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading font-heading-bold text-foreground mb-6 leading-tight">
             About{" "}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              HireHub AI
+              Fyndr.AI
             </span>
           </h2>
-          
+
           <div className="max-w-4xl mx-auto">
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-8">
               {missionText.split(' ').map((word, index) => (
                 <span
                   key={index}
-                  className={`${
-                    highlightWords.includes(word.replace(/[.,]/g, '')) && 
+                  className={`${highlightWords.includes(word.replace(/[.,]/g, '')) &&
                     highlightWords[currentWordIndex] === word.replace(/[.,]/g, '')
-                      ? 'text-accent font-body-semibold bg-accent/10 px-1 rounded' :''
-                  } spring-transition`}
+                    ? 'text-accent font-body-semibold bg-accent/10 px-1 rounded' : ''
+                    } spring-transition`}
                 >
                   {word}{' '}
                 </span>
@@ -145,7 +144,7 @@ const HeroSection = () => {
               Our Vision
             </h3>
           </div>
-          
+
           <div className="text-lg text-muted-foreground">
             {visionWords.map((word, index) => (
               <motion.span

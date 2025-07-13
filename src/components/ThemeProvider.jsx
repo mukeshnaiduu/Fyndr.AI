@@ -14,7 +14,7 @@ export const ThemeProvider = ({ children }) => {
   const getInitialTheme = () => {
     // Check if we're in the browser
     if (typeof window !== 'undefined' && window.localStorage) {
-      const storedTheme = window.localStorage.getItem('hirehub-theme');
+      const storedTheme = window.localStorage.getItem('fyndrai-theme');
       if (storedTheme) {
         return storedTheme;
       }
@@ -40,13 +40,13 @@ export const ThemeProvider = ({ children }) => {
   // Update document with theme class and save to localStorage
   useEffect(() => {
     const root = window.document.documentElement;
-    
+
     // Remove old theme class and add new one
     root.classList.remove(themes.light, themes.dark);
     root.classList.add(theme);
-    
+
     // Save to localStorage
-    localStorage.setItem('hirehub-theme', theme);
+    localStorage.setItem('fyndrai-theme', theme);
   }, [theme]);
 
   return (

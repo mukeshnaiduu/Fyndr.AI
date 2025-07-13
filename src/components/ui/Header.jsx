@@ -12,7 +12,7 @@ const Header = ({ showNavbarInstead = true }) => {
   if (showNavbarInstead) {
     return <Navbar />;
   }
-  
+
   // Original Header code for backward compatibility
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -104,7 +104,7 @@ const Header = ({ showNavbarInstead = true }) => {
   const handleThemeToggle = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
-    
+
     if (newTheme) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
@@ -123,9 +123,9 @@ const Header = ({ showNavbarInstead = true }) => {
   };
 
   const handleNotificationClick = (notificationId) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === notificationId 
+    setNotifications(prev =>
+      prev.map(notif =>
+        notif.id === notificationId
           ? { ...notif, unread: false }
           : notif
       )
@@ -151,7 +151,7 @@ const Header = ({ showNavbarInstead = true }) => {
               <Icon name="Zap" size={20} color="white" />
             </div>
             <span className="text-xl font-semibold text-foreground hidden sm:block">
-              HireHub AI
+              Fyndr.AI
             </span>
           </Link>
 
@@ -161,17 +161,15 @@ const Header = ({ showNavbarInstead = true }) => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-spring hover:bg-white/10 hover:shadow-elevation-1 group ${
-                  isActiveRoute(item.path) 
-                    ? 'bg-primary/20 text-primary border border-primary/30' :'text-foreground hover:text-primary'
-                }`}
-              >
-                <Icon 
-                  name={item.icon} 
-                  size={18} 
-                  className={`transition-spring ${
-                    isActiveRoute(item.path) ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-spring hover:bg-white/10 hover:shadow-elevation-1 group ${isActiveRoute(item.path)
+                    ? 'bg-primary/20 text-primary border border-primary/30' : 'text-foreground hover:text-primary'
                   }`}
+              >
+                <Icon
+                  name={item.icon}
+                  size={18}
+                  className={`transition-spring ${isActiveRoute(item.path) ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
+                    }`}
                 />
                 <span className="text-sm font-medium">{item.label}</span>
               </Link>
@@ -188,9 +186,8 @@ const Header = ({ showNavbarInstead = true }) => {
                   placeholder="Search resources, mentors, events..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`transition-spring ${
-                    isSearchExpanded ? 'w-80' : 'w-64'
-                  } bg-white/10 border-white/20 text-foreground placeholder:text-muted-foreground`}
+                  className={`transition-spring ${isSearchExpanded ? 'w-80' : 'w-64'
+                    } bg-white/10 border-white/20 text-foreground placeholder:text-muted-foreground`}
                   onFocus={() => setIsSearchExpanded(true)}
                   onBlur={() => setIsSearchExpanded(false)}
                 />
@@ -242,14 +239,12 @@ const Header = ({ showNavbarInstead = true }) => {
                       <button
                         key={notification.id}
                         onClick={() => handleNotificationClick(notification.id)}
-                        className={`w-full px-4 py-3 text-left hover:bg-white/5 transition-spring ${
-                          notification.unread ? 'bg-primary/5' : ''
-                        }`}
+                        className={`w-full px-4 py-3 text-left hover:bg-white/5 transition-spring ${notification.unread ? 'bg-primary/5' : ''
+                          }`}
                       >
                         <div className="flex items-start space-x-3">
-                          <div className={`w-2 h-2 rounded-full mt-2 ${
-                            notification.unread ? 'bg-primary' : 'bg-transparent'
-                          }`} />
+                          <div className={`w-2 h-2 rounded-full mt-2 ${notification.unread ? 'bg-primary' : 'bg-transparent'
+                            }`} />
                           <div className="flex-1">
                             <p className="text-sm font-medium text-foreground">
                               {notification.title}
@@ -287,7 +282,7 @@ const Header = ({ showNavbarInstead = true }) => {
                     <p className="font-medium text-foreground">John Doe</p>
                     <p className="text-xs text-muted-foreground">john.doe@example.com</p>
                   </div>
-                  
+
                   <div className="py-1">
                     <button className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-white/5 transition-spring flex items-center space-x-2">
                       <Icon name="User" size={16} />
@@ -297,7 +292,7 @@ const Header = ({ showNavbarInstead = true }) => {
                       <Icon name="Settings" size={16} />
                       <span>Settings</span>
                     </button>
-                    <button 
+                    <button
                       onClick={handleThemeToggle}
                       className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-white/5 transition-spring flex items-center space-x-2"
                     >
@@ -305,7 +300,7 @@ const Header = ({ showNavbarInstead = true }) => {
                       <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
                     </button>
                   </div>
-                  
+
                   <div className="border-t border-white/10 pt-1">
                     <button className="w-full px-4 py-2 text-left text-sm text-error hover:bg-white/5 transition-spring flex items-center space-x-2">
                       <Icon name="LogOut" size={16} />
@@ -356,17 +351,15 @@ const Header = ({ showNavbarInstead = true }) => {
                   key={item.path}
                   to={item.path}
                   onClick={handleMobileMenuToggle}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-spring hover:bg-white/10 min-h-touch ${
-                    isActiveRoute(item.path) 
-                      ? 'bg-primary/20 text-primary border border-primary/30' :'text-foreground hover:text-primary'
-                  }`}
-                >
-                  <Icon 
-                    name={item.icon} 
-                    size={20} 
-                    className={`transition-spring ${
-                      isActiveRoute(item.path) ? 'text-primary' : 'text-muted-foreground'
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-spring hover:bg-white/10 min-h-touch ${isActiveRoute(item.path)
+                      ? 'bg-primary/20 text-primary border border-primary/30' : 'text-foreground hover:text-primary'
                     }`}
+                >
+                  <Icon
+                    name={item.icon}
+                    size={20}
+                    className={`transition-spring ${isActiveRoute(item.path) ? 'text-primary' : 'text-muted-foreground'
+                      }`}
                   />
                   <div>
                     <span className="font-medium">{item.label}</span>

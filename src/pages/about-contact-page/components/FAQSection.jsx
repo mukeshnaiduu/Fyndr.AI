@@ -7,8 +7,8 @@ const FAQSection = () => {
 
   const faqData = [
     {
-      question: "What makes HireHub AI different from other hiring platforms?",
-      answer: "HireHub AI leverages advanced artificial intelligence to eliminate bias in the hiring process, provides real-time video interview capabilities with AI-powered insights, and offers personalized experiences for job seekers, recruiters, and employers. Our platform combines cutting-edge technology with human-centered design to create more meaningful connections between talent and opportunities."
+      question: "What makes Fyndr.AI different from other hiring platforms?",
+      answer: "Fyndr.AI leverages advanced artificial intelligence to eliminate bias in the hiring process, provides real-time video interview capabilities with AI-powered insights, and offers personalized experiences for job seekers, recruiters, and employers. Our platform combines cutting-edge technology with human-centered design to create more meaningful connections between talent and opportunities."
     },
     {
       question: "How does the AI-powered screening process work?",
@@ -23,7 +23,7 @@ const FAQSection = () => {
       answer: "Fyndr.AI supports various interview formats including one-on-one video interviews, panel interviews, technical coding assessments with real-time collaboration, whiteboard sessions, screen sharing for presentations, and AI-assisted behavioral interviews. All sessions can be recorded for later review with participant consent."
     },
     {
-      question: "How much does HireHub AI cost?",
+      question: "How much does Fyndr.AI cost?",
       answer: "We offer flexible pricing plans for different user types. Job seekers can use basic features for free, while premium features are available through subscription. Recruiters and employers have tiered pricing based on company size and feature requirements. Contact our sales team for custom enterprise solutions and volume discounts."
     },
     {
@@ -59,7 +59,7 @@ const FAQSection = () => {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-card/50 to-background">
+    <section className="py-20 bg-gradient-to-b from-card/50 to-background dark:from-neutral-900/80 dark:to-neutral-950">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -75,16 +75,16 @@ const FAQSection = () => {
               FAQ
             </span>
           </div>
-          
+
           <h2 className="text-4xl md:text-5xl font-heading font-heading-bold text-foreground mb-6">
             Frequently Asked{" "}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Questions
             </span>
           </h2>
-          
+
           <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-            Find answers to common questions about HireHub AI's features, pricing, and how our platform can transform your hiring process.
+            Find answers to common questions about Fyndr.AI's features, pricing, and how our platform can transform your hiring process.
           </p>
 
           {/* Expand/Collapse Controls */}
@@ -116,9 +116,8 @@ const FAQSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className={`glassmorphic rounded-squircle overflow-hidden border spring-transition ${
-                openItems.has(index) ? 'glow-primary' : 'hover:border-primary/20'
-              } stagger-${index + 1}`}
+              className={`glassmorphic rounded-squircle overflow-hidden border spring-transition ${openItems.has(index) ? 'glow-primary' : 'hover:border-primary/20'
+                } stagger-${index + 1}`}
             >
               {/* Question Header */}
               <button
@@ -130,10 +129,9 @@ const FAQSection = () => {
                 <h3 className="text-lg font-heading font-heading-semibold text-foreground pr-4 group-hover:text-primary spring-transition">
                   {item.question}
                 </h3>
-                
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 spring-transition ${
-                  openItems.has(index) ? 'bg-primary text-white' : 'text-primary'
-                }`}>
+
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 spring-transition ${openItems.has(index) ? 'bg-primary text-white' : 'text-primary'
+                  }`}>
                   <motion.div
                     animate={{ rotate: openItems.has(index) ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
@@ -159,7 +157,7 @@ const FAQSection = () => {
                         <p className="text-muted-foreground leading-relaxed">
                           {item.answer}
                         </p>
-                        
+
                         {/* Helpful Actions */}
                         <div className="flex items-center space-x-4 mt-4 pt-4 border-t border-border/30">
                           <span className="text-sm text-muted-foreground">
@@ -195,21 +193,21 @@ const FAQSection = () => {
             <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-accent/20 rounded-squircle flex items-center justify-center mx-auto mb-4">
               <Icon name="MessageCircle" size={32} className="text-primary" />
             </div>
-            
+
             <h3 className="text-2xl font-heading font-heading-semibold text-foreground mb-4">
               Still Have Questions?
             </h3>
-            
+
             <p className="text-muted-foreground mb-6 leading-relaxed">
-              Can't find the answer you're looking for? Our support team is here to help you get the most out of HireHub AI.
+              Can't find the answer you're looking for? Our support team is here to help you get the most out of Fyndr.AI.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
               <button className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary to-accent text-white px-6 py-3 rounded-squircle hover:scale-105 spring-transition glow-primary ripple">
                 <Icon name="MessageCircle" size={18} />
                 <span className="font-body font-body-medium">Live Chat</span>
               </button>
-              
+
               <button className="inline-flex items-center space-x-2 border border-primary text-primary px-6 py-3 rounded-squircle hover:bg-primary hover:text-white spring-transition ripple">
                 <Icon name="Mail" size={18} />
                 <span className="font-body font-body-medium">Email Support</span>

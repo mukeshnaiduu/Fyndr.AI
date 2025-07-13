@@ -53,34 +53,34 @@ export const getRoute = (routeName) => {
     ...ROUTES_D,
     NOT_FOUND: '*'
   };
-  
+
   return allRoutes[routeName] || '/';
 };
 
 // Navigation structure
 export const MAIN_NAV = [
-  { 
-    label: 'Home', 
+  {
+    label: 'Home',
     path: ROUTES_A.HOME,
     icon: 'Home'
   },
-  { 
-    label: 'Jobs', 
+  {
+    label: 'Jobs',
     path: ROUTES_B.JOB_FEED,
     icon: 'Briefcase'
   },
-  { 
-    label: 'Learn', 
+  {
+    label: 'Learn',
     path: ROUTES_C.COURSE_DETAIL,
     icon: 'BookOpen'
   },
-  { 
-    label: 'Practice', 
+  {
+    label: 'Practice',
     path: ROUTES_D.INTERVIEW_PRACTICE,
     icon: 'Video'
   },
-  { 
-    label: 'Network', 
+  {
+    label: 'Network',
     path: ROUTES_D.MENTORSHIP,
     icon: 'Users'
   }
@@ -96,7 +96,7 @@ export const RESOURCES_NAV = [
   },
   {
     label: 'Resume Builder',
-    path: ROUTES_B.RESUME_BUILDER, 
+    path: ROUTES_B.RESUME_BUILDER,
     description: 'Create an ATS-optimized resume with AI assistance',
     icon: 'FileText'
   },

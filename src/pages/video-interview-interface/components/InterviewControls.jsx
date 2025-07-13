@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 
-const InterviewControls = ({ 
-  onEndInterview, 
-  isRecording, 
+const InterviewControls = ({
+  onEndInterview,
+  isRecording,
   onToggleRecording,
   sessionTime,
-  participants 
+  participants
 }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
@@ -20,7 +20,7 @@ const InterviewControls = ({
     const hours = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     if (hours > 0) {
       return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
@@ -70,10 +70,10 @@ const InterviewControls = ({
               onClick={handleTimerModeToggle}
               className="flex items-center space-x-2 glassmorphic px-4 py-2 rounded-squircle hover:bg-muted spring-transition"
             >
-              <Icon 
-                name={timerMode === 'countdown' ? 'Timer' : 'Clock'} 
-                size={16} 
-                className="text-muted-foreground" 
+              <Icon
+                name={timerMode === 'countdown' ? 'Timer' : 'Clock'}
+                size={16}
+                className="text-muted-foreground"
               />
               <span className={`font-data text-lg font-heading-semibold ${getTimerColor()}`}>
                 {getTimerDisplay()}
@@ -102,9 +102,9 @@ const InterviewControls = ({
                     className="fixed inset-0 z-dropdown"
                     onClick={() => setShowParticipants(false)}
                   />
-                  <div className="absolute bottom-full left-0 mb-2 w-64 glassmorphic rounded-squircle elevation-3 z-dropdown border">
+                  <div className="absolute bottom-full left-0 mb-2 w-64 glassmorphic dark:glassmorphic-dark rounded-squircle elevation-3 z-dropdown border">
                     <div className="p-3 border-b border-border">
-                      <h4 className="font-heading font-heading-semibold text-foreground">
+                      <h4 className="font-heading font-heading-semibold text-foreground dark:text-foreground-dark">
                         Participants ({participants.length})
                       </h4>
                     </div>
@@ -112,24 +112,24 @@ const InterviewControls = ({
                       {participants.map((participant) => (
                         <div
                           key={participant.id}
-                          className="flex items-center space-x-3 p-2 rounded-squircle hover:bg-muted"
+                          className="flex items-center space-x-3 p-2 rounded-squircle hover:bg-muted dark:hover:bg-muted-dark"
                         >
-                          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
-                            <span className="text-xs font-heading font-heading-bold text-white">
+                          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent dark:from-primary-dark dark:to-accent-dark rounded-full flex items-center justify-center">
+                            <span className="text-xs font-heading font-heading-bold text-white dark:text-white">
                               {participant.name.charAt(0)}
                             </span>
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-body font-body-medium text-foreground">
+                            <p className="text-sm font-body font-body-medium text-foreground dark:text-foreground-dark">
                               {participant.name}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-muted-foreground dark:text-muted-foreground-dark">
                               {participant.role}
                             </p>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-success rounded-full"></div>
-                            <span className="text-xs text-success">Online</span>
+                            <div className="w-2 h-2 bg-success dark:bg-success-dark rounded-full"></div>
+                            <span className="text-xs text-success dark:text-success-dark">Online</span>
                           </div>
                         </div>
                       ))}
@@ -159,7 +159,7 @@ const InterviewControls = ({
               onClick={handleCameraToggle}
               iconName={isCameraOff ? "VideoOff" : "Video"}
               iconSize={20}
-              className="glassmorphic"
+              className="glassmorphic focus-visible:ring-2 focus-visible:ring-primary dark:glassmorphic-dark"
             />
 
             {/* Recording Toggle */}
@@ -170,17 +170,17 @@ const InterviewControls = ({
               iconName={isRecording ? "Square" : "Circle"}
               iconPosition="left"
               iconSize={20}
-              className="glassmorphic"
+              className="glassmorphic focus-visible:ring-2 focus-visible:ring-primary dark:glassmorphic-dark"
             >
               {isRecording ? 'Stop Recording' : 'Start Recording'}
             </Button>
 
             {/* Volume Control */}
-            <div className="flex items-center space-x-2 glassmorphic px-3 py-2 rounded-squircle">
-              <Icon 
-                name={volume === 0 ? "VolumeX" : volume < 50 ? "Volume1" : "Volume2"} 
-                size={16} 
-                className="text-muted-foreground" 
+            <div className="flex items-center space-x-2 glassmorphic dark:glassmorphic-dark px-3 py-2 rounded-squircle">
+              <Icon
+                name={volume === 0 ? "VolumeX" : volume < 50 ? "Volume1" : "Volume2"}
+                size={16}
+                className="text-muted-foreground dark:text-muted-foreground-dark"
               />
               <input
                 type="range"
@@ -188,9 +188,9 @@ const InterviewControls = ({
                 max="100"
                 value={volume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1 bg-muted rounded-full appearance-none cursor-pointer"
+                className="w-20 h-1 bg-muted dark:bg-muted-dark rounded-full appearance-none cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
               />
-              <span className="text-xs text-muted-foreground font-data w-8">
+              <span className="text-xs text-muted-foreground dark:text-muted-foreground-dark font-data w-8">
                 {volume}%
               </span>
             </div>
@@ -225,8 +225,8 @@ const InterviewControls = ({
       {/* Recording Indicator */}
       {isRecording && (
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
-          <div className="flex items-center space-x-2 bg-error text-white px-4 py-2 rounded-t-squircle">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+          <div className="flex items-center space-x-2 bg-error text-error-foreground dark:bg-error-dark dark:text-error-foreground-dark px-4 py-2 rounded-t-squircle">
+            <div className="w-2 h-2 bg-white dark:bg-error-foreground-dark rounded-full animate-pulse"></div>
             <span className="text-sm font-body font-body-medium">
               Recording in progress
             </span>

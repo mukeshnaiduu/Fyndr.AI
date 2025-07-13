@@ -12,31 +12,31 @@ const AboutContactPage = () => {
   }, []);
 
   return (
-    <MainLayout 
+    <MainLayout
       title="About Us & Contact - FyndrAI | Intelligent Hiring Platform"
       description="Learn about FyndrAI's mission to revolutionize hiring through AI. Meet our team, get answers to FAQs, and contact us for support or partnerships."
       ogTitle="About Us & Contact - FyndrAI"
       ogDescription="Discover FyndrAI's mission, meet our expert team, and get in touch for support or partnerships."
       canonicalPath="/about-contact-page"
     >
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background dark:bg-neutral-950">
         {/* Main Content */}
         <main>
           {/* Hero Section */}
           <HeroSection />
-          
+
           {/* Team Showcase */}
           <TeamShowcase />
-          
+
           {/* FAQ Section */}
           <FAQSection />
-          
+
           {/* Contact Section */}
           <ContactSection />
         </main>
 
         {/* Footer */}
-        <footer className="bg-gradient-to-r from-card to-secondary/20 border-t border-border">
+        <footer className="bg-gradient-to-r from-card to-secondary/20 dark:from-neutral-900 dark:to-secondary/40 border-t border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {/* Company Info */}

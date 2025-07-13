@@ -8,11 +8,11 @@ import { Checkbox } from 'components/ui/Checkbox';
 const GlobalConfigSection = () => {
   const [activeTab, setActiveTab] = useState('general');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
+
   const [generalSettings, setGeneralSettings] = useState({
     platformName: 'Fyndr.AI',
     platformDescription: 'AI-powered hiring and learning platform',
-    supportEmail: 'support@hirehub.ai',
+    supportEmail: 'support@fyndrai.com',
     maintenanceMode: false,
     registrationEnabled: true,
     emailVerificationRequired: true,
@@ -69,7 +69,7 @@ const GlobalConfigSection = () => {
 
   const handleSettingChange = (section, key, value) => {
     setHasUnsavedChanges(true);
-    
+
     if (section === 'general') {
       setGeneralSettings(prev => ({ ...prev, [key]: value }));
     } else if (section === 'features') {
@@ -100,7 +100,7 @@ const GlobalConfigSection = () => {
           onChange={(e) => handleSettingChange('general', 'platformName', e.target.value)}
           description="The name displayed across the platform"
         />
-        
+
         <Input
           label="Support Email"
           type="email"
@@ -125,7 +125,7 @@ const GlobalConfigSection = () => {
           onChange={(e) => handleSettingChange('general', 'maxFileUploadSize', e.target.value)}
           description="Maximum file size for uploads"
         />
-        
+
         <Input
           label="Session Timeout (minutes)"
           type="number"
@@ -137,7 +137,7 @@ const GlobalConfigSection = () => {
 
       <div className="space-y-4">
         <h4 className="text-lg font-medium text-foreground">Platform Controls</h4>
-        
+
         <div className="space-y-3">
           <Checkbox
             label="Maintenance Mode"
@@ -145,14 +145,14 @@ const GlobalConfigSection = () => {
             checked={generalSettings.maintenanceMode}
             onChange={(e) => handleSettingChange('general', 'maintenanceMode', e.target.checked)}
           />
-          
+
           <Checkbox
             label="User Registration"
             description="Allow new users to register on the platform"
             checked={generalSettings.registrationEnabled}
             onChange={(e) => handleSettingChange('general', 'registrationEnabled', e.target.checked)}
           />
-          
+
           <Checkbox
             label="Email Verification Required"
             description="Require email verification for new accounts"
@@ -175,21 +175,21 @@ const GlobalConfigSection = () => {
             checked={featureFlags.aiCoachEnabled}
             onChange={(e) => handleSettingChange('features', 'aiCoachEnabled', e.target.checked)}
           />
-          
+
           <Checkbox
             label="Course Recommendations"
             description="AI-powered course recommendations"
             checked={featureFlags.courseRecommendations}
             onChange={(e) => handleSettingChange('features', 'courseRecommendations', e.target.checked)}
           />
-          
+
           <Checkbox
             label="Job Matching"
             description="Intelligent job matching algorithm"
             checked={featureFlags.jobMatching}
             onChange={(e) => handleSettingChange('features', 'jobMatching', e.target.checked)}
           />
-          
+
           <Checkbox
             label="Forum"
             description="Community forum and discussions"
@@ -208,21 +208,21 @@ const GlobalConfigSection = () => {
             checked={featureFlags.videoCallsEnabled}
             onChange={(e) => handleSettingChange('features', 'videoCallsEnabled', e.target.checked)}
           />
-          
+
           <Checkbox
             label="Dark Mode"
             description="Allow users to switch to dark mode"
             checked={featureFlags.darkModeEnabled}
             onChange={(e) => handleSettingChange('features', 'darkModeEnabled', e.target.checked)}
           />
-          
+
           <Checkbox
             label="Push Notifications"
             description="Enable push notifications"
             checked={featureFlags.notificationsEnabled}
             onChange={(e) => handleSettingChange('features', 'notificationsEnabled', e.target.checked)}
           />
-          
+
           <Checkbox
             label="Analytics Tracking"
             description="Enable user analytics and tracking"
@@ -246,7 +246,7 @@ const GlobalConfigSection = () => {
             onChange={(e) => handleSettingChange('security', 'passwordMinLength', e.target.value)}
             description="Minimum number of characters"
           />
-          
+
           <Select
             label="Session Security Level"
             options={securityLevelOptions}
@@ -255,20 +255,20 @@ const GlobalConfigSection = () => {
             description="Security level for user sessions"
           />
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
           <Checkbox
             label="Require Special Characters"
             checked={securitySettings.passwordRequireSpecialChars}
             onChange={(e) => handleSettingChange('security', 'passwordRequireSpecialChars', e.target.checked)}
           />
-          
+
           <Checkbox
             label="Require Numbers"
             checked={securitySettings.passwordRequireNumbers}
             onChange={(e) => handleSettingChange('security', 'passwordRequireNumbers', e.target.checked)}
           />
-          
+
           <Checkbox
             label="Require Uppercase"
             checked={securitySettings.passwordRequireUppercase}
@@ -287,7 +287,7 @@ const GlobalConfigSection = () => {
             onChange={(e) => handleSettingChange('security', 'maxLoginAttempts', e.target.value)}
             description="Maximum failed login attempts before lockout"
           />
-          
+
           <Input
             label="Lockout Duration (minutes)"
             type="number"
@@ -296,7 +296,7 @@ const GlobalConfigSection = () => {
             description="Duration of account lockout"
           />
         </div>
-        
+
         <div className="mt-4">
           <Checkbox
             label="Two-Factor Authentication Required"
@@ -320,7 +320,7 @@ const GlobalConfigSection = () => {
             onChange={(e) => handleSettingChange('email', 'smtpHost', e.target.value)}
             description="SMTP server hostname"
           />
-          
+
           <Input
             label="SMTP Port"
             type="number"
@@ -328,14 +328,14 @@ const GlobalConfigSection = () => {
             onChange={(e) => handleSettingChange('email', 'smtpPort', e.target.value)}
             description="SMTP server port"
           />
-          
+
           <Input
             label="SMTP Username"
             value={emailSettings.smtpUsername}
             onChange={(e) => handleSettingChange('email', 'smtpUsername', e.target.value)}
             description="SMTP authentication username"
           />
-          
+
           <Input
             label="SMTP Password"
             type="password"
@@ -356,7 +356,7 @@ const GlobalConfigSection = () => {
             onChange={(e) => handleSettingChange('email', 'fromEmail', e.target.value)}
             description="Default sender email address"
           />
-          
+
           <Input
             label="From Name"
             value={emailSettings.fromName}
@@ -364,7 +364,7 @@ const GlobalConfigSection = () => {
             description="Default sender name"
           />
         </div>
-        
+
         <div className="mt-4">
           <Checkbox
             label="Email Templates Enabled"
@@ -458,10 +458,9 @@ const GlobalConfigSection = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'bg-primary/20 text-primary border border-primary/30' :'text-muted-foreground hover:text-foreground hover:bg-white/10'
-              }`}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+                  ? 'bg-primary/20 text-primary border border-primary/30' : 'text-muted-foreground hover:text-foreground hover:bg-white/10'
+                }`}
             >
               <Icon name={tab.icon} size={16} />
               <span>{tab.label}</span>

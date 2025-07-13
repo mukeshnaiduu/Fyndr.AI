@@ -222,10 +222,9 @@ const TestimonialsCarousel = () => {
                 <button
                   key={index}
                   onClick={() => handleDotClick(index)}
-                  className={`w-2 h-2 rounded-full spring-transition ${
-                    index === currentIndex
-                      ? 'bg-primary scale-125' :'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                  }`}
+                  className={`w-2 h-2 rounded-full spring-transition ${index === currentIndex
+                      ? 'bg-primary scale-125' : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                    }`}
                 />
               ))}
             </div>

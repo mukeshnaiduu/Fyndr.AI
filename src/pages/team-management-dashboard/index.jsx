@@ -56,7 +56,7 @@ const TeamManagementDashboard = () => {
     {
       id: 1,
       name: 'Sarah Johnson',
-      email: 'sarah.johnson@hirehub.ai',
+      email: 'sarah.johnson@fyndr.ai',
       avatar: 'https://images.unsplash.com/photo-1494790108755-2616b9b5c0e2?w=150',
       role: 'admin',
       department: 'hr',
@@ -69,7 +69,7 @@ const TeamManagementDashboard = () => {
     {
       id: 2,
       name: 'Michael Chen',
-      email: 'michael.chen@hirehub.ai',
+      email: 'michael.chen@fyndr.ai',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
       role: 'manager',
       department: 'engineering',
@@ -82,7 +82,7 @@ const TeamManagementDashboard = () => {
     {
       id: 3,
       name: 'Emily Rodriguez',
-      email: 'emily.rodriguez@hirehub.ai',
+      email: 'emily.rodriguez@fyndr.ai',
       avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
       role: 'recruiter',
       department: 'hr',
@@ -95,7 +95,7 @@ const TeamManagementDashboard = () => {
     {
       id: 4,
       name: 'David Kim',
-      email: 'david.kim@hirehub.ai',
+      email: 'david.kim@fyndr.ai',
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
       role: 'recruiter',
       department: 'marketing',
@@ -108,7 +108,7 @@ const TeamManagementDashboard = () => {
     {
       id: 5,
       name: 'Lisa Thompson',
-      email: 'lisa.thompson@hirehub.ai',
+      email: 'lisa.thompson@fyndr.ai',
       avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
       role: 'coordinator',
       department: 'operations',
@@ -121,7 +121,7 @@ const TeamManagementDashboard = () => {
     {
       id: 6,
       name: 'James Wilson',
-      email: 'james.wilson@hirehub.ai',
+      email: 'james.wilson@fyndr.ai',
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
       role: 'viewer',
       department: 'sales',
@@ -169,18 +169,18 @@ const TeamManagementDashboard = () => {
 
   const filteredMembers = teamMembers.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         member.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
+      member.email.toLowerCase().includes(searchQuery.toLowerCase());
+
     const matchesRole = !filters.role || member.role === filters.role;
     const matchesDepartment = !filters.department || member.department === filters.department;
     const matchesStatus = !filters.status || member.status === filters.status;
-    
+
     return matchesSearch && matchesRole && matchesDepartment && matchesStatus;
   });
 
   const handleMemberSelect = (memberId) => {
-    setSelectedMembers(prev => 
-      prev.includes(memberId) 
+    setSelectedMembers(prev =>
+      prev.includes(memberId)
         ? prev.filter(id => id !== memberId)
         : [...prev, memberId]
     );
@@ -247,7 +247,7 @@ const TeamManagementDashboard = () => {
               Manage your hiring team members, assign roles, and oversee collaborative workflows
             </p>
           </div>
-          
+
           <div className="flex items-center space-x-3 mt-4 lg:mt-0">
             <Button
               variant="outline"
@@ -288,10 +288,10 @@ const TeamManagementDashboard = () => {
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
-                  <Icon 
-                    name="Search" 
-                    size={20} 
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" 
+                  <Icon
+                    name="Search"
+                    size={20}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                   />
                   <Input
                     type="text"
@@ -301,7 +301,7 @@ const TeamManagementDashboard = () => {
                     className="pl-10"
                   />
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
@@ -332,9 +332,8 @@ const TeamManagementDashboard = () => {
             />
 
             {/* Team Members Grid */}
-            <div className={`grid gap-6 ${
-              viewMode === 'grid' ?'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' :'grid-cols-1'
-            }`}>
+            <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'
+              }`}>
               {filteredMembers.map((member) => (
                 <div key={member.id} className="relative">
                   {/* Selection Checkbox */}
@@ -346,7 +345,7 @@ const TeamManagementDashboard = () => {
                       className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary"
                     />
                   </div>
-                  
+
                   <TeamMemberCard
                     member={member}
                     onRoleChange={handleRoleChange}
@@ -364,7 +363,7 @@ const TeamManagementDashboard = () => {
                 <h3 className="text-lg font-semibold text-foreground mb-2">No team members found</h3>
                 <p className="text-muted-foreground mb-4">
                   {searchQuery || Object.values(filters).some(Boolean)
-                    ? 'Try adjusting your search or filters' :'Start by inviting team members to collaborate'
+                    ? 'Try adjusting your search or filters' : 'Start by inviting team members to collaborate'
                   }
                 </p>
                 <Button

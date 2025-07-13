@@ -39,7 +39,7 @@ const RoleSelector = ({ selectedRole, onRoleChange, error }) => {
         searchable
         className="mb-4"
       />
-      
+
       {selectedRole && (
         <div className="glassmorphic p-3 rounded-squircle border border-primary/20">
           <div className="flex items-center space-x-2">
@@ -48,7 +48,7 @@ const RoleSelector = ({ selectedRole, onRoleChange, error }) => {
               {roleOptions.find(role => role.value === selectedRole)?.label} selected
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1 ml-4">
+          <p className="text-xs text-foreground mt-1 ml-4">
             {roleOptions.find(role => role.value === selectedRole)?.description}
           </p>
         </div>

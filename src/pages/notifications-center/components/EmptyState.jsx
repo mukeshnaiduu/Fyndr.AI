@@ -60,10 +60,10 @@ const EmptyState = ({ type = 'all', onClearFilters }) => {
         transition={{ duration: 0.5 }}
         className="relative mb-6"
       >
-        <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-squircle flex items-center justify-center">
+        <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-squircle flex items-center justify-center dark:bg-gray-800">
           <Icon name={content.icon} size={48} className="text-muted-foreground" />
         </div>
-        
+
         {/* Floating Particles */}
         <div className="absolute -top-2 -right-2 w-4 h-4 bg-primary/30 rounded-full animate-pulse"></div>
         <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-accent/30 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -80,7 +80,7 @@ const EmptyState = ({ type = 'all', onClearFilters }) => {
         <h3 className="text-xl font-heading font-heading-semibold text-foreground mb-2">
           {content.title}
         </h3>
-        <p className="text-muted-foreground mb-6 leading-relaxed">
+        <p className="mt-4 text-muted-foreground dark:text-gray-300 text-center max-w-md mb-6 leading-relaxed">
           {content.description}
         </p>
 

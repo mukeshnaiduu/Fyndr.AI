@@ -50,7 +50,7 @@ const QuickFilters = ({ activeFilter, onFilterChange, counts }) => {
   ];
 
   return (
-    <div className="glassmorphic rounded-squircle p-4 border elevation-1">
+    <div className="glassmorphic rounded-squircle p-4 border elevation-1 dark:bg-neutral-900/80">
       <div className="flex items-center space-x-2 mb-4">
         <Icon name="Zap" size={20} className="text-muted-foreground" />
         <h3 className="font-heading font-heading-semibold text-foreground">
@@ -66,31 +66,28 @@ const QuickFilters = ({ activeFilter, onFilterChange, counts }) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => onFilterChange(filter.id)}
-            className={`w-full flex items-center justify-between p-3 rounded-squircle spring-transition group ${
-              activeFilter === filter.id
+            className={`w-full flex items-center justify-between p-3 rounded-squircle spring-transition group ${activeFilter === filter.id
                 ? 'bg-primary text-primary-foreground glow-primary'
                 : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <div className="flex items-center space-x-3">
-              <Icon 
-                name={filter.icon} 
-                size={16} 
-                className={`${
-                  activeFilter === filter.id 
-                    ? 'text-primary-foreground' 
+              <Icon
+                name={filter.icon}
+                size={16}
+                className={`${activeFilter === filter.id
+                    ? 'text-primary-foreground'
                     : `${filter.color} group-hover:scale-110 spring-transition`
-                }`}
+                  }`}
               />
               <span className="text-sm font-body font-body-medium">
                 {filter.label}
               </span>
             </div>
-            <span className={`text-sm font-data px-2 py-1 rounded-full ${
-              activeFilter === filter.id
+            <span className={`text-sm font-data px-2 py-1 rounded-full ${activeFilter === filter.id
                 ? 'bg-primary-foreground/20 text-primary-foreground'
                 : 'bg-muted text-muted-foreground'
-            }`}>
+              }`}>
               {filter.count}
             </span>
           </motion.button>

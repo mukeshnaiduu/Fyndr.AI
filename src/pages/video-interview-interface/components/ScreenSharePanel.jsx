@@ -64,28 +64,28 @@ const ScreenSharePanel = () => {
 
   const handleAnnotationStart = (e) => {
     if (!isAnnotating) return;
-    
+
     setIsDrawing(true);
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     setCurrentPath([{ x, y }]);
   };
 
   const handleAnnotationMove = (e) => {
     if (!isDrawing || !isAnnotating) return;
-    
+
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     setCurrentPath(prev => [...prev, { x, y }]);
   };
 
   const handleAnnotationEnd = () => {
     if (!isDrawing) return;
-    
+
     setIsDrawing(false);
     if (currentPath.length > 0) {
       const newAnnotation = {
@@ -95,7 +95,7 @@ const ScreenSharePanel = () => {
         points: currentPath,
         timestamp: new Date()
       };
-      
+
       setAnnotations(prev => [...prev, newAnnotation]);
       setCurrentPath([]);
     }
@@ -108,12 +108,12 @@ const ScreenSharePanel = () => {
 
   const renderAnnotation = (annotation) => {
     if (annotation.points.length < 2) return null;
-    
+
     let pathData = `M ${annotation.points[0].x} ${annotation.points[0].y}`;
     for (let i = 1; i < annotation.points.length; i++) {
       pathData += ` L ${annotation.points[i].x} ${annotation.points[i].y}`;
     }
-    
+
     return (
       <path
         key={annotation.id}
@@ -129,12 +129,12 @@ const ScreenSharePanel = () => {
 
   const renderCurrentPath = () => {
     if (currentPath.length < 2) return null;
-    
+
     let pathData = `M ${currentPath[0].x} ${currentPath[0].y}`;
     for (let i = 1; i < currentPath.length; i++) {
       pathData += ` L ${currentPath[i].x} ${currentPath[i].y}`;
     }
-    
+
     return (
       <path
         d={pathData}
@@ -149,7 +149,7 @@ const ScreenSharePanel = () => {
   };
 
   return (
-    <div className="h-full flex flex-col glassmorphic rounded-squircle">
+    <div className="h-full flex flex-col rounded-squircle bg-background">
       {/* Screen Share Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center space-x-3">
@@ -198,14 +198,12 @@ const ScreenSharePanel = () => {
               <button
                 key={type.id}
                 onClick={() => setShareType(type.id)}
-                className={`flex items-center space-x-4 p-4 rounded-squircle border-2 spring-transition ${
-                  shareType === type.id
-                    ? 'border-primary bg-primary/5' :'border-border hover:border-primary/50'
-                }`}
+                className={`flex items-center space-x-4 p-4 rounded-squircle border-2 spring-transition ${shareType === type.id
+                  ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                  }`}
               >
-                <div className={`w-10 h-10 rounded-squircle flex items-center justify-center ${
-                  shareType === type.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                }`}>
+                <div className={`w-10 h-10 rounded-squircle flex items-center justify-center ${shareType === type.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  }`}>
                   <Icon name={type.icon} size={20} />
                 </div>
                 <div className="text-left">
@@ -264,9 +262,8 @@ const ScreenSharePanel = () => {
                     <button
                       key={color}
                       onClick={() => setAnnotationColor(color)}
-                      className={`w-6 h-6 rounded-full border-2 spring-transition ${
-                        annotationColor === color ? 'border-foreground scale-110' : 'border-border'
-                      }`}
+                      className={`w-6 h-6 rounded-full border-2 spring-transition ${annotationColor === color ? 'border-foreground scale-110' : 'border-border'
+                        }`}
                       style={{ backgroundColor: color }}
                     />
                   ))}

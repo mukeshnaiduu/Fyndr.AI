@@ -18,22 +18,21 @@ const SocialAuthButtons = ({ onSocialAuth, isLoading }) => {
           <div className="w-full border-t border-border"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-background text-muted-foreground font-caption">
+          <span className="px-4 bg-background dark:bg-neutral-900 text-muted-foreground dark:text-gray-300 font-caption">
             Or continue with
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Button
           variant="outline"
           size="default"
           fullWidth
           onClick={() => handleSocialClick('google')}
           disabled={isLoading}
-          className={`relative overflow-hidden ${
-            rippleButton === 'google' ? 'ripple' : ''
-          }`}
+          className={`relative overflow-hidden ${rippleButton === 'google' ? 'ripple' : ''
+            }`}
         >
           <div className="flex items-center justify-center space-x-2">
             <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
@@ -64,9 +63,8 @@ const SocialAuthButtons = ({ onSocialAuth, isLoading }) => {
           fullWidth
           onClick={() => handleSocialClick('linkedin')}
           disabled={isLoading}
-          className={`relative overflow-hidden ${
-            rippleButton === 'linkedin' ? 'ripple' : ''
-          }`}
+          className={`relative overflow-hidden ${rippleButton === 'linkedin' ? 'ripple' : ''
+            }`}
         >
           <div className="flex items-center justify-center space-x-2">
             <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">

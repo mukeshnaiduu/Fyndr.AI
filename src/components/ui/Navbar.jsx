@@ -13,7 +13,8 @@ const Navbar = ({ toggleNavbar }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const location = useLocation();
   const profileRef = useRef(null);
-  
+  const notificationsRef = useRef(null);
+
   // Sample user data - in a real app, this would come from auth context or redux
   const user = {
     name: "Alex Johnson",
@@ -28,6 +29,11 @@ const Navbar = ({ toggleNavbar }) => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
       setIsScrolled(scrollPosition > 10);
+      // Auto-close mobile menu and desktop dropdowns on scroll
+      setIsMobileMenuOpen(false);
+      setIsProfileOpen(false);
+      setIsNotificationsOpen(false);
+      // Removed setScrollKey to prevent remounts
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -39,6 +45,9 @@ const Navbar = ({ toggleNavbar }) => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfileOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
       }
     };
 
@@ -131,9 +140,9 @@ const Navbar = ({ toggleNavbar }) => {
   return (
     <nav className={cn(
       "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-      isScrolled 
-        ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm" 
-        : "bg-transparent"
+      isScrolled
+        ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm"
+        : "bg-transparent dark:bg-gray-900/80"
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
@@ -143,21 +152,21 @@ const Navbar = ({ toggleNavbar }) => {
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
                 <Icon name="Zap" size={20} color="white" />
               </div>
-              <span className="font-bold text-lg text-foreground">HireHub<span className="text-primary">AI</span></span>
+              <span className="font-bold text-lg text-foreground dark:text-white">Fyndr.AI</span>
             </Link>
           </div>
 
           {/* Main navigation - desktop */}
           <div className="hidden md:flex items-center space-x-1">
             {mainNavItems.map((item) => (
-              <Link 
+              <Link
                 key={item.href}
                 to={item.href}
                 className={cn(
                   "px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1",
                   location.pathname === item.href
-                    ? "text-primary bg-primary/10"
-                    : "text-gray-600 hover:text-primary hover:bg-primary/5"
+                    ? "text-primary bg-primary/10 dark:text-accent dark:bg-gray-800"
+                    : "text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-accent hover:bg-primary/5 dark:hover:bg-gray-800"
                 )}
               >
                 <Icon name={item.icon} size={16} />
@@ -167,26 +176,26 @@ const Navbar = ({ toggleNavbar }) => {
 
             {/* Resources dropdown */}
             <div className="relative group">
-              <button className="px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 text-gray-600 hover:text-primary hover:bg-primary/5">
+              <button className="px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-accent hover:bg-primary/5 dark:hover:bg-gray-800">
                 <Icon name="BookOpen" size={16} />
                 <span>Resources</span>
                 <Icon name="ChevronDown" size={14} />
               </button>
-              
-              <div className="absolute left-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none origin-top-right opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+
+              <div className="absolute left-0 mt-2 w-80 rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none origin-top-right opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
                 <div className="py-2 p-3 grid gap-2">
                   {resourceItems.map((item) => (
                     <Link
                       key={item.href}
                       to={item.href}
-                      className="flex items-start p-2 rounded-md hover:bg-gray-100"
+                      className="flex items-start p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
-                      <span className="flex items-center justify-center h-8 w-8 rounded-md bg-primary/10 text-primary mr-3">
+                      <span className="flex items-center justify-center h-8 w-8 rounded-md bg-primary/10 dark:bg-accent/10 text-primary dark:text-accent mr-3">
                         <Icon name={item.icon} size={16} />
                       </span>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                        <p className="text-xs text-gray-500">{item.description}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.label}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{item.description}</p>
                       </div>
                     </Link>
                   ))}
@@ -199,7 +208,7 @@ const Navbar = ({ toggleNavbar }) => {
           <div className="flex items-center space-x-4">
             {/* Hide navbar button */}
             {toggleNavbar && (
-              <button 
+              <button
                 onClick={toggleNavbar}
                 className="p-2 rounded-md hover:bg-accent/10 transition-all"
                 aria-label="Hide navigation"
@@ -208,13 +217,13 @@ const Navbar = ({ toggleNavbar }) => {
                 <Icon name="X" size={18} className="text-foreground" />
               </button>
             )}
-            
+
             {/* Theme Switcher */}
             <ThemeSwitcher />
-            
+
             {/* Notifications dropdown */}
-            <div className="relative">
-              <button 
+            <div className="relative" ref={notificationsRef}>
+              <button
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
                 className="relative p-1 rounded-full text-gray-500 hover:text-primary focus:outline-none"
               >
@@ -228,38 +237,38 @@ const Navbar = ({ toggleNavbar }) => {
 
               {/* Notifications dropdown content */}
               {isNotificationsOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-lg shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
                   <div className="py-2">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <h3 className="text-sm font-medium">Notifications</h3>
+                    <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Notifications</h3>
                     </div>
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.map((notification) => (
-                        <div 
+                        <div
                           key={notification.id}
                           className={cn(
-                            "px-4 py-3 hover:bg-gray-50 flex items-start", 
-                            !notification.isRead && "bg-primary/5"
+                            "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-start",
+                            !notification.isRead ? "bg-primary/5 dark:bg-accent/5" : ""
                           )}
                         >
                           <span className={cn(
                             "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mr-3",
-                            !notification.isRead ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-500" 
+                            !notification.isRead ? "bg-primary/10 dark:bg-accent/10 text-primary dark:text-accent" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
                           )}>
                             <Icon name={notification.icon} size={16} />
                           </span>
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900">{notification.title}</p>
-                            <p className="text-xs text-gray-500">{notification.description}</p>
-                            <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{notification.title}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{notification.description}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{notification.time}</p>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="px-4 py-2 border-t border-gray-100">
-                      <Link 
+                    <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-800">
+                      <Link
                         to="/notifications-center"
-                        className="text-xs font-medium text-primary hover:text-primary-dark flex justify-center"
+                        className="text-xs font-medium text-primary dark:text-accent hover:text-primary-dark dark:hover:text-accent-dark flex justify-center"
                       >
                         View all notifications
                       </Link>
@@ -269,15 +278,22 @@ const Navbar = ({ toggleNavbar }) => {
               )}
             </div>
 
-            {/* Profile dropdown */}
-            <div className="relative" ref={profileRef}>
-              <button 
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
+            {/* Profile dropdown (hover) */}
+            <div
+              className="relative"
+              ref={profileRef}
+              onMouseEnter={() => setIsProfileOpen(true)}
+              onMouseLeave={() => setIsProfileOpen(false)}
+            >
+              <button
                 className="flex items-center space-x-2 focus:outline-none"
+                tabIndex={0}
+                aria-haspopup="true"
+                aria-expanded={isProfileOpen}
               >
-                <img 
-                  className="h-8 w-8 rounded-full object-cover border-2 border-white shadow-sm" 
-                  src={user.avatar} 
+                <img
+                  className="h-8 w-8 rounded-full object-cover border-2 border-white shadow-sm"
+                  src={user.avatar}
                   alt={user.name}
                 />
                 <div className="hidden md:block text-left">
@@ -289,21 +305,21 @@ const Navbar = ({ toggleNavbar }) => {
 
               {/* Profile dropdown menu */}
               {isProfileOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
                   <div className="py-2">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm">{user.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <p className="text-sm text-gray-900 dark:text-gray-100">{user.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                     </div>
-                    
+
                     <div className="py-1">
                       {userMenuItems.map((item) => (
                         <Link
                           key={item.label}
                           to={item.href}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                         >
-                          <Icon name={item.icon} size={16} className="mr-3 text-gray-400" />
+                          <Icon name={item.icon} size={16} className="mr-3 text-gray-400 dark:text-gray-300" />
                           {item.label}
                         </Link>
                       ))}
@@ -347,7 +363,7 @@ const Navbar = ({ toggleNavbar }) => {
                 <span>{item.label}</span>
               </Link>
             ))}
-            
+
             {/* Resources section in mobile */}
             <div className="px-3 py-2 text-base font-medium text-gray-600">Resources</div>
             <div className="pl-5 space-y-1">

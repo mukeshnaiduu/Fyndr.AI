@@ -268,7 +268,7 @@ const VirtualCareerFair = () => {
 
   const filteredBooths = companyBooths.filter(booth => {
     const matchesSearch = booth.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         booth.description.toLowerCase().includes(searchQuery.toLowerCase());
+      booth.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesIndustry = selectedIndustry === 'all' || booth.industry === selectedIndustry;
     return matchesSearch && matchesIndustry;
   });
@@ -386,10 +386,9 @@ const VirtualCareerFair = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-spring whitespace-nowrap min-h-touch ${
-                  activeTab === tab.id
-                    ? 'text-primary border-b-2 border-primary bg-primary/5' :'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
+                className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-spring whitespace-nowrap min-h-touch ${activeTab === tab.id
+                  ? 'text-primary border-b-2 border-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
               >
                 <Icon name={tab.icon} size={16} />
                 <span>{tab.label}</span>
@@ -415,7 +414,7 @@ const VirtualCareerFair = () => {
                 <span>{filteredBooths.length} of {companyBooths.length} companies</span>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredBooths.map((booth) => (
                 <CompanyBooth
@@ -435,7 +434,7 @@ const VirtualCareerFair = () => {
               <h2 className="text-2xl font-semibold text-foreground mb-2">Live Sessions</h2>
               <p className="text-muted-foreground">Join live presentations, panels, and workshops</p>
             </div>
-            
+
             <LiveSessionTabs
               sessions={liveSessions}
               onJoinSession={handleJoinSession}
@@ -449,9 +448,9 @@ const VirtualCareerFair = () => {
               <h2 className="text-2xl font-semibold text-foreground mb-2">Networking Lounge</h2>
               <p className="text-muted-foreground">Connect with other attendees in topic-based chat rooms</p>
             </div>
-            
+
             <NetworkingLounge />
-            
+
             <div className="mt-8">
               <Button
                 variant="outline"
@@ -471,7 +470,7 @@ const VirtualCareerFair = () => {
               <h2 className="text-2xl font-semibold text-foreground mb-2">Event Schedule</h2>
               <p className="text-muted-foreground">Plan your day and manage your personal agenda</p>
             </div>
-            
+
             <EventSchedule
               onJoinSession={handleJoinSession}
               onAddToAgenda={handleAddToAgenda}
@@ -485,7 +484,7 @@ const VirtualCareerFair = () => {
               <h2 className="text-2xl font-semibold text-foreground mb-2">Recording Gallery</h2>
               <p className="text-muted-foreground">Watch recorded sessions and presentations</p>
             </div>
-            
+
             <RecordingGallery onPlayRecording={handlePlayRecording} />
           </div>
         )}

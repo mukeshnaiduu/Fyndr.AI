@@ -43,13 +43,13 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     setIsSubmitting(false);
     setShowConfetti(true);
-    
+
     // Navigate to dashboard after celebration
     setTimeout(() => {
       navigate('/ai-powered-job-feed-dashboard');
@@ -128,7 +128,7 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
               </span>
             </div>
           </div>
-          
+
           <h3 className="text-lg font-semibold text-foreground mb-2">
             Profile Completion
           </h3>
@@ -146,7 +146,7 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
             <Icon name="User" size={20} className="text-primary" />
             <h3 className="text-lg font-semibold text-foreground">Personal Information</h3>
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center overflow-hidden">
@@ -168,13 +168,13 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
                 <p className="text-sm text-muted-foreground">{data.phone}</p>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Icon name="MapPin" size={16} className="text-muted-foreground" />
                 <span className="text-sm">{data.location || 'Not specified'}</span>
               </div>
-              
+
               {data.linkedinUrl && (
                 <div className="flex items-center space-x-2">
                   <Icon name="Linkedin" size={16} className="text-muted-foreground" />
@@ -183,7 +183,7 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
                   </a>
                 </div>
               )}
-              
+
               {data.portfolioUrl && (
                 <div className="flex items-center space-x-2">
                   <Icon name="Globe" size={16} className="text-muted-foreground" />
@@ -202,7 +202,7 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
             <Icon name="FileText" size={20} className="text-primary" />
             <h3 className="text-lg font-semibold text-foreground">Resume</h3>
           </div>
-          
+
           {data.resume ? (
             <div className="flex items-center space-x-3 p-3 bg-success/10 border border-success/20 rounded-card">
               <Icon name="FileCheck" size={20} className="text-success" />
@@ -234,17 +234,16 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
               Skills ({data.skills?.length || 0})
             </h3>
           </div>
-          
+
           {data.skills && data.skills.length > 0 ? (
             <div className="space-y-3">
               {data.skills.slice(0, 6).map((skill) => (
                 <div key={skill.id} className="flex items-center justify-between">
                   <span className="text-sm font-medium">{skill.name}</span>
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    skill.proficiency === 'expert' ? 'bg-primary/10 text-primary' :
-                    skill.proficiency === 'advanced' ? 'bg-success/10 text-success' :
-                    skill.proficiency === 'intermediate'? 'bg-accent/10 text-accent' : 'bg-warning/10 text-warning'
-                  }`}>
+                  <span className={`text-xs px-2 py-1 rounded ${skill.proficiency === 'expert' ? 'bg-primary/10 text-primary' :
+                      skill.proficiency === 'advanced' ? 'bg-success/10 text-success' :
+                        skill.proficiency === 'intermediate' ? 'bg-accent/10 text-accent' : 'bg-warning/10 text-warning'
+                    }`}>
                     {skill.proficiency}
                   </span>
                 </div>
@@ -266,30 +265,30 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
             <Icon name="Target" size={20} className="text-primary" />
             <h3 className="text-lg font-semibold text-foreground">Career Preferences</h3>
           </div>
-          
+
           <div className="space-y-3">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Job Title</p>
               <p className="text-sm">{data.jobTitle || 'Not specified'}</p>
             </div>
-            
+
             <div>
               <p className="text-sm font-medium text-muted-foreground">Job Types</p>
               <p className="text-sm">
                 {data.jobTypes?.length > 0 ? data.jobTypes.join(', ') : 'Not specified'}
               </p>
             </div>
-            
+
             <div>
               <p className="text-sm font-medium text-muted-foreground">Work Arrangement</p>
               <p className="text-sm">{data.workArrangement || 'Not specified'}</p>
             </div>
-            
+
             <div>
               <p className="text-sm font-medium text-muted-foreground">Salary Range</p>
               <p className="text-sm">{formatSalaryRange(data.salaryMin, data.salaryMax)}</p>
             </div>
-            
+
             <div>
               <p className="text-sm font-medium text-muted-foreground">Preferred Locations</p>
               <p className="text-sm">
@@ -366,7 +365,7 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
         >
           Previous
         </Button>
-        
+
         <Button
           onClick={handleSubmit}
           loading={isSubmitting}

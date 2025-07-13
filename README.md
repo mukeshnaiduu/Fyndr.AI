@@ -1,8 +1,8 @@
-# HireHub AI - Unified Platform
+# Fyndr.AI - Unified Platform
 
 ## About the Project
 
-HireHub AI is a comprehensive hiring and job search platform that leverages artificial intelligence to connect employers with the best talent and help job seekers find the perfect opportunities. This repository is a unified merge of four separate modules (A, B, C, and D) into a single cohesive application.
+Fyndr.AI is a comprehensive hiring and job search platform that leverages artificial intelligence to connect employers with the best talent and help job seekers find the perfect opportunities. This repository is a unified merge of four separate modules (A, B, C, and D) into a single cohesive application.
 
 ## Features
 
@@ -64,13 +64,13 @@ HireHub AI is a comprehensive hiring and job search platform that leverages arti
 1. Clone the repository
 
 ```
-git clone https://github.com/yourusername/hirehub_ai-final.git
+git clone https://github.com/yourusername/fyndr_ai-final.git
 ```
 
 2. Navigate to the project directory
 
 ```
-cd hirehub_ai-final
+cd fyndr_ai-final
 ```
 
 3. Install dependencies
@@ -129,7 +129,7 @@ The output will be in the `build` directory.
 ## Project Structure
 
 ```
-hirehub_ai-final/
+fyndr_ai-final/
 ├── public/                    # Static assets
 ├── src/
 │   ├── components/            # Shared components
@@ -182,10 +182,10 @@ The following aliases are available:
 
 This repository is the result of merging four separate repositories:
 
-- hirehub_ai-A-main
-- hirehub_ai-B-main
-- hirehub_ai-C-main
-- hirehub_ai-D-main
+    - fyndr_ai-A-main
+    - fyndr_ai-B-main
+    - fyndr_ai-C-main
+    - fyndr_ai-D-main
 
 All components, pages, styles, and utilities have been consolidated into a single cohesive application while maintaining functionality.
 

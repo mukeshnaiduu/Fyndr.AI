@@ -117,7 +117,7 @@ const RoleCards = () => {
             <motion.div
               key={role.id}
               variants={cardVariants}
-              whileHover={{ 
+              whileHover={{
                 scale: 1.02,
                 transition: { duration: 0.2 }
               }}

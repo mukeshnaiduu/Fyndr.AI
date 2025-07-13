@@ -34,7 +34,7 @@ const WizardLayout = ({ children, onSaveAndExit, showSaveOption = true }) => {
                 <span className="sm:hidden">Save</span>
               </Button>
             )}
-            
+
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <Icon name="Shield" size={16} />
               <span className="hidden sm:inline">Secure Setup</span>
@@ -59,7 +59,7 @@ const WizardLayout = ({ children, onSaveAndExit, showSaveOption = true }) => {
       <footer className="mt-auto py-6 text-center text-sm text-muted-foreground">
         <div className="flex items-center justify-center space-x-4">
           <span>© {new Date().getFullYear()} Fyndr.AI</span>
-              © {new Date().getFullYear()} Fyndr.AI
+          © {new Date().getFullYear()} Fyndr.AI
           <span>•</span>
           <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
           <span>•</span>

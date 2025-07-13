@@ -4,14 +4,14 @@ import Icon from 'components/AppIcon';
 import Image from 'components/AppImage';
 import Button from 'components/ui/Button';
 
-const NotificationCard = ({ 
-  notification, 
-  isSelected, 
-  onSelect, 
-  onMarkRead, 
-  onArchive, 
+const NotificationCard = ({
+  notification,
+  isSelected,
+  onSelect,
+  onMarkRead,
+  onArchive,
   onReply,
-  index 
+  index
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -41,12 +41,12 @@ const NotificationCard = ({
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'interview': return 'bg-primary/10 text-primary border-primary/20';
-      case 'application': return 'bg-accent/10 text-accent border-accent/20';
-      case 'message': return 'bg-success/10 text-success border-success/20';
-      case 'system': return 'bg-secondary/10 text-secondary-foreground border-secondary/20';
-      case 'reminder': return 'bg-warning/10 text-warning border-warning/20';
-      default: return 'bg-muted text-muted-foreground border-border';
+      case 'interview': return 'bg-primary/10 text-primary border-primary/20 dark:bg-primary/20 dark:text-primary';
+      case 'application': return 'bg-accent/10 text-accent border-accent/20 dark:bg-accent/20 dark:text-accent';
+      case 'message': return 'bg-success/10 text-success border-success/20 dark:bg-success/20 dark:text-success';
+      case 'system': return 'bg-secondary/10 text-secondary-foreground border-secondary/20 dark:bg-secondary/20 dark:text-secondary-foreground';
+      case 'reminder': return 'bg-warning/10 text-warning border-warning/20 dark:bg-warning/20 dark:text-warning';
+      default: return 'bg-muted text-muted-foreground border-border dark:bg-neutral-900 dark:text-muted-foreground';
     }
   };
 
@@ -64,11 +64,9 @@ const NotificationCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className={`glassmorphic rounded-squircle p-4 spring-transition group cursor-pointer ${
-        !notification.read ? 'bg-primary/5 border-primary/20' : 'border-border'
-      } ${isSelected ? 'ring-2 ring-primary glow-primary' : ''} ${
-        isHovered ? 'elevation-2 glow-primary' : 'elevation-1'
-      }`}
+      className={`glassmorphic rounded-squircle p-4 spring-transition group cursor-pointer ${!notification.read ? 'bg-primary/5 border-primary/20' : 'border-border'
+        } ${isSelected ? 'ring-2 ring-primary glow-primary' : ''} ${isHovered ? 'elevation-2 glow-primary' : 'elevation-1'
+        }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onSelect(notification.id)}
@@ -146,9 +144,8 @@ const NotificationCard = ({
           )}
 
           {/* Quick Actions */}
-          <div className={`flex items-center space-x-2 spring-transition ${
-            isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          }`}>
+          <div className={`flex items-center space-x-2 spring-transition ${isHovered ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            }`}>
             {!notification.read && (
               <Button
                 variant="ghost"
@@ -164,7 +161,7 @@ const NotificationCard = ({
                 Mark Read
               </Button>
             )}
-            
+
             <Button
               variant="ghost"
               size="xs"

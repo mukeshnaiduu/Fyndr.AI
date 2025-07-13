@@ -74,7 +74,7 @@ const TeamShowcase = () => {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-background to-card/50">
+    <section className="py-20 bg-gradient-to-b from-background to-card/50 dark:from-neutral-950 dark:to-neutral-900/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -90,14 +90,14 @@ const TeamShowcase = () => {
               Our Team
             </span>
           </div>
-          
+
           <h2 className="text-4xl md:text-5xl font-heading font-heading-bold text-foreground mb-6">
             Meet the{" "}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Innovators
             </span>
           </h2>
-          
+
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Our diverse team of experts combines decades of experience in AI, engineering, and human resources to revolutionize the hiring landscape.
           </p>
@@ -119,9 +119,8 @@ const TeamShowcase = () => {
               {/* Avatar */}
               <div className="relative mb-6">
                 <div className="w-24 h-24 mx-auto relative">
-                  <div className={`absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent p-1 ${
-                    hoveredMember === member.id ? 'animate-pulse' : ''
-                  }`}>
+                  <div className={`absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent p-1 ${hoveredMember === member.id ? 'animate-pulse' : ''
+                    }`}>
                     <div className="w-full h-full rounded-full overflow-hidden bg-background">
                       <Image
                         src={member.image}
@@ -130,7 +129,7 @@ const TeamShowcase = () => {
                       />
                     </div>
                   </div>
-                  
+
                   {/* LinkedIn Badge */}
                   <button
                     onClick={() => handleLinkedInClick(member.linkedin)}
@@ -205,15 +204,15 @@ const TeamShowcase = () => {
             <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-accent/20 rounded-squircle flex items-center justify-center mx-auto mb-4">
               <Icon name="UserPlus" size={32} className="text-primary" />
             </div>
-            
+
             <h3 className="text-2xl font-heading font-heading-semibold text-foreground mb-4">
               Join Our Team
             </h3>
-            
+
             <p className="text-muted-foreground mb-6 leading-relaxed">
               We're always looking for talented individuals who share our passion for innovation and excellence. Explore career opportunities with us.
             </p>
-            
+
             <button className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary to-accent text-white px-6 py-3 rounded-squircle hover:scale-105 spring-transition glow-primary ripple">
               <Icon name="Briefcase" size={18} />
               <span className="font-body font-body-medium">View Open Positions</span>
