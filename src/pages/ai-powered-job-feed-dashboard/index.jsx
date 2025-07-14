@@ -5,6 +5,9 @@ import SidebarLayout from 'components/layout/SidebarLayout';
 import SearchHeader from 'components/ui/SearchHeader';
 import Header from 'components/ui/Header';
 
+import JobFeedFilters from './components/JobFeedFilters';
+import JobFeedFilterSidebar from './components/JobFeedFilterSidebar';
+
 import FilterChips from './components/FilterChips';
 import SortDropdown from './components/SortDropdown';
 import JobGrid from './components/JobGrid';
@@ -277,128 +280,103 @@ const AIJobFeedDashboard = () => {
     >
       <SearchHeader
         onSearch={handleSearch}
-        onFilterChange={handleFilterChange}
         placeholder="Search jobs, companies, skills..."
-        showFilters={true}
       />
 
       <main className="container mx-auto px-4 lg:px-6 py-6">
-        {/* Dashboard Header */}
-        <div className="mb-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-          >
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-heading font-bold text-foreground mb-2">
-                AI-Powered Job Feed
-              </h1>
-              <p className="text-muted-foreground">
-                Discover personalized job opportunities with AI-driven matching
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              {/* Refresh Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                loading={refreshing}
-                onClick={handleRefresh}
-                iconName="RefreshCw"
-                iconPosition="left"
-              >
-                Refresh
-              </Button>
-
-              {/* Bookmarks Toggle */}
-              <Button
-                variant={showBookmarkedOnly ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
-                iconName="Bookmark"
-                iconPosition="left"
-              >
-                {showBookmarkedOnly ? 'All Jobs' : 'Bookmarked'}
-              </Button>
-
-              {/* Advanced Filters */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAdvancedFilterOpen(true)}
-                iconName="SlidersHorizontal"
-                iconPosition="left"
-              >
-                Filters
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Filter Chips */}
-        <FilterChips
-          activeFilters={activeFilters}
-          onFilterChange={(key, values) => {
-            setActiveFilters(prev => ({ ...prev, [key]: values }));
-          }}
-          onClearAll={handleClearAllFilters}
-        />
-
-        {/* Results Header */}
-        <div className="flex items-center justify-between py-4">
-          <div className="flex items-center space-x-4">
-            <p className="text-sm text-muted-foreground">
-              {loading ? 'Loading...' : `${jobs.length} jobs found`}
-              {searchQuery && (
-                <span className="ml-1">for "{searchQuery}"</span>
-              )}
-            </p>
-          </div>
-
-          <SortDropdown
-            currentSort={currentSort}
-            onSortChange={handleSortChange}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Filter Sidebar */}
+          <JobFeedFilterSidebar
+            filters={activeFilters}
+            onFilterChange={(key, value) => setActiveFilters(prev => ({ ...prev, [key]: value }))}
+            onApplyFilters={filters => setActiveFilters(filters)}
+            onClearFilters={handleClearAllFilters}
           />
+
+          {/* Jobs Grid and Controls */}
+          <div className="lg:col-span-9">
+            {/* Dashboard Header */}
+            <div className="mb-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+              >
+                <div>
+                  <h1 className="text-2xl lg:text-3xl font-heading font-bold text-foreground mb-2">
+                    AI-Powered Job Feed
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Discover personalized job opportunities with AI-driven matching
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  {/* Refresh Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    loading={refreshing}
+                    onClick={handleRefresh}
+                    iconName="RefreshCw"
+                    iconPosition="left"
+                  >
+                    Refresh
+                  </Button>
+
+                  {/* Bookmarks Toggle */}
+                  <Button
+                    variant={showBookmarkedOnly ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
+                    iconName="Bookmark"
+                    iconPosition="left"
+                  >
+                    {showBookmarkedOnly ? 'All Jobs' : 'Bookmarked'}
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+
+
+            {/* Job Grid */}
+            <JobGrid
+              jobs={jobs}
+              loading={loading}
+              hasMore={hasMore}
+              onLoadMore={handleLoadMore}
+              onBookmark={handleBookmark}
+              onApply={handleApply}
+              showBookmarkedOnly={showBookmarkedOnly}
+            />
+
+            {/* Advanced Filter Panel */}
+            <AdvancedFilterPanel
+              isOpen={isAdvancedFilterOpen}
+              onClose={() => setIsAdvancedFilterOpen(false)}
+              filters={advancedFilters}
+              onFiltersChange={setAdvancedFilters}
+              onApplyFilters={() => {
+                // Apply advanced filters logic
+                console.log('Applying advanced filters:', advancedFilters);
+              }}
+              onClearFilters={() => {
+                setAdvancedFilters({
+                  location: '',
+                  salaryRange: '',
+                  experienceLevel: '',
+                  jobTypes: [],
+                  workMode: '',
+                  companySize: '',
+                  skills: '',
+                  benefits: [],
+                  postedWithin: '',
+                  matchPercentage: 0
+                });
+              }}
+            />
+          </div>
         </div>
-
-        {/* Job Grid */}
-        <JobGrid
-          jobs={jobs}
-          loading={loading}
-          hasMore={hasMore}
-          onLoadMore={handleLoadMore}
-          onBookmark={handleBookmark}
-          onApply={handleApply}
-          showBookmarkedOnly={showBookmarkedOnly}
-        />
-
-        {/* Advanced Filter Panel */}
-        <AdvancedFilterPanel
-          isOpen={isAdvancedFilterOpen}
-          onClose={() => setIsAdvancedFilterOpen(false)}
-          filters={advancedFilters}
-          onFiltersChange={setAdvancedFilters}
-          onApplyFilters={() => {
-            // Apply advanced filters logic
-            console.log('Applying advanced filters:', advancedFilters);
-          }}
-          onClearFilters={() => {
-            setAdvancedFilters({
-              location: '',
-              salaryRange: '',
-              experienceLevel: '',
-              jobTypes: [],
-              workMode: '',
-              companySize: '',
-              skills: '',
-              benefits: [],
-              postedWithin: '',
-              matchPercentage: 0
-            });
-          }}
-        />
       </main>
     </MainLayout>
   );

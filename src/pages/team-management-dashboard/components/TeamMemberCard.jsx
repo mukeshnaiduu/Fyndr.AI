@@ -28,21 +28,21 @@ const TeamMemberCard = ({ member, onRoleChange, onMessage, onManageAccess }) => 
   return (
     <div className="glass-card p-6 hover-lift">
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="relative">
+        <div className="flex items-center gap-3">
+          <div className="relative w-12 h-12 flex-shrink-0">
             <Image
               src={member.avatar}
               alt={member.name}
-              className="w-12 h-12 rounded-full object-cover"
+              className="w-full h-full rounded-full object-cover"
             />
             <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${getStatusColor(member.status)}`} />
           </div>
-          <div>
-            <h3 className="font-semibold text-foreground">{member.name}</h3>
-            <p className="text-sm text-muted-foreground">{member.email}</p>
+          <div className="min-w-0">
+            <h3 className="font-semibold text-foreground truncate">{member.name}</h3>
+            <p className="text-sm text-muted-foreground truncate">{member.email}</p>
           </div>
         </div>
-        
+
         <div className="relative">
           <Button
             variant="ghost"
@@ -51,7 +51,7 @@ const TeamMemberCard = ({ member, onRoleChange, onMessage, onManageAccess }) => 
           >
             <Icon name="MoreVertical" size={16} />
           </Button>
-          
+
           {isMenuOpen && (
             <div className="absolute right-0 top-8 w-48 glass-card border border-glass-border rounded-card shadow-glass z-50">
               <div className="p-2">
@@ -98,17 +98,17 @@ const TeamMemberCard = ({ member, onRoleChange, onMessage, onManageAccess }) => 
             {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
           </span>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Department</span>
           <span className="text-sm font-medium text-foreground">{member.department}</span>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Last Login</span>
           <span className="text-sm text-foreground">{member.lastLogin}</span>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Permissions</span>
           <div className="flex items-center space-x-1">

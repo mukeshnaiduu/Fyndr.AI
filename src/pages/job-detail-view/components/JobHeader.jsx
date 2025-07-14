@@ -21,7 +21,7 @@ const JobHeader = ({ jobData, onBookmark, onShare, onApply, jobHeaderTop }) => {
   // Use fixed positioning when header is at top (navbar closed)
   const isAtTop = jobHeaderTop === 'top-0';
   return (
-    <div className={`${isAtTop ? 'fixed top-10000 left-0 w-full z-[1050] bg-background' : `sticky ${jobHeaderTop} z-50 glass-card border-b border-glass-border`} mb-16`}>
+    <div className={`${isAtTop ? 'fixed top-0 left-0 w-full z-[1050] bg-background' : `sticky ${jobHeaderTop} z-50 glass-card border-b border-glass-border`} mb-16`}>
       <div className="px-4 lg:px-6 py-4">
         {/* Mobile Header */}
         <div className="flex items-center justify-between lg:hidden">

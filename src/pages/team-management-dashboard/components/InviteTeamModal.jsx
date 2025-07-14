@@ -41,7 +41,7 @@ const InviteTeamModal = ({ isOpen, onClose, onInvite }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const inviteData = {
       type: inviteType,
       emails: inviteType === 'single' ? [singleEmail] : bulkEmails.split('\n').filter(email => email.trim()),
@@ -50,7 +50,7 @@ const InviteTeamModal = ({ isOpen, onClose, onInvite }) => {
       permissions,
       customMessage
     };
-    
+
     onInvite(inviteData);
     onClose();
   };
@@ -66,8 +66,8 @@ const InviteTeamModal = ({ isOpen, onClose, onInvite }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="glass-card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-background border border-gray-200 dark:border-glass-border rounded-lg shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-glass-border">
           <h2 className="text-xl font-semibold text-foreground">Invite Team Members</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
