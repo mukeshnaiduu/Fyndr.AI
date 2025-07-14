@@ -123,24 +123,24 @@ const AIResumeBuilder = () => {
       title="AI Resume Builder"
       description="Create professional resumes with AI assistance"
     >
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-cyan-50">
+      <div className="min-h-screen w-full bg-gradient-to-br from-pink-50 via-purple-50 to-cyan-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 flex flex-row items-stretch justify-stretch px-0 py-0">
         {/* Left Panel - Editing */}
-        <div className={`${isMobilePreview ? 'hidden lg:flex' : 'flex'} flex-col w-full lg:w-1/2 border-r border-border`}>
+        <div className={`${isMobilePreview ? 'hidden lg:flex' : 'flex'} flex-col w-full lg:w-1/2 border-r border-border bg-white dark:bg-gray-900 dark:text-gray-100 rounded-none shadow-none`}>
           {/* Top Section - Template & Score */}
           <div className="flex-shrink-0 p-6 border-b border-border bg-card">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-2xl font-bold text-foreground mb-2">AI Resume Builder</h1>
                 <div className="flex items-center space-x-2 text-sm">
-                  <Icon 
-                    name={getAutoSaveIcon()} 
-                    size={16} 
+                  <Icon
+                    name={getAutoSaveIcon()}
+                    size={16}
                     className={`${getAutoSaveColor()} ${autoSaveStatus === 'saving' ? 'animate-spin' : ''}`}
                   />
                   <span className={getAutoSaveColor()}>
-                    {autoSaveStatus === 'saving' ? 'Saving...' : 
-                     autoSaveStatus === 'saved' ? 'All changes saved' : 
-                     autoSaveStatus === 'error' ? 'Save failed' : 'Auto-save enabled'}
+                    {autoSaveStatus === 'saving' ? 'Saving...' :
+                      autoSaveStatus === 'saved' ? 'All changes saved' :
+                        autoSaveStatus === 'error' ? 'Save failed' : 'Auto-save enabled'}
                   </span>
                 </div>
               </div>
@@ -171,32 +171,42 @@ const AIResumeBuilder = () => {
             />
 
             <OptimizationScore score={78} />
-          </div>
 
-          {/* Editing Panel */}
-          <div className="flex-1 overflow-hidden">
-            <EditingPanel
-              resumeData={resumeData}
-              onDataChange={handleDataChange}
-            />
+            <div className="mt-8">
+              <div className="bg-card shadow-lg p-6">
+                <EditingPanel
+                  resumeData={resumeData}
+                  onDataChange={handleDataChange}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Right Panel - Live Preview */}
-        <div className={`${isMobilePreview ? 'flex' : 'hidden lg:flex'} flex-col w-full lg:w-1/2`}>
-          <LivePreview
-            resumeData={resumeData}
-            selectedTemplate={selectedTemplate}
-          />
+        {/* Right Panel - Live Preview with merged QuickActionsToolbar */}
+        <div className={`${isMobilePreview ? 'flex' : 'hidden lg:flex'} flex-col w-full lg:w-1/2 bg-white dark:bg-gray-900 dark:text-gray-100 rounded-none shadow-none`}>
+          <div className="flex flex-col h-full justify-stretch items-stretch px-6 pt-6 pb-6">
+            <div className="bg-card dark:bg-gray-950 shadow-lg w-full h-full flex flex-col">
+              <div className="px-6 pt-6 pb-2">
+                <QuickActionsToolbar
+                  context="resume-builder"
+                  onSave={handleSave}
+                  onExport={() => setShowExportModal(true)}
+                  onShare={() => console.log('Share resume')}
+                />
+              </div>
+              <div className="flex-1 px-6 pb-6">
+                <div className="bg-white text-gray-900 border border-border shadow-md w-full h-full">
+                  <LivePreview
+                    resumeData={resumeData}
+                    selectedTemplate={selectedTemplate}
+                    forceLightTheme={true}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      
-        {/* Quick Actions Toolbar */}
-        <QuickActionsToolbar
-          context="resume-builder"
-          onSave={handleSave}
-          onExport={() => setShowExportModal(true)}
-          onShare={() => console.log('Share resume')}
-        />
 
         {/* AI Suggestion Panel */}
         <AISuggestionPanel
@@ -219,7 +229,7 @@ const AIResumeBuilder = () => {
             variant="default"
             size="icon"
             onClick={() => setIsMobilePreview(!isMobilePreview)}
-            className="w-12 h-12 rounded-full shadow-lg"
+            className="w-12 h-12 shadow-lg"
           >
             <Icon name={isMobilePreview ? 'Edit' : 'Eye'} size={20} />
           </Button>
