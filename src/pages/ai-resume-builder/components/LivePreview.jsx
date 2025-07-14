@@ -12,7 +12,7 @@ const LivePreview = ({ resumeData, selectedTemplate }) => {
   };
 
   const renderModernTemplate = () => (
-    <div className="bg-white text-gray-900 p-8 min-h-full">
+    <div className="bg-muted text-gray-900 dark:bg-muted dark:text-gray-100 p-8 min-h-full rounded-card">
       {/* Header */}
       <div className="border-b-2 border-purple-500 pb-6 mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -131,7 +131,7 @@ const LivePreview = ({ resumeData, selectedTemplate }) => {
   );
 
   const renderClassicTemplate = () => (
-    <div className="bg-white text-gray-900 p-8 min-h-full">
+    <div className="bg-muted text-gray-900 dark:bg-muted dark:text-gray-100 p-8 min-h-full rounded-card">
       {/* Header */}
       <div className="text-center border-b border-gray-300 pb-6 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
