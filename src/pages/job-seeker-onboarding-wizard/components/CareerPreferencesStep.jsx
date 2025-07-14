@@ -201,7 +201,7 @@ const CareerPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
                 key={option.value}
                 className={`flex items-center space-x-2 p-3 rounded-card border cursor-pointer transition-all duration-200 ${
                   preferences.jobTypes.includes(option.value)
-                    ? 'border-primary bg-primary/5 text-primary' :'border-border hover:border-primary/50 hover:bg-muted/50'
+                    ? 'border-primary bg-primary/5 text-primary' : 'border-border hover:border-primary/50 hover:bg-muted/50'
                 }`}
               >
                 <Checkbox
@@ -350,7 +350,8 @@ const CareerPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
           onClick={handleNext}
           iconName="ArrowRight"
           iconPosition="right"
-          className="bg-gradient-primary text-white hover:scale-105 transition-all duration-300"
+          size="lg"
+          className="font-semibold"
         >
           Next Step
         </Button>

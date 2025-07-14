@@ -52,9 +52,9 @@
     --color-ring: #a78bfa; /* keep purple */
     --color-card: #1e293b; /* dark elevated surface */
     --color-card-foreground: #f1f5f9; /* light gray */
-    --color-popover: #0f172a; /* dark blue-gray */
+    --color-popover: #1e293b; /* dark surface */
     --color-popover-foreground: #f1f5f9; /* light gray */
-    --color-muted: #1e293b; /* dark elevated surface */
+    --color-muted: #334155; /* slightly lighter dark surface */
     --color-muted-foreground: #94a3b8; /* medium gray */
 
     /* Brand Colors - Slightly adjusted for dark mode */
@@ -62,19 +62,39 @@
     --color-primary-foreground: #ffffff; /* white */
     --color-secondary: #334155; /* darker periwinkle for dark mode */
     --color-secondary-foreground: #f1f5f9; /* light gray */
+
+    /* State Colors - Dark Mode */
+    --color-destructive: #f87171; /* softer red for dark mode */
+    --color-destructive-foreground: #ffffff; /* white */
+    --color-accent: #fb923c; /* warm orange */
+    --color-accent-foreground: #ffffff; /* white */
+    --color-success: #4ade80; /* vibrant green */
+    --color-success-foreground: #ffffff; /* white */
+    --color-warning: #fbbf24; /* balanced amber */
+    --color-warning-foreground: #0f172a; /* dark background */
+    --color-error: #f87171; /* softer red for dark mode */
+    --color-error-foreground: #ffffff; /* white */
   }
 
   :root {
     /* Glassmorphic Effects */
-    --glassmorphic-bg: rgba(255, 255, 255, 0.1);
-    --glassmorphic-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-    --glow-primary: 0 0 20px rgba(167, 139, 250, 0.3);
-    --glow-accent: 0 0 20px rgba(251, 146, 60, 0.3);
+    --glassmorphic-bg: rgba(255, 255, 255, 0.25);
+    --glassmorphic-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --glow-primary: 0 0 20px rgba(167, 139, 250, 0.15);
+    --glow-accent: 0 0 20px rgba(251, 146, 60, 0.15);
 
     /* Animation Variables */
     --spring-stiffness: 400;
     --spring-damping: 30;
     --transition-standard: 300ms ease-in-out;
+  }
+
+  .dark {
+    /* Glassmorphic Effects - Dark Mode */
+    --glassmorphic-bg: rgba(30, 41, 59, 0.4);
+    --glassmorphic-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --glow-primary: 0 0 20px rgba(177, 151, 252, 0.3);
+    --glow-accent: 0 0 20px rgba(251, 146, 60, 0.3);
   }
 
   * {
@@ -160,15 +180,28 @@
 @layer components {
   /* Elevation System */
   .elevation-1 {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }
 
   .elevation-2 {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   .elevation-3 {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Dark mode elevation */
+  .dark .elevation-1 {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .elevation-2 {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .elevation-3 {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
   /* Ripple Effect */

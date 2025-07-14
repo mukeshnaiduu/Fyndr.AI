@@ -1,5 +1,44 @@
 /* Global styles for the integrated Fyndr.AI platform */
 
+/* Glassmorphism utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.dark .glass-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-border {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-border {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shadow-glass {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.dark .shadow-glass {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+}
+
+.rounded-card {
+  border-radius: 1rem;
+}
+
 /* Common component styles */
 .glassmorphic-card {
   background: rgba(255, 255, 255, 0.1);
@@ -162,4 +201,102 @@ button[class*="btn-"]:disabled,
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+}
+
+/* Dark mode specific enhancements */
+.dark .wizard-step-content {
+  background: rgba(30, 41, 59, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .form-field:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(177, 151, 252, 0.15);
+}
+
+.dark .checkbox-container {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark .checkbox-container:hover {
+  border-color: var(--color-primary);
+  background: rgba(177, 151, 252, 0.05);
+}
+
+/* Progress bar dark mode */
+.dark .progress-bar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark .progress-bar-fill {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+}
+
+/* Upload zone dark mode */
+.dark .upload-zone {
+  background: rgba(30, 41, 59, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .upload-zone:hover,
+.dark .upload-zone.drag-active {
+  background: rgba(177, 151, 252, 0.1);
+  border-color: var(--color-primary);
+}
+
+/* Homepage Hero Section Light Mode Enhancements */
+.hero-content-light {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.dark .hero-content-light {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Improved glassmorphic effects for light mode */
+.glassmorphic {
+  background: var(--glassmorphic-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: var(--glassmorphic-shadow);
+}
+
+.dark .glassmorphic {
+  background: var(--glassmorphic-bg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Better text contrast for hero section */
+.hero-text-primary {
+  color: #1e293b;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.dark .hero-text-primary {
+  color: #f1f5f9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.hero-text-secondary {
+  color: #475569;
+}
+
+.dark .hero-text-secondary {
+  color: #94a3b8;
+}
+
+/* Enhanced glow effects for light mode */
+.glow-primary-light {
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.2);
+}
+
+.dark .glow-primary-light {
+  box-shadow: 0 0 20px rgba(177, 151, 252, 0.4);
 }

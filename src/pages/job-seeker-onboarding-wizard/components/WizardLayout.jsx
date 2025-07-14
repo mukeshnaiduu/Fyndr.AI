@@ -5,16 +5,16 @@ import Button from 'components/ui/Button';
 
 const WizardLayout = ({ children, onSaveAndExit, showSaveOption = true }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-card border-b border-glass-border">
+      <header className="sticky top-0 z-40 glass-card border-b glass-border">
         <div className="flex items-center justify-between px-4 lg:px-6 py-4">
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-primary">
               <Icon name="Zap" size={20} color="white" />
             </div>
-            <span className="font-heading font-bold text-xl bg-gradient-primary bg-clip-text text-transparent">
+            <span className="font-heading font-bold text-xl text-slate-800 dark:text-slate-100">
               Fyndr.AI
             </span>
           </div>
@@ -59,7 +59,6 @@ const WizardLayout = ({ children, onSaveAndExit, showSaveOption = true }) => {
       <footer className="mt-auto py-6 text-center text-sm text-muted-foreground">
         <div className="flex items-center justify-center space-x-4">
           <span>© {new Date().getFullYear()} Fyndr.AI</span>
-          © {new Date().getFullYear()} Fyndr.AI
           <span>•</span>
           <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
           <span>•</span>

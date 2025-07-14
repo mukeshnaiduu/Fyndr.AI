@@ -301,7 +301,8 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
           onClick={handleNext}
           iconName="ArrowRight"
           iconPosition="right"
-          className="bg-gradient-primary text-white hover:scale-105 transition-all duration-300"
+          size="lg"
+          className="font-semibold"
         >
           Next Step
         </Button>

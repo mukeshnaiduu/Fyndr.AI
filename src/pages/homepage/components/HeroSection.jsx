@@ -33,7 +33,7 @@ const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-card to-secondary/20">
       {/* Overlay for better text contrast */}
-      <div className="absolute inset-0 bg-black/20 z-10" />
+      <div className="absolute inset-0 bg-black/5 dark:bg-black/20 z-10" />
       {/* Animated Background Blobs */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
@@ -84,7 +84,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="glassmorphic rounded-[2rem] p-8 sm:p-12 lg:p-16 elevation-3"
+          className="glassmorphic rounded-[2rem] p-8 sm:p-12 lg:p-16 elevation-3 border border-white/20 dark:border-white/10"
         >
           {/* Logo and Brand */}
           <motion.div
@@ -147,7 +147,7 @@ const HeroSection = () => {
               iconName="ArrowRight"
               iconPosition="right"
               iconSize={20}
-              className="glow-primary"
+              className="glow-primary-light shadow-lg"
             >
               Get Started Free
             </Button>
@@ -158,6 +158,7 @@ const HeroSection = () => {
               iconName="Play"
               iconPosition="left"
               iconSize={20}
+              className="bg-white/20 dark:bg-slate-800/50 border-white/30 dark:border-slate-600 hover:bg-white/30 dark:hover:bg-slate-700/50"
             >
               Watch Demo
             </Button>

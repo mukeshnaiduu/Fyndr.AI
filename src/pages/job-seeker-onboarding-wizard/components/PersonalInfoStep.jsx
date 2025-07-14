@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Icon from 'components/AppIcon';
 import Input from 'components/ui/Input';
 import Select from 'components/ui/Select';
+import Button from 'components/ui/Button';
 import Image from 'components/AppImage';
 
 const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
@@ -242,21 +243,25 @@ const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
 
       {/* Navigation */}
       <div className="flex justify-between pt-6">
-        <button
+        <Button
+          variant="outline"
           onClick={onPrev}
           disabled
-          className="px-6 py-2 text-muted-foreground cursor-not-allowed"
+          iconName="ArrowLeft"
+          iconPosition="left"
         >
           Previous
-        </button>
+        </Button>
         
-        <button
+        <Button
           onClick={handleNext}
-          className="px-8 py-3 bg-gradient-primary text-white rounded-card font-medium hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+          iconName="ArrowRight"
+          iconPosition="right"
+          size="lg"
+          className="font-semibold"
         >
           Next Step
-          <Icon name="ArrowRight" size={16} className="ml-2 inline" />
-        </button>
+        </Button>
       </div>
     </motion.div>
   );

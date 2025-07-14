@@ -325,7 +325,8 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
           disabled={selectedSkills.length === 0}
           iconName="ArrowRight"
           iconPosition="right"
-          className="bg-gradient-primary text-white hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          size="lg"
+          className="font-semibold"
         >
           Next Step
         </Button>

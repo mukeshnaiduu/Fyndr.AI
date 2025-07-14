@@ -56,7 +56,7 @@ const WizardProgress = ({ currentStep, totalSteps, steps }) => {
                   className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
                     status === 'completed'
                       ? 'bg-success border-success'
-                      : status === 'current' ?'bg-primary border-primary' :'bg-background border-border'
+                      : status === 'current' ? 'bg-primary border-primary' : 'bg-background border-border'
                   }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -66,8 +66,8 @@ const WizardProgress = ({ currentStep, totalSteps, steps }) => {
                 
                 <div className="mt-2 text-center">
                   <p className={`text-xs font-medium transition-colors duration-300 ${
-                    status === 'current' ?'text-primary'
-                      : status === 'completed' ?'text-success' :'text-muted-foreground'
+                    status === 'current' ? 'text-primary'
+                      : status === 'completed' ? 'text-success' : 'text-muted-foreground'
                   }`}>
                     {step.title}
                   </p>
@@ -100,7 +100,7 @@ const WizardProgress = ({ currentStep, totalSteps, steps }) => {
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
                   status === 'completed'
                     ? 'bg-success'
-                    : status === 'current' ?'bg-primary' :'bg-border'
+                    : status === 'current' ? 'bg-primary' : 'bg-border'
                 }`}
                 whileHover={{ scale: 1.2 }}
               />
