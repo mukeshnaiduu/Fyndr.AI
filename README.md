@@ -198,4 +198,4 @@ All components, pages, styles, and utilities have been consolidated into a singl
 ## License
 
 This project is licensed under the MIT License.
-made by RiceMill
+made by love by RiceMill69
