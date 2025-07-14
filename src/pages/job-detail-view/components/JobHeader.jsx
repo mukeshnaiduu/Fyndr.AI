@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 
-const JobHeader = ({ jobData, onBookmark, onShare, onApply }) => {
+const JobHeader = ({ jobData, onBookmark, onShare, onApply, jobHeaderTop }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
 
@@ -18,8 +18,10 @@ const JobHeader = ({ jobData, onBookmark, onShare, onApply }) => {
     { label: 'Copy Link', icon: 'Link', action: () => navigator.clipboard.writeText(window.location.href) }
   ];
 
+  // Use fixed positioning when header is at top (navbar closed)
+  const isAtTop = jobHeaderTop === 'top-0';
   return (
-    <div className="sticky top-16 z-30 glass-card border-b border-glass-border">
+    <div className={`${isAtTop ? 'fixed top-10000 left-0 w-full z-[1050] bg-background' : `sticky ${jobHeaderTop} z-50 glass-card border-b border-glass-border`} mb-16`}>
       <div className="px-4 lg:px-6 py-4">
         {/* Mobile Header */}
         <div className="flex items-center justify-between lg:hidden">
@@ -36,40 +38,22 @@ const JobHeader = ({ jobData, onBookmark, onShare, onApply }) => {
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="icon" onClick={handleBookmark}>
-              <Icon 
-                name={isBookmarked ? "BookmarkCheck" : "Bookmark"} 
-                size={20} 
-                className={isBookmarked ? "text-primary" : ""} 
+              <Icon
+                name={isBookmarked ? "BookmarkCheck" : "Bookmark"}
+                size={20}
+                className={isBookmarked ? "text-primary" : ""}
               />
             </Button>
-            <div className="relative">
-              <Button variant="ghost" size="icon" onClick={() => setIsShareOpen(!isShareOpen)}>
-                <Icon name="Share2" size={20} />
-              </Button>
-              {isShareOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 glass-card border border-glass-border rounded-card shadow-glass z-50">
-                  <div className="p-2">
-                    {shareOptions.map((option) => (
-                      <button
-                        key={option.label}
-                        onClick={() => {
-                          if (option.action) {
-                            option.action();
-                          } else {
-                            window.open(option.url, '_blank');
-                          }
-                          setIsShareOpen(false);
-                        }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-left hover:bg-muted rounded transition-colors"
-                      >
-                        <Icon name={option.icon} size={16} />
-                        <span>{option.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <Button className="ml-2 bg-primary text-primary-foreground px-4 py-2 rounded-none font-semibold flex items-center gap-2" onClick={onApply}>
+              <Icon name="Send" size={16} />
+              <span>Apply Now</span>
+            </Button>
+            <Button variant="ghost" className="ml-2">
+              <Icon name="MessageSquare" size={16} /> Ask questions
+            </Button>
+            <Button variant="ghost" className="ml-2">
+              <Icon name="Flag" size={16} /> Report job
+            </Button>
           </div>
         </div>
 
@@ -102,51 +86,27 @@ const JobHeader = ({ jobData, onBookmark, onShare, onApply }) => {
           </div>
           <div className="flex items-center space-x-3">
             <Button variant="outline" onClick={handleBookmark}>
-              <Icon 
-                name={isBookmarked ? "BookmarkCheck" : "Bookmark"} 
-                size={16} 
-                className={isBookmarked ? "text-primary" : ""} 
+              <Icon
+                name={isBookmarked ? "BookmarkCheck" : "Bookmark"}
+                size={16}
+                className={isBookmarked ? "text-primary" : ""}
               />
               {isBookmarked ? "Bookmarked" : "Bookmark"}
             </Button>
-            <div className="relative">
-              <Button variant="outline" onClick={() => setIsShareOpen(!isShareOpen)}>
-                <Icon name="Share2" size={16} />
-                Share
-              </Button>
-              {isShareOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 glass-card border border-glass-border rounded-card shadow-glass z-50">
-                  <div className="p-2">
-                    {shareOptions.map((option) => (
-                      <button
-                        key={option.label}
-                        onClick={() => {
-                          if (option.action) {
-                            option.action();
-                          } else {
-                            window.open(option.url, '_blank');
-                          }
-                          setIsShareOpen(false);
-                        }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-left hover:bg-muted rounded transition-colors"
-                      >
-                        <Icon name={option.icon} size={16} />
-                        <span>{option.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <Button onClick={onApply} className="px-6">
+            <Button className="ml-2 bg-primary text-primary-foreground px-4 py-2 rounded-none font-semibold flex items-center gap-2" onClick={onApply}>
               <Icon name="Send" size={16} />
-              Apply Now
+              <span>Apply Now</span>
+            </Button>
+            <Button variant="ghost" className="ml-2">
+              <Icon name="MessageSquare" size={16} /> Ask questions
+            </Button>
+            <Button variant="ghost" className="ml-2">
+              <Icon name="Flag" size={16} /> Report job
             </Button>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
+}
 export default JobHeader;

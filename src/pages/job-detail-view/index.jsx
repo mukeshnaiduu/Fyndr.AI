@@ -193,42 +193,52 @@ We offer competitive compensation, comprehensive benefits, and a flexible work e
     window.scrollTo(0, 0);
   }, []);
 
+  // Track navbar open/closed state from MainLayout if available
+  // For demo, use a local state. Replace with context/prop if MainLayout provides it.
+  const [navbarOpen, setNavbarOpen] = useState(true); // Default: open
+
+  // Dynamically set top offset for JobHeader sticky positioning
+  const jobHeaderTop = navbarOpen ? 'top-16' : 'top-0';
+  // Remove all top margin and padding so JobHeader is flush with the top
+  const topMarginClass = '';
+
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <JobHeader 
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 ${topMarginClass}`}>
+        <JobHeader
           jobData={jobData}
           onBookmark={handleBookmark}
           onShare={handleShare}
           onApply={handleApply}
+          jobHeaderTop={jobHeaderTop}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-8">
-            <MatchPercentage 
+            <MatchPercentage
               matchPercentage={jobData.matchPercentage}
               skillsMatched={6}
               totalSkills={9}
             />
-            
-            <JobDescription 
+
+            <JobDescription
               description={jobData.description}
               responsibilities={jobData.responsibilities}
               requirements={jobData.requirements}
             />
-            
-            <SkillsMatch 
+
+            <SkillsMatch
               requiredSkills={requiredSkills}
               userSkills={userSkills}
             />
-            
-            <SalaryInsights 
+
+            <SalaryInsights
               salaryData={salaryData}
               marketData={marketData}
               growthData={growthData}
             />
-            
+
             <RelatedJobs jobs={relatedJobs} />
           </div>
 
@@ -239,17 +249,10 @@ We offer competitive compensation, comprehensive benefits, and a flexible work e
         </div>
       </div>
 
-      {/* Bottom spacing for fixed apply button */}
-      <div className="h-32 lg:h-0"></div>
-
-      <ApplyButton 
-        onApply={handleApply}
-        isApplied={isApplied}
-        applicationDeadline={jobData.applicationDeadline}
-      />
+      {/* Sticky Apply Button above footer, limited to main content width */}
+      {/* Removed ApplyButton and sticky container */}
     </MainLayout>
   );
-};
-
+}
 export default JobDetailView;
 
