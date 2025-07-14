@@ -95,10 +95,10 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     const validEmails = formData.inviteEmails.filter(email => email.trim());
     const invalidEmails = validEmails.filter(email => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
-    
+
     if (invalidEmails.length > 0) {
       newErrors.inviteEmails = 'Please enter valid email addresses';
     }
@@ -125,9 +125,9 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
       </div>
 
       {/* Current Team Members */}
-      <div className="glass-card p-6 rounded-card">
+      <div className="p-6 rounded-card bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
         <h3 className="text-lg font-semibold text-foreground mb-4">Current Team Members</h3>
-        
+
         <div className="space-y-4">
           {mockTeamMembers.map((member) => (
             <div key={member.id} className="flex items-center justify-between p-4 bg-muted rounded-card">
@@ -147,14 +147,13 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
                   <p className="text-sm text-muted-foreground">{member.email}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
-                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                  member.status === 'active' ?'bg-success/10 text-success' :'bg-warning/10 text-warning'
-                }`}>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${member.status === 'active' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                  }`}>
                   {member.status}
                 </span>
-                
+
                 <Select
                   options={roleOptions}
                   value={member.role}
@@ -168,7 +167,7 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
       </div>
 
       {/* Invite New Members */}
-      <div className="glass-card p-6 rounded-card">
+      <div className="p-6 rounded-card bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-foreground">Invite Team Members</h3>
           <Button variant="outline" size="sm" onClick={handleAddEmail} iconName="Plus" iconPosition="left">
@@ -187,14 +186,14 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
                   onChange={(e) => handleEmailChange(index, e.target.value)}
                 />
               </div>
-              
+
               <Select
                 options={roleOptions}
                 value={formData.defaultRole}
                 onChange={(value) => setFormData(prev => ({ ...prev, defaultRole: value }))}
                 className="w-48"
               />
-              
+
               {formData.inviteEmails.length > 1 && (
                 <Button
                   variant="ghost"
@@ -213,7 +212,7 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
       </div>
 
       {/* Role Permissions */}
-      <div className="glass-card p-6 rounded-card">
+      <div className="p-6 rounded-card bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-foreground">Role Permissions</h3>
           <Button
@@ -262,9 +261,9 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
       </div>
 
       {/* Team Settings */}
-      <div className="glass-card p-6 rounded-card">
+      <div className="p-6 rounded-card bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
         <h3 className="text-lg font-semibold text-foreground mb-4">Team Settings</h3>
-        
+
         <div className="space-y-4">
           <Checkbox
             label="Allow team members to invite others"
@@ -272,14 +271,14 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
             checked={formData.allowInvites || false}
             onChange={(e) => setFormData(prev => ({ ...prev, allowInvites: e.target.checked }))}
           />
-          
+
           <Checkbox
             label="Require approval for new team members"
             description="All new invitations must be approved by an admin"
             checked={formData.requireApproval || true}
             onChange={(e) => setFormData(prev => ({ ...prev, requireApproval: e.target.checked }))}
           />
-          
+
           <Checkbox
             label="Enable team activity notifications"
             description="Get notified when team members perform important actions"

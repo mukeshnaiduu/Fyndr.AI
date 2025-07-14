@@ -122,7 +122,7 @@ const IntegrationsStep = ({ data, onUpdate, onNext, onPrev }) => {
 
   const handleConnect = async (integrationId) => {
     setIsConnecting(prev => ({ ...prev, [integrationId]: true }));
-    
+
     // Simulate connection process
     setTimeout(() => {
       setConnectionStatus(prev => ({ ...prev, [integrationId]: 'connected' }));
@@ -158,9 +158,8 @@ const IntegrationsStep = ({ data, onUpdate, onNext, onPrev }) => {
     const isLoading = isConnecting[integration.id];
 
     return (
-      <div className={`glass-card p-6 rounded-card transition-all duration-300 hover-lift ${
-        isSelected ? 'ring-2 ring-primary' : ''
-      }`}>
+      <div className={`p-6 rounded-card transition-all duration-300 hover-lift bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800 ${isSelected ? 'ring-2 ring-primary' : ''
+        }`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-primary rounded-lg">
@@ -171,12 +170,12 @@ const IntegrationsStep = ({ data, onUpdate, onNext, onPrev }) => {
               <p className="text-sm text-muted-foreground">{integration.description}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
-            <Icon 
-              name={getStatusIcon(status)} 
-              size={16} 
-              className={getStatusColor(status)} 
+            <Icon
+              name={getStatusIcon(status)}
+              size={16}
+              className={getStatusColor(status)}
             />
             <span className={`text-xs font-medium ${getStatusColor(status)}`}>
               {status === 'available' ? 'Available' : status}
@@ -204,7 +203,7 @@ const IntegrationsStep = ({ data, onUpdate, onNext, onPrev }) => {
             checked={isSelected}
             onChange={() => handleIntegrationToggle(integration.id)}
           />
-          
+
           {isSelected && (
             <div className="flex space-x-2">
               {status === 'connected' ? (
@@ -257,7 +256,7 @@ const IntegrationsStep = ({ data, onUpdate, onNext, onPrev }) => {
           <Icon name="Database" size={20} className="text-primary" />
           <h3 className="text-lg font-semibold text-foreground">HRIS Systems</h3>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {hrisIntegrations.map((integration) => (
             <IntegrationCard
@@ -275,7 +274,7 @@ const IntegrationsStep = ({ data, onUpdate, onNext, onPrev }) => {
           <Icon name="Users" size={20} className="text-secondary" />
           <h3 className="text-lg font-semibold text-foreground">Applicant Tracking Systems</h3>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {atsIntegrations.map((integration) => (
             <IntegrationCard
@@ -293,7 +292,7 @@ const IntegrationsStep = ({ data, onUpdate, onNext, onPrev }) => {
           <Icon name="MessageCircle" size={20} className="text-accent" />
           <h3 className="text-lg font-semibold text-foreground">Communication & Scheduling</h3>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {otherIntegrations.map((integration) => (
             <IntegrationCard
@@ -313,7 +312,7 @@ const IntegrationsStep = ({ data, onUpdate, onNext, onPrev }) => {
             <div>
               <h4 className="font-semibold text-foreground mb-2">Integration Summary</h4>
               <p className="text-sm text-muted-foreground mb-3">
-                You have selected {formData.selectedIntegrations.length} integration(s). 
+                You have selected {formData.selectedIntegrations.length} integration(s).
                 These will be configured after completing the onboarding process.
               </p>
               <div className="flex flex-wrap gap-2">

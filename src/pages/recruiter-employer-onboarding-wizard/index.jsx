@@ -205,52 +205,54 @@ const RecruiterEmployerOnboardingWizard = () => {
       description="Complete your employer profile setup"
     >
       <div className="flex flex-col min-h-screen">
-        <div className="flex flex-1">
-          <main className="flex-1 ml-0 md:ml-16 lg:ml-64 pt-16">
-            <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-cyan-50">
+        <div className="flex flex-1 items-center justify-center min-h-screen">
+          <main className="w-full max-w-3xl px-4 py-10">
+            <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-cyan-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 rounded-xl">
               {/* Progress Indicator */}
-              {!isCompleted && (
-                <div className="mb-8">
-                  <ProgressIndicator
-                    currentStep={currentStep}
-                    totalSteps={steps.length}
-                    steps={steps}
-                    showLabels={true}
-                    showPercentage={true}
-                  />
-                </div>
-              )}
-              {/* Main Content */}
-              <ErrorBoundary>
-                <div className="glass-card p-8 rounded-card shadow-glass">
-                  {loading ? (
-                    <div className="text-center py-8">Loading...</div>
-                  ) : (
-                    renderCurrentStep()
-                  )}
-                </div>
-              </ErrorBoundary>
-              {/* Help Section */}
-              {!isCompleted && (
-                <div className="mt-8 text-center">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Need help? Our support team is available 24/7
-                  </p>
-                  <div className="flex justify-center space-x-4">
-                    <button className="text-sm text-primary hover:text-primary/80 transition-colors">
-                      Live Chat
-                    </button>
-                    <span className="text-muted-foreground">•</span>
-                    <button className="text-sm text-primary hover:text-primary/80 transition-colors">
-                      Email Support
-                    </button>
-                    <span className="text-muted-foreground">•</span>
-                    <button className="text-sm text-primary hover:text-primary/80 transition-colors">
-                      Documentation
-                    </button>
+            {/* Main Content */}
+            <ErrorBoundary>
+              <div className="p-8 rounded-xl shadow-xl w-full bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
+                {!isCompleted && (
+                  <div className="mb-8 w-full">
+                    <ProgressIndicator
+                      currentStep={currentStep}
+                      totalSteps={steps.length}
+                      steps={steps}
+                      showLabels={true}
+                      showPercentage={true}
+                    />
                   </div>
-                </div>
-              )}
+                )}
+                {loading ? (
+                  <div className="text-center py-8">Loading...</div>
+                ) : (
+                  <>
+                    {renderCurrentStep()}
+                    {/* Help Section - now inside card */}
+                    {!isCompleted && (
+                      <div className="mt-8 text-center w-full">
+                        <p className="text-sm text-muted-foreground mb-2 dark:text-gray-400">
+                          Need help? Our support team is available 24/7
+                        </p>
+                        <div className="flex justify-center space-x-4">
+                          <button className="text-sm text-primary hover:text-primary/80 transition-colors dark:text-blue-400 dark:hover:text-blue-300">
+                            Live Chat
+                          </button>
+                          <span className="text-muted-foreground dark:text-gray-500">•</span>
+                          <button className="text-sm text-primary hover:text-primary/80 transition-colors dark:text-blue-400 dark:hover:text-blue-300">
+                            Email Support
+                          </button>
+                          <span className="text-muted-foreground dark:text-gray-500">•</span>
+                          <button className="text-sm text-primary hover:text-primary/80 transition-colors dark:text-blue-400 dark:hover:text-blue-300">
+                            Documentation
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </ErrorBoundary>
             </div>
           </main>
         </div>

@@ -98,7 +98,7 @@ const CompletionStep = ({ data }) => {
       </div>
 
       {/* Setup Progress */}
-      <div className="glass-card p-6 rounded-card">
+      <div className="p-6 rounded-card bg-white dark:glass-card">
         <h3 className="text-lg font-semibold text-foreground mb-6">Setup Complete</h3>
 
         <div className="space-y-4">
@@ -198,7 +198,7 @@ const CompletionStep = ({ data }) => {
       </div>
 
       {/* Support Resources */}
-      <div className="glass-card p-6 rounded-card bg-accent/5 border-accent/20">
+      <div className="p-6 rounded-card bg-white dark:bg-accent/5 dark:border-accent/20 dark:glass-card">
         <div className="flex items-start space-x-3">
           <Icon name="HelpCircle" size={20} className="text-accent mt-1" />
           <div className="flex-1">

@@ -131,23 +131,23 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.selectedPlan) {
       newErrors.selectedPlan = 'Please select a plan';
     }
-    
+
     if (!formData.billingAddress.company.trim()) {
       newErrors.company = 'Company name is required';
     }
-    
+
     if (!formData.billingAddress.address.trim()) {
       newErrors.address = 'Address is required';
     }
-    
+
     if (!formData.billingAddress.city.trim()) {
       newErrors.city = 'City is required';
     }
-    
+
     if (!formData.billingAddress.zipCode.trim()) {
       newErrors.zipCode = 'ZIP code is required';
     }
@@ -177,20 +177,18 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
 
       {/* Billing Cycle Toggle */}
       <div className="flex justify-center">
-        <div className="glass-card p-2 rounded-card inline-flex">
+        <div className="p-2 rounded-card inline-flex bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
           <button
             onClick={() => handleBillingCycleChange('monthly')}
-            className={`px-4 py-2 rounded text-sm font-medium transition-all duration-300 ${
-              formData.billingCycle === 'monthly' ?'bg-primary text-primary-foreground shadow-elevation-1' :'text-muted-foreground hover:text-foreground'
-            }`}
+            className={`px-4 py-2 rounded text-sm font-medium transition-all duration-300 ${formData.billingCycle === 'monthly' ? 'bg-primary text-primary-foreground shadow-elevation-1' : 'text-muted-foreground hover:text-foreground'
+              }`}
           >
             Monthly
           </button>
           <button
             onClick={() => handleBillingCycleChange('yearly')}
-            className={`px-4 py-2 rounded text-sm font-medium transition-all duration-300 relative ${
-              formData.billingCycle === 'yearly' ?'bg-primary text-primary-foreground shadow-elevation-1' :'text-muted-foreground hover:text-foreground'
-            }`}
+            className={`px-4 py-2 rounded text-sm font-medium transition-all duration-300 relative ${formData.billingCycle === 'yearly' ? 'bg-primary text-primary-foreground shadow-elevation-1' : 'text-muted-foreground hover:text-foreground'
+              }`}
           >
             Yearly
             <span className="absolute -top-1 -right-1 bg-success text-success-foreground text-xs px-1 rounded">
@@ -209,9 +207,8 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
           return (
             <div
               key={plan.id}
-              className={`glass-card p-6 rounded-card transition-all duration-300 hover-lift cursor-pointer relative ${
-                isSelected ? 'ring-2 ring-primary' : ''
-              } ${plan.popular ? 'ring-2 ring-secondary' : ''}`}
+              className={`p-6 rounded-card transition-all duration-300 hover-lift cursor-pointer relative bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800 ${isSelected ? 'ring-2 ring-primary' : ''
+                } ${plan.popular ? 'ring-2 ring-secondary' : ''}`}
               onClick={() => handlePlanSelect(plan.id)}
             >
               {plan.popular && (
@@ -225,7 +222,7 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
               <div className="text-center mb-6">
                 <h3 className="text-xl font-bold text-foreground mb-2">{plan.name}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
-                
+
                 <div className="mb-4">
                   <span className="text-3xl font-bold text-foreground">${price}</span>
                   <span className="text-muted-foreground">
@@ -280,9 +277,9 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
       </div>
 
       {/* Billing Address */}
-      <div className="glass-card p-6 rounded-card">
+      <div className="p-6 rounded-card bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
         <h3 className="text-lg font-semibold text-foreground mb-6">Billing Address</h3>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="lg:col-span-2">
             <Input
@@ -350,7 +347,7 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
       {selectedPlan && (
         <div className="glass-card p-6 rounded-card bg-primary/5 border-primary/20">
           <h3 className="text-lg font-semibold text-foreground mb-4">Order Summary</h3>
-          
+
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-foreground">{selectedPlan.name} Plan</span>
@@ -359,14 +356,14 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
                 /{formData.billingCycle === 'yearly' ? 'year' : 'month'}
               </span>
             </div>
-            
+
             {formData.billingCycle === 'yearly' && calculatePrice(selectedPlan).savings > 0 && (
               <div className="flex justify-between text-success">
                 <span>Annual discount</span>
                 <span>-${calculatePrice(selectedPlan).savings}</span>
               </div>
             )}
-            
+
             <div className="border-t border-border pt-3">
               <div className="flex justify-between font-semibold text-foreground">
                 <span>Total</span>
@@ -397,7 +394,7 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
             onChange={(e) => setFormData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
             required
           />
-          
+
           <Checkbox
             label="I agree to receive marketing communications"
             description="Get updates about new features and product announcements"

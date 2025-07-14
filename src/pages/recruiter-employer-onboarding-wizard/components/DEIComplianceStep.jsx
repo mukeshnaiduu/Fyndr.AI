@@ -63,17 +63,17 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.deiCommitment.trim()) {
       newErrors.deiCommitment = 'DEI commitment statement is required';
     } else if (formData.deiCommitment.length < 100) {
       newErrors.deiCommitment = 'Commitment statement must be at least 100 characters';
     }
-    
+
     if (formData.diversityGoals.length === 0) {
       newErrors.diversityGoals = 'Please select at least one diversity goal';
     }
-    
+
     if (formData.inclusionPolicies.length === 0) {
       newErrors.inclusionPolicies = 'Please select at least one inclusion policy';
     }
@@ -102,7 +102,7 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
       {/* DEI Commitment */}
       <div className="glass-card p-6 rounded-card">
         <h3 className="text-lg font-semibold text-foreground mb-4">DEI Commitment Statement</h3>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
@@ -119,9 +119,8 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
               <p className="text-xs text-muted-foreground">
                 Minimum 100 characters required
               </p>
-              <p className={`text-xs ${
-                formData.deiCommitment.length < 100 ? 'text-error' : 'text-success'
-              }`}>
+              <p className={`text-xs ${formData.deiCommitment.length < 100 ? 'text-error' : 'text-success'
+                }`}>
                 {formData.deiCommitment.length}/1000
               </p>
             </div>
@@ -138,7 +137,7 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
         <p className="text-sm text-muted-foreground mb-6">
           Select the diversity initiatives your company is committed to pursuing
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {diversityGoalOptions.map((goal) => (
             <div key={goal.value} className="flex items-center space-x-3">
@@ -152,7 +151,7 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
             </div>
           ))}
         </div>
-        
+
         {errors.diversityGoals && (
           <p className="text-sm text-error mt-2">{errors.diversityGoals}</p>
         )}
@@ -164,7 +163,7 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
         <p className="text-sm text-muted-foreground mb-6">
           Select the inclusion policies and programs your company has implemented or plans to implement
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {inclusionPolicyOptions.map((policy) => (
             <div key={policy.value} className="flex items-center space-x-3">
@@ -178,7 +177,7 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
             </div>
           ))}
         </div>
-        
+
         {errors.inclusionPolicies && (
           <p className="text-sm text-error mt-2">{errors.inclusionPolicies}</p>
         )}
@@ -190,7 +189,7 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
         <p className="text-sm text-muted-foreground mb-6">
           Select the compliance requirements that apply to your organization
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {complianceOptions.map((requirement) => (
             <div key={requirement.value} className="flex items-center space-x-3">
@@ -209,7 +208,7 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
       {/* Reporting & Metrics */}
       <div className="glass-card p-6 rounded-card">
         <h3 className="text-lg font-semibold text-foreground mb-4">Reporting & Metrics</h3>
-        
+
         <div className="space-y-6">
           <Select
             label="Reporting Frequency"
@@ -219,7 +218,7 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
             onChange={(value) => setFormData(prev => ({ ...prev, reportingFrequency: value }))}
             placeholder="Select reporting frequency"
           />
-          
+
           <div className="space-y-4">
             <Checkbox
               label="Enable diversity metrics tracking"
@@ -227,14 +226,14 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
               checked={formData.diversityMetrics}
               onChange={(e) => setFormData(prev => ({ ...prev, diversityMetrics: e.target.checked }))}
             />
-            
+
             <Checkbox
               label="Anonymous demographic data collection"
               description="Collect optional demographic information from candidates for reporting purposes"
               checked={formData.anonymousData || false}
               onChange={(e) => setFormData(prev => ({ ...prev, anonymousData: e.target.checked }))}
             />
-            
+
             <Checkbox
               label="Bias detection alerts"
               description="Receive alerts when potential bias is detected in hiring decisions"
@@ -246,12 +245,12 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
       </div>
 
       {/* Best Practices */}
-      <div className="glass-card p-6 rounded-card bg-accent/5 border-accent/20">
+      <div className="p-6 rounded-card bg-white dark:bg-gray-900 dark:border-gray-700 dark:glass-card">
         <div className="flex items-start space-x-3">
           <Icon name="Lightbulb" size={20} className="text-accent mt-1" />
           <div>
             <h4 className="font-semibold text-foreground mb-2">DEI Best Practices</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
+            <ul className="text-sm text-muted-foreground dark:text-gray-200 space-y-1">
               <li>• Regularly review and update your DEI policies</li>
               <li>• Provide ongoing training for all team members</li>
               <li>• Set measurable goals and track progress</li>
