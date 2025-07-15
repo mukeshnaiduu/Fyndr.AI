@@ -89,24 +89,23 @@ const DiscussionForum = ({ discussions, onAddDiscussion, onAddReply }) => {
                 <div className="flex items-start space-x-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
                     <span className="text-white font-medium text-sm">
-                      {discussion.author.name.split(' ').map(n => n[0]).join('')}
+                      {discussion.author && discussion.author.name ? discussion.author.name.split(' ').map(n => n[0]).join('') : '?'}
                     </span>
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
-                      <h4 className="font-medium text-foreground">{discussion.author.name}</h4>
+                      <h4 className="font-medium text-foreground">{discussion.author && discussion.author.name ? discussion.author.name : 'Unknown'}</h4>
                       <span className="text-sm text-muted-foreground">•</span>
                       <span className="text-sm text-muted-foreground">
                         {formatTimeAgo(discussion.timestamp)}
                       </span>
-                      {discussion.author.isInstructor && (
+                      {discussion.author && discussion.author.isInstructor && (
                         <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
                           Instructor
                         </span>
                       )}
                     </div>
-                    
                     <p className="text-foreground leading-relaxed">{discussion.content}</p>
                     
                     {/* Discussion Actions */}
@@ -196,19 +195,19 @@ const DiscussionForum = ({ discussions, onAddDiscussion, onAddReply }) => {
                       <div key={reply.id} className="flex space-x-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center flex-shrink-0">
                           <span className="text-foreground font-medium text-xs">
-                            {reply.author.name.split(' ').map(n => n[0]).join('')}
+                            {reply.author && reply.author.name ? reply.author.name.split(' ').map(n => n[0]).join('') : '?'}
                           </span>
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 mb-1">
                             <span className="font-medium text-foreground text-sm">
-                              {reply.author.name}
+                              {reply.author && reply.author.name ? reply.author.name : 'Unknown'}
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {formatTimeAgo(reply.timestamp)}
                             </span>
-                            {reply.author.isInstructor && (
+                            {reply.author && reply.author.isInstructor && (
                               <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
                                 Instructor
                               </span>

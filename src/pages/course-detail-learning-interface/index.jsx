@@ -21,7 +21,9 @@ const CourseDetailLearningInterface = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [showAICoach, setShowAICoach] = useState(false);
   const [currentVideoTime, setCurrentVideoTime] = useState(0);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [quizScores, setQuizScores] = useState({}); // { moduleIndex: score }
+  const [lastQuizScore, setLastQuizScore] = useState(null);
 
   // Mock course data
   const courseData = {
@@ -269,8 +271,9 @@ const CourseDetailLearningInterface = () => {
     // In a real app, would call a method on the video player component
   };
 
-  const handleQuizComplete = (answers) => {
-    console.log("Quiz answers:", answers);
+  const handleQuizComplete = (score, answers) => {
+    setQuizScores((prev) => ({ ...prev, 2: score }));
+    setLastQuizScore(score);
     setShowQuiz(false);
   };
 
@@ -294,49 +297,36 @@ const CourseDetailLearningInterface = () => {
       noPadding
     >
       <SidebarLayout
-        collapsible
-        defaultCollapsed={sidebarCollapsed}
-        sidebarWidth={280}
+        sidebarWidth={300}
         sidebar={
-          <div className="h-full bg-background dark:bg-background">
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <h2 className="font-semibold truncate">
-                {!sidebarCollapsed && "Course Content"}
-              </h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="h-8 w-8"
-              >
-                <Icon name={sidebarCollapsed ? "ChevronRight" : "ChevronLeft"} size={16} />
-              </Button>
+          <div className="h-full bg-card/30 transition-all duration-300 w-[300px] min-w-[300px]">
+            <div className="flex items-center justify-between p-4">
+            <h2 className="font-semibold truncate transition-opacity duration-200">Course Content</h2>
             </div>
-            <div className="overflow-y-auto h-[calc(100%-56px)]">
-              {!sidebarCollapsed && (
-                <CourseModules
-                  modules={moduleData}
-                  currentModule={2}
-                  onModuleSelect={handleModuleSelect}
-                  onLessonSelect={handleLessonSelect}
-                  compact
-                />
-              )}
+            <div className="overflow-y-auto transition-all duration-200 h-[calc(100%-56px)]">
+              <CourseModules
+                modules={moduleData}
+                currentModule={2}
+                onModuleSelect={handleModuleSelect}
+                onLessonSelect={handleLessonSelect}
+                compact
+                quizScores={quizScores}
+              />
             </div>
           </div>
         }
-        contentClassName="bg-background/80 dark:bg-background/80 backdrop-blur-sm"
+        contentClassName="bg-card/20 backdrop-blur-sm"
       >
         <div className="min-h-screen">
           {/* Top Navigation */}
-          <div className="bg-background/80 dark:bg-background/80 border-b border-border p-4">
+          <div className="bg-card/30 p-4">
             <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
               <div className="flex items-center space-x-4">
                 <Link to="/resource-library" className="flex items-center text-sm font-medium">
                   <Icon name="ChevronLeft" size={16} className="mr-1" />
                   Back to Resources
                 </Link>
-                <div className="h-4 w-px bg-border" />
+                <div className="h-4 w-px bg-white/20" />
                 <div className="text-sm font-medium text-muted-foreground">Module 3 of 8</div>
               </div>
               <div className="flex items-center space-x-2">
@@ -361,7 +351,7 @@ const CourseDetailLearningInterface = () => {
             </div>
           </div>
 
-          <div className="max-w-screen-2xl mx-auto px-4 py-8">
+          <div className="max-w-screen-2xl mx-auto px-4 py-8 xl:pr-[360px]"> 
             {/* Course Title & Info */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -389,7 +379,7 @@ const CourseDetailLearningInterface = () => {
 
             {/* Video Player */}
             <div className="mb-8">
-              <div className="aspect-video rounded-lg overflow-hidden">
+              <div className="rounded-lg overflow-hidden w-full xl:max-w-[900px] aspect-video">
                 <VideoPlayer
                   videoUrl={courseData.currentVideo.url}
                   title={courseData.currentVideo.title}
@@ -414,7 +404,7 @@ const CourseDetailLearningInterface = () => {
                 />
               )}
               
-              {activeTab === 'discussion' && (
+              {activeTab === 'discussion' && Array.isArray(discussionData) && (
                 <DiscussionForum
                   discussions={discussionData}
                   onAddDiscussion={handleAddDiscussion}
@@ -427,9 +417,8 @@ const CourseDetailLearningInterface = () => {
               )}
             </CourseTabNavigation>
           </div>
-
           {/* Right Sidebar - Progress Tracker */}
-          <div className="hidden xl:block w-80 fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card/80 dark:bg-background/80 backdrop-blur-md border-l border-border overflow-y-auto">
+          <div className="hidden xl:block w-[340px] fixed right-0 top-16 min-h-[calc(100vh-4rem)] backdrop-blur-md z-30">
             <ProgressTracker
               progress={progressData}
               skills={skillsData}
@@ -450,6 +439,7 @@ const CourseDetailLearningInterface = () => {
           >
             <Icon name="MessageCircle" size={20} />
           </Button>
+          
           <Button
             variant="outline"
             size="icon"
@@ -484,6 +474,17 @@ const CourseDetailLearningInterface = () => {
         onClose={() => setShowAICoach(false)}
         courseContext={courseData}
       />
+
+      {/* Show quiz score after taking quiz, styled like quiz result */}
+      {lastQuizScore !== null && !showQuiz && (
+        <InteractiveQuiz
+          quiz={quizData}
+          onComplete={() => setLastQuizScore(null)}
+          onClose={() => setLastQuizScore(null)}
+          showResultsOnly={true}
+          score={lastQuizScore}
+        />
+      )}
     </MainLayout>
   );
 };
