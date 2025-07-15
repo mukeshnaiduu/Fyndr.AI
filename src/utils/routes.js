@@ -27,8 +27,8 @@ export const ROUTES_B = {
 // Routes from Repository C
 export const ROUTES_C = {
   COURSE_DETAIL: '/course-detail-learning-interface',
-  CAREER_COACH: '/ai-career-coach-chat-interface',
-  RECRUITER_DASHBOARD: '/recruiter-dashboard-pipeline-management',
+  CAREER_COACH: '/ai-career-coach-chat-interface',//its own notification,export 
+  RECRUITER_DASHBOARD: '/recruiter-dashboard-pipeline-management',//already
   CANDIDATE_EVALUATION: '/candidate-profile-evaluation-interface',
   JOB_SEARCH: '/job-search-application-hub',
   ADMIN_DASHBOARD: '/admin-dashboard-system-management',
@@ -36,12 +36,12 @@ export const ROUTES_C = {
 
 // Routes from Repository D
 export const ROUTES_D = {
-  INTERVIEW_PRACTICE: '/interview-practice-video-sessions',
-  MENTORSHIP: '/mentorship-platform',
-  RESOURCE_LIBRARY: '/resource-library',
-  ALUMNI_NETWORK: '/alumni-network-referrals',
-  CAREER_FAIR: '/virtual-career-fair',
-  HACKATHONS: '/hackathons-competitions',
+  INTERVIEW_PRACTICE: '/interview-practice-video-sessions', //already
+  MENTORSHIP: '/mentorship-platform',//light theme of person profile, card hover,duplicate filters,color of the theme
+  RESOURCE_LIBRARY: '/resource-library',//already
+  ALUMNI_NETWORK: '/alumni-network-referrals',//already
+  CAREER_FAIR: '/virtual-career-fair',//already
+  HACKATHONS: '/hackathons-competitions',//already
 };
 
 // Utility function to get route by name
