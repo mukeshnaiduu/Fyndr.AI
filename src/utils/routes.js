@@ -27,8 +27,8 @@ export const ROUTES_B = {
 // Routes from Repository C
 export const ROUTES_C = {
   COURSE_DETAIL: '/course-detail-learning-interface',
-  CAREER_COACH: '/ai-career-coach-chat-interface',//
-  RECRUITER_DASHBOARD: '/recruiter-dashboard-pipeline-management',//already
+  CAREER_COACH: '/ai-career-coach-chat-interface',
+  RECRUITER_DASHBOARD: '/recruiter-dashboard-pipeline-management',
   CANDIDATE_EVALUATION: '/candidate-profile-evaluation-interface',
   JOB_SEARCH: '/job-search-application-hub',
   ADMIN_DASHBOARD: '/admin-dashboard-system-management',

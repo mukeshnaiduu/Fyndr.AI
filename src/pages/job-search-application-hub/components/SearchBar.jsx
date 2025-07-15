@@ -3,7 +3,23 @@ import Icon from 'components/AppIcon';
 import Input from 'components/ui/Input';
 import Button from 'components/ui/Button';
 
-const SearchBar = ({ onSearch, onLocationChange, searchQuery, location }) => {
+const jobTypeOptions = [
+  { value: '', label: 'Any' },
+  { value: 'full-time', label: 'Full-time' },
+  { value: 'part-time', label: 'Part-time' },
+  { value: 'contract', label: 'Contract' },
+  { value: 'freelance', label: 'Freelance' },
+  { value: 'internship', label: 'Internship' }
+];
+
+const SearchBar = ({
+  onSearch,
+  onLocationChange,
+  searchQuery,
+  location,
+  filters,
+  onFilterChange
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [locationSuggestions, setLocationSuggestions] = useState([]);
@@ -140,6 +156,66 @@ const SearchBar = ({ onSearch, onLocationChange, searchQuery, location }) => {
           >
             Search Jobs
           </Button>
+        </div>
+
+        {/* Inline Filters */}
+        <div className="flex flex-wrap gap-4 mt-4 items-center">
+          {/* Salary Range */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Salary:</span>
+            <Input
+              type="number"
+              placeholder="Min"
+              value={filters.salaryMin || ''}
+              onChange={e => onFilterChange({ ...filters, salaryMin: e.target.value })}
+              className="w-24"
+            />
+            <span>-</span>
+            <Input
+              type="number"
+              placeholder="Max"
+              value={filters.salaryMax || ''}
+              onChange={e => onFilterChange({ ...filters, salaryMax: e.target.value })}
+              className="w-24"
+            />
+          </div>
+
+          {/* Job Type */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Type:</span>
+            <select
+              value={filters.jobType || ''}
+              onChange={e => onFilterChange({ ...filters, jobType: e.target.value })}
+              className="border rounded px-3 py-1 text-sm bg-background text-foreground min-w-[120px]"
+            >
+              {jobTypeOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Remote */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Remote:</span>
+            <input
+              type="checkbox"
+              checked={!!filters.remote}
+              onChange={e => onFilterChange({ ...filters, remote: e.target.checked })}
+              className="accent-primary"
+            />
+          </div>
+
+          {/* Skills */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Skills:</span>
+            <Input
+              type="text"
+              placeholder="e.g. React"
+              value={filters.skills || ''}
+              onChange={e => onFilterChange({ ...filters, skills: e.target.value })}
+              className="w-32"
+            />
+          </div>
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import SidebarLayout from 'components/layout/SidebarLayout';
 import SearchBar from './components/SearchBar';
 import FilterChips from './components/FilterChips';
 import JobCard from './components/JobCard';
-import FilterSidebar from './components/FilterSidebar';
+// import FilterSidebar from './components/FilterSidebar';
 import SortDropdown from './components/SortDropdown';
 import JobDetailModal from './components/JobDetailModal';
 import SavedJobsSection from './components/SavedJobsSection';
@@ -356,24 +356,12 @@ const JobSearchApplicationHub = () => {
       description="Discover and apply for jobs with AI-powered matching and comprehensive search capabilities"
       noPadding
     >
-      <SidebarLayout
-        sidebar={
-          <div className="h-full overflow-auto">
-            <FilterSidebar
-              isOpen={isFilterSidebarOpen}
-              onClose={() => setIsFilterSidebarOpen(false)}
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              onApplyFilters={handleApplyFilters}
-              onClearFilters={handleClearFilters}
-            />
-          </div>
-        }
-      >
+      <SidebarLayout className="!border-l-0">
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 bg-background min-h-screen">
+          <div className="grid grid-cols-1 gap-6">
           {/* Search Section */}
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold text-foreground mb-4">
                 Find Your Dream Job
@@ -388,11 +376,13 @@ const JobSearchApplicationHub = () => {
               onLocationChange={handleLocationChange}
               searchQuery={searchQuery}
               location={location}
+              filters={filters}
+              onFilterChange={handleFilterChange}
             />
           </div>
 
           {/* View Toggle */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-1 glassmorphic-surface rounded-lg p-1">
               <button
                 onClick={() => setCurrentView('search')}
@@ -452,7 +442,7 @@ const JobSearchApplicationHub = () => {
 
           {/* Content */}
           {currentView === 'search' ? (
-            <>
+            <div className="bg-card rounded-xl shadow p-6">
               {/* Results Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-2">
@@ -471,18 +461,18 @@ const JobSearchApplicationHub = () => {
               {loading ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                   {[...Array(6)].map((_, index) => (
-                    <div key={index} className="glassmorphic-card p-6 animate-pulse">
+                    <div key={index} className="bg-muted p-6 rounded-xl shadow animate-pulse">
                       <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-12 h-12 bg-white/20 rounded-lg"></div>
+                        <div className="w-12 h-12 bg-card rounded-lg"></div>
                         <div className="flex-1">
-                          <div className="h-4 bg-white/20 rounded mb-2"></div>
-                          <div className="h-3 bg-white/20 rounded w-2/3"></div>
+                          <div className="h-4 bg-card rounded mb-2"></div>
+                          <div className="h-3 bg-card rounded w-2/3"></div>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <div className="h-3 bg-white/20 rounded"></div>
-                        <div className="h-3 bg-white/20 rounded w-3/4"></div>
-                        <div className="h-3 bg-white/20 rounded w-1/2"></div>
+                        <div className="h-3 bg-card rounded"></div>
+                        <div className="h-3 bg-card rounded w-3/4"></div>
+                        <div className="h-3 bg-card rounded w-1/2"></div>
                       </div>
                     </div>
                   ))}
@@ -500,7 +490,7 @@ const JobSearchApplicationHub = () => {
                   ))}
                 </div>
               ) : (
-                <div className="glassmorphic-card p-12 text-center">
+                <div className="bg-muted p-12 rounded-xl shadow text-center">
                   <Icon name="Search" size={64} className="text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-foreground mb-2">No Jobs Found</h3>
                   <p className="text-muted-foreground mb-6">
@@ -536,15 +526,18 @@ const JobSearchApplicationHub = () => {
                   </Button>
                 </div>
               )}
-            </>
+            </div>
           ) : (
-            <SavedJobsSection
-              savedJobs={savedJobs}
-              onRemoveFromSaved={handleRemoveFromSaved}
-              onApply={handleJobApply}
-              onViewDetails={handleViewJobDetails}
-            />
+            <div className="bg-card rounded-xl shadow p-6">
+              <SavedJobsSection
+                savedJobs={savedJobs}
+                onRemoveFromSaved={handleRemoveFromSaved}
+                onApply={handleJobApply}
+                onViewDetails={handleViewJobDetails}
+              />
+            </div>
           )}
+          </div>
         </div>
 
         {/* Job Detail Modal */}

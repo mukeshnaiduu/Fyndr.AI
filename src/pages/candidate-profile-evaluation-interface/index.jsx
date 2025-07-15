@@ -203,8 +203,8 @@ const CandidateProfileEvaluationInterface = () => {
   return (
     <MainLayout title={candidate.name + ' - Candidate Profile'} description="Evaluate and review candidate details">
       <div className="flex flex-1">
-        <main className="flex-1 pt-16">
-          <div className="pt-16">
+        <main className="flex-1">
+          <div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               {/* Candidate Header */}
               <CandidateHeader candidate={candidate} onAction={handleAction} />

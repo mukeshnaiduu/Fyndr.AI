@@ -45,7 +45,7 @@ const SidebarLayout = ({
       <div
         className={cn(
           "transition-all duration-300 ease-in-out border-border",
-          sidebarPosition === 'left' ? "border-r" : "border-l",
+          // Removed border to eliminate left/right line
           collapsed ? "w-16" : `w-[${sidebarWidth}px]`,
           sidebarClassName
         )}
