@@ -34,14 +34,14 @@ const MentorCard = ({ mentor, onViewProfile, onStartChat, onBookSession }) => {
 
   return (
     <div 
-      className="glassmorphic rounded-xl p-6 transition-spring hover:shadow-elevation-3 hover:scale-105 cursor-pointer"
+      className="glassmorphic rounded-xl p-6 transition-spring hover:shadow-elevation-3 hover:scale-105 cursor-pointer relative overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onViewProfile(mentor)}
     >
-      {/* Header with Avatar and Status */}
-      <div className="flex items-start space-x-4 mb-4">
-        <div className="relative">
+      {/* Header with Avatar, Info, and Price (responsive) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-4">
+        <div className="relative flex-shrink-0 mb-2 sm:mb-0">
           <div className="w-16 h-16 rounded-full overflow-hidden">
             <Image
               src={mentor.avatar}
@@ -51,8 +51,8 @@ const MentorCard = ({ mentor, onViewProfile, onStartChat, onBookSession }) => {
           </div>
           <div className={`absolute -bottom-1 -right-1 w-5 h-5 ${getAvailabilityColor(mentor.availability)} rounded-full border-2 border-white`} />
         </div>
-        
-        <div className="flex-1">
+
+        <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-foreground mb-1">{mentor.name}</h3>
           <p className="text-sm text-muted-foreground mb-2">{mentor.title}</p>
           <div className="flex items-center space-x-2">
@@ -64,9 +64,15 @@ const MentorCard = ({ mentor, onViewProfile, onStartChat, onBookSession }) => {
             <div className="w-1 h-1 bg-muted-foreground rounded-full" />
             <span className="text-xs text-muted-foreground">{mentor.experience} years</span>
           </div>
+          {/* Price and status on mobile */}
+          <div className="flex flex-col items-start mt-2 sm:hidden">
+            <p className="text-lg font-bold text-primary">${mentor.hourlyRate}/hr</p>
+            <p className="text-xs text-muted-foreground">{getAvailabilityText(mentor.availability)}</p>
+          </div>
         </div>
-        
-        <div className="text-right">
+
+        {/* Price and status on desktop */}
+        <div className="hidden sm:flex flex-col items-end w-24 whitespace-nowrap">
           <p className="text-lg font-bold text-primary">${mentor.hourlyRate}/hr</p>
           <p className="text-xs text-muted-foreground">{getAvailabilityText(mentor.availability)}</p>
         </div>
