@@ -298,7 +298,7 @@ const CourseDetailLearningInterface = () => {
         defaultCollapsed={sidebarCollapsed}
         sidebarWidth={280}
         sidebar={
-          <div className="h-full bg-card/30">
+          <div className="h-full bg-background dark:bg-background">
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <h2 className="font-semibold truncate">
                 {!sidebarCollapsed && "Course Content"}
@@ -325,18 +325,18 @@ const CourseDetailLearningInterface = () => {
             </div>
           </div>
         }
-        contentClassName="bg-card/20 backdrop-blur-sm"
+        contentClassName="bg-background/80 dark:bg-background/80 backdrop-blur-sm"
       >
         <div className="min-h-screen">
           {/* Top Navigation */}
-          <div className="bg-card/30 border-b border-white/10 p-4">
+          <div className="bg-background/80 dark:bg-background/80 border-b border-border p-4">
             <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
               <div className="flex items-center space-x-4">
                 <Link to="/resource-library" className="flex items-center text-sm font-medium">
                   <Icon name="ChevronLeft" size={16} className="mr-1" />
                   Back to Resources
                 </Link>
-                <div className="h-4 w-px bg-white/20" />
+                <div className="h-4 w-px bg-border" />
                 <div className="text-sm font-medium text-muted-foreground">Module 3 of 8</div>
               </div>
               <div className="flex items-center space-x-2">
@@ -429,7 +429,7 @@ const CourseDetailLearningInterface = () => {
           </div>
 
           {/* Right Sidebar - Progress Tracker */}
-          <div className="hidden xl:block w-80 fixed right-0 top-16 h-[calc(100vh-4rem)] bg-white/10 backdrop-blur-md border-l border-white/20 overflow-y-auto">
+          <div className="hidden xl:block w-80 fixed right-0 top-16 h-[calc(100vh-4rem)] bg-card/80 dark:bg-background/80 backdrop-blur-md border-l border-border overflow-y-auto">
             <ProgressTracker
               progress={progressData}
               skills={skillsData}
@@ -450,7 +450,6 @@ const CourseDetailLearningInterface = () => {
           >
             <Icon name="MessageCircle" size={20} />
           </Button>
-          
           <Button
             variant="outline"
             size="icon"

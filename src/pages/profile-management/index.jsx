@@ -173,37 +173,8 @@ const ProfileManagement = () => {
       title="Profile Management"
       description="Manage your personal information, preferences, and security settings"
     >
-      <SidebarLayout 
-        sidebar={
-          <div className="p-6 h-full">
-            {/* Sidebar content can be implemented here if needed */}
-            <ProfileCompletionMeter userProfile={userProfile} />
-            
-            <div className="mt-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">PROFILE SECTIONS</h3>
-              <div className="space-y-1">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm ${
-                      activeTab === tab.id 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'hover:bg-accent/50 text-foreground'
-                    }`}
-                  >
-                    <Icon name={tab.icon} size={18} />
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        }
-        sidebarWidth={260}
-        collapsible
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Removed SidebarLayout and sidebar, main content only */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb Navigation */}
           <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
             <button
@@ -246,59 +217,16 @@ const ProfileManagement = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Profile Completion Sidebar */}
-            <div className="lg:col-span-1">
-              <ProfileCompletionMeter userProfile={userProfile} />
-              
-              {/* Quick Actions */}
-              <div className="glassmorphic p-4 rounded-squircle mt-6">
-                <h3 className="font-heading font-heading-semibold text-foreground mb-3">
-                  Quick Actions
-                </h3>
-                <div className="space-y-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    fullWidth
-                    onClick={() => navigate('/video-interview-interface')}
-                    iconName="Video"
-                    iconPosition="left"
-                    iconSize={16}
-                    className="justify-start"
-                  >
-                    Practice Interview
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    fullWidth
-                    onClick={() => navigate('/notifications-center')}
-                    iconName="Bell"
-                    iconPosition="left"
-                    iconSize={16}
-                    className="justify-start"
-                  >
-                    View Notifications
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    fullWidth
-                    onClick={() => navigate('/about-contact-page')}
-                    iconName="HelpCircle"
-                    iconPosition="left"
-                    iconSize={16}
-                    className="justify-start"
-                  >
-                    Get Help
-                  </Button>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-8">
+            {/* Profile Completion - left only, slightly wider */}
+            <div className="lg:col-span-2 flex items-start">
+              <div className="w-full max-w-lg">
+                <ProfileCompletionMeter userProfile={userProfile} />
               </div>
             </div>
 
             {/* Main Content */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-4">
               {/* Tab Navigation */}
               <div className="glassmorphic p-1 rounded-squircle mb-6">
                 <nav className="flex space-x-1 overflow-x-auto">
@@ -352,7 +280,7 @@ const ProfileManagement = () => {
           <div className="absolute bottom-1/4 left-1/2 w-1.5 h-1.5 bg-secondary/15 rounded-full particle-float" style={{ animationDelay: '4s' }}></div>
           <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-primary/15 rounded-full particle-float" style={{ animationDelay: '6s' }}></div>
         </div>
-      </SidebarLayout>
+      {/* Removed SidebarLayout closing tag */}
     </MainLayout>
   );
 };
