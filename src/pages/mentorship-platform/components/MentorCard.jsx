@@ -145,7 +145,7 @@ const MentorCard = ({ mentor, onViewProfile, onStartChat, onBookSession }) => {
 
       {/* Hover Effect Overlay */}
       {isHovered && (
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 rounded-xl pointer-events-none" />
+        <div className="absolute inset-0 bg-primary/10 rounded-xl pointer-events-none transition-all duration-200" />
       )}
     </div>
   );

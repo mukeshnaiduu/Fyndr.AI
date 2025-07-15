@@ -316,6 +316,7 @@ const MentorshipPlatform = () => {
                   filters={filters}
                   onFiltersChange={handleFiltersChange}
                   onClearFilters={handleClearFilters}
+                  mentors={mentors}
                 />
               </div>
             </div>
@@ -383,14 +384,19 @@ const MentorshipPlatform = () => {
           </div>
         </div>
 
-        {/* Mobile Filter Panel */}
-        <FilterPanel
-          isOpen={isFilterOpen}
-          onClose={() => setIsFilterOpen(false)}
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-          onClearFilters={handleClearFilters}
-        />
+        {/* Mobile Filter Panel (only render on mobile and when open) */}
+        {isFilterOpen && (
+          <div className="lg:hidden">
+            <FilterPanel
+              isOpen={isFilterOpen}
+              onClose={() => setIsFilterOpen(false)}
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              onClearFilters={handleClearFilters}
+              mentors={mentors}
+            />
+          </div>
+        )}
 
         {/* Modals */}
         <MentorProfileModal

@@ -1,11 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 import Input from 'components/ui/Input';
 import { Checkbox } from 'components/ui/Checkbox';
 
-const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, onClearFilters }) => {
+const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, onClearFilters, mentors }) => {
   const [localFilters, setLocalFilters] = useState(filters);
+
+  // Calculate dynamic max price from mentors
+  const maxMentorPrice = React.useMemo(() => {
+    if (!mentors || mentors.length === 0) return 200;
+    return Math.max(...mentors.map(m => m.hourlyRate || 0), 200);
+  }, [mentors]);
+
+  // Keep localFilters in sync with parent filters (for mobile panel re-open)
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
 
   const industries = [
     'Technology', 'Finance', 'Healthcare', 'Marketing', 'Design', 
@@ -28,24 +39,28 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, onClearFilters
 
   const handleFilterChange = (category, value, checked) => {
     const newFilters = { ...localFilters };
-    
     if (category === 'priceRange') {
       newFilters.priceRange = value;
     } else if (category === 'minRating') {
       newFilters.minRating = value;
+    } else if (category === 'search') {
+      newFilters.search = value;
     } else {
       if (!newFilters[category]) {
         newFilters[category] = [];
       }
-      
       if (checked) {
         newFilters[category] = [...newFilters[category], value];
       } else {
         newFilters[category] = newFilters[category].filter(item => item !== value);
       }
     }
-    
     setLocalFilters(newFilters);
+
+    // If desktop (lg+), apply immediately
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      onFiltersChange(newFilters);
+    }
   };
 
   const handleApplyFilters = () => {
@@ -168,21 +183,39 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, onClearFilters
                 <Input
                   type="number"
                   placeholder="Min"
-                  value={localFilters.priceRange?.[0] || 0}
-                  onChange={(e) => handleFilterChange('priceRange', [parseInt(e.target.value) || 0, localFilters.priceRange?.[1] || 200])}
+                  min={0}
+                  max={maxMentorPrice}
+                  value={localFilters.priceRange?.[0] ?? 0}
+                  onChange={(e) => {
+                    let min = parseInt(e.target.value);
+                    let max = localFilters.priceRange?.[1] ?? maxMentorPrice;
+                    if (isNaN(min)) min = 0;
+                    if (min < 0) min = 0;
+                    if (min > maxMentorPrice) min = maxMentorPrice;
+                    handleFilterChange('priceRange', [min, max]);
+                  }}
                   className="flex-1"
                 />
                 <span className="text-muted-foreground">-</span>
                 <Input
                   type="number"
                   placeholder="Max"
-                  value={localFilters.priceRange?.[1] || 200}
-                  onChange={(e) => handleFilterChange('priceRange', [localFilters.priceRange?.[0] || 0, parseInt(e.target.value) || 200])}
+                  min={0}
+                  max={maxMentorPrice}
+                  value={localFilters.priceRange?.[1] ?? maxMentorPrice}
+                  onChange={(e) => {
+                    let max = parseInt(e.target.value);
+                    let min = localFilters.priceRange?.[0] ?? 0;
+                    if (isNaN(max)) max = 0;
+                    if (max > maxMentorPrice) max = maxMentorPrice;
+                    if (max < 0) max = 0;
+                    handleFilterChange('priceRange', [min, max]);
+                  }}
                   className="flex-1"
                 />
               </div>
               <div className="text-xs text-muted-foreground">
-                ${localFilters.priceRange?.[0] || 0} - ${localFilters.priceRange?.[1] || 200} per hour
+                ${localFilters.priceRange?.[0] ?? 0} - ${localFilters.priceRange?.[1] ?? maxMentorPrice} per hour
               </div>
             </div>
           </div>
