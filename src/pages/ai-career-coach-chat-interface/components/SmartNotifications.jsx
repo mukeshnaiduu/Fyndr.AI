@@ -102,7 +102,7 @@ const SmartNotifications = ({ className = '' }) => {
       </Button>
 
       {showNotifications && (
-        <div className="absolute top-full right-0 mt-2 w-80 glassmorphic border border-white/20 rounded-lg shadow-glassmorphic-lg z-50 max-h-96 overflow-hidden">
+        <div className="fixed top-16 right-8 w-80 bg-muted border border-white/20 rounded-lg shadow-glassmorphic-lg z-[9999] max-h-96 overflow-hidden">
           <div className="p-4 border-b border-white/10">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-foreground">Smart Insights</h3>

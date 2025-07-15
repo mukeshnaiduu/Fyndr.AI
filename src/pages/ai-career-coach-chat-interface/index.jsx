@@ -205,7 +205,7 @@ const AICareerCoachChatInterface = () => {
       noPadding
       fullWidth
     >
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      <div className="min-h-screen bg-white dark:bg-background">
         <SidebarLayout
           sidebar={
             <ChatHistory
@@ -247,11 +247,14 @@ const AICareerCoachChatInterface = () => {
               </div>
 
               <div className="flex items-center space-x-2">
+                {/* Export and notifications controls */}
                 <SmartNotifications />
-                <ConversationExport
-                  conversation={currentConversation}
-                  onExport={handleExport}
-                />
+                <div className="flex items-center">
+                  <ConversationExport
+                    conversation={currentConversation}
+                    onExport={handleExport}
+                  />
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"

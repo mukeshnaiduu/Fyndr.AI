@@ -60,8 +60,8 @@ const ConversationExport = ({ conversation, onExport, className = '' }) => {
       </Button>
 
       {showExportModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="glassmorphic-card p-6 rounded-2xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 p-4">
+          <div className="absolute top-8 right-8 bg-white dark:bg-muted glassmorphic-card p-6 rounded-2xl max-w-md w-full shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground">Export Conversation</h3>
               <Button

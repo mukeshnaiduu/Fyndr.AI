@@ -146,8 +146,8 @@ const BookingDashboard = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="glassmorphic rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-white/80 dark:bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="glassmorphic rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden bg-white dark:bg-[var(--glassmorphic-bg)]">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div>
