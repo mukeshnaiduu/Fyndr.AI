@@ -120,10 +120,16 @@ const VideoInterviewInterface = () => {
     setShowFeedbackModal(true);
   };
 
+  // Ensure modal closes and navigates on End Session
+  const handleFeedbackClose = () => {
+    setShowFeedbackModal(false);
+    navigate('/interview-practice-video-sessions');
+  };
+
   const handleFeedbackSubmit = (feedbackData) => {
     console.log('Feedback submitted:', feedbackData);
     // In a real app, this would send feedback to the backend
-    navigate('/homepage');
+    navigate('/interview-practice-video-sessions');
   };
 
   const handleTogglePiP = () => {
@@ -294,7 +300,7 @@ const VideoInterviewInterface = () => {
         {/* Feedback Modal */}
         <FeedbackModal
           isOpen={showFeedbackModal}
-          onClose={() => setShowFeedbackModal(false)}
+          onClose={handleFeedbackClose}
           onSubmit={handleFeedbackSubmit}
           interviewData={{
             duration: sessionTime,

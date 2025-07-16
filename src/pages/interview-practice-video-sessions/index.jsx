@@ -62,7 +62,6 @@ const InterviewPracticeVideoSessions = () => {
   };
 
   const handleEndSession = () => {
-    setSessionState('ended');
     setIsFeedbackOpen(true);
     setLocalStream(null);
     setRemoteStream(null);
@@ -104,7 +103,9 @@ const InterviewPracticeVideoSessions = () => {
   const handleSubmitFeedback = async (feedbackData) => {
     console.log('Submitting feedback:', feedbackData);
     // Mock feedback submission
-    return new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsFeedbackOpen(false);
+    setSessionState('setup');
   };
 
   const getConnectionQualityColor = () => {
@@ -182,6 +183,14 @@ const InterviewPracticeVideoSessions = () => {
       type: 'System Design'
     }
   ];
+
+  // Auto-reset to 'setup' if state is not valid
+  useEffect(() => {
+    const validStates = ['setup', 'live', 'practice'];
+    if (!validStates.includes(sessionState)) {
+      setSessionState('setup');
+    }
+  }, [sessionState]);
 
   if (sessionState === 'setup') {
     return (
@@ -476,7 +485,10 @@ const InterviewPracticeVideoSessions = () => {
         {/* Feedback Modal */}
         <SessionFeedback
           isVisible={isFeedbackOpen}
-          onClose={() => setIsFeedbackOpen(false)}
+          onClose={() => {
+            setIsFeedbackOpen(false);
+            setSessionState('setup');
+          }}
           onSubmit={handleSubmitFeedback}
           sessionData={{ id: 'session-123' }}
         />
@@ -496,7 +508,33 @@ const InterviewPracticeVideoSessions = () => {
     );
   }
 
-  return null;
+  // Fallback: If state is not recognized, show setup screen instead of blank
+  return (
+    <MainLayout
+      title="Interview Practice & Video Sessions"
+      description="Master your interview skills with AI-powered practice sessions and live mentorship from industry experts"
+      fullWidth
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
+            Interview Practice & Video Sessions
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Master your interview skills with AI-powered practice sessions and live mentorship from industry experts
+          </p>
+        </div>
+        <div className="text-center text-error font-semibold">
+          There was an issue loading your session. Please start a new session below.
+        </div>
+        <div className="mt-8 flex justify-center">
+          <Button onClick={() => setSessionState('setup')} size="lg">
+            Go to Practice Home
+          </Button>
+        </div>
+      </div>
+    </MainLayout>
+  );
 };
 
 export default InterviewPracticeVideoSessions;
