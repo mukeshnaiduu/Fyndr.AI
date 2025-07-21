@@ -20,12 +20,12 @@ const ProfileManagement = () => {
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
+
     if (!isAuthenticated) {
       navigate('/authentication-login-register');
       return;
     }
-    
+
     // Redirect to role-specific profile pages
     if (user.role === 'recruiter') {
       navigate('/recruiter-profile-management');
@@ -62,7 +62,7 @@ const ProfileManagement = () => {
           if (!res.ok) throw new Error('Unauthorized');
           return res.json();
         });
-        
+
         // Merge user data with onboarding data for display
         const mergedProfile = {
           ...data,
@@ -77,11 +77,11 @@ const ProfileManagement = () => {
           role: data.role,
           onboarding_complete: data.onboarding_complete
         };
-        
+
         setUserProfile(mergedProfile);
         // Set isAuthenticated to true if profile fetch is successful
         localStorage.setItem('isAuthenticated', 'true');
-        
+
         // Update localStorage user data with merged profile
         localStorage.setItem('user', JSON.stringify(mergedProfile));
       } catch (err) {
@@ -261,8 +261,8 @@ const ProfileManagement = () => {
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
                     className={`flex items-center space-x-2 px-4 py-3 rounded-squircle spring-transition whitespace-nowrap ${activeTab === tab.id
-                        ? 'bg-primary text-primary-foreground glow-primary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      ? 'bg-primary text-primary-foreground glow-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                       }`}
                   >
                     <Icon name={tab.icon} size={18} />

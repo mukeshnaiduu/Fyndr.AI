@@ -107,14 +107,14 @@ const AuthenticationPage = () => {
           };
           localStorage.setItem('user', JSON.stringify(mergedProfile));
           localStorage.setItem('userRole', profileData.role); // Set userRole for ProtectedRoute
-          
+
           // Force Navbar to update by dispatching a storage event
           window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
           window.dispatchEvent(new StorageEvent('storage', { key: 'isAuthenticated', newValue: 'true' }));
-          
+
           // Check onboarding completion based on backend response
           const isOnboardingComplete = profileData.onboarding_complete || false;
-          
+
           // Set onboarding complete flags based on role and backend data
           if (profileData.role === 'job_seeker') {
             localStorage.setItem('jobSeekerOnboardingComplete', isOnboardingComplete ? 'true' : 'false');
@@ -125,7 +125,7 @@ const AuthenticationPage = () => {
           if (profileData.role === 'administrator') {
             localStorage.setItem('adminOnboardingComplete', 'true');
           }
-          
+
           setTimeout(() => {
             if (profileData.role === 'administrator') {
               navigate('/admin-dashboard-system-management');

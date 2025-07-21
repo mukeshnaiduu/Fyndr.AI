@@ -353,10 +353,10 @@ export const getNavigationByRole = (role) => {
     'employer': EMPLOYER_NAV,
     'administrator': ADMINISTRATOR_NAV
   };
-  
+
   // Get the base navigation
   const nav = roleMap[role] || JOB_SEEKER_NAV;
-  
+
   // Update profile path based on role
   const updatedNav = { ...nav };
   if (updatedNav.profile && updatedNav.profile.length > 0) {
@@ -369,7 +369,7 @@ export const getNavigationByRole = (role) => {
       };
     }
   }
-  
+
   return updatedNav;
 };
 
@@ -396,7 +396,7 @@ export const hasRouteAccess = (userRole, routePath) => {
     ...nav.resources,
     ...nav.profile
   ];
-  
+
   return allRoutes.some(route => route.path === routePath);
 };
 

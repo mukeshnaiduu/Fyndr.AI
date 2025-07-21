@@ -11,10 +11,10 @@ import { useNavigate } from 'react-router-dom';
 
 const Homepage = () => {
   const navigate = useNavigate();
-  
+
   // The homepage should be accessible to everyone (no auth check needed)
   // Users can access it to learn about the platform before signing up
-  
+
   useEffect(() => {
     // Scroll to top on component mount
     window.scrollTo(0, 0);

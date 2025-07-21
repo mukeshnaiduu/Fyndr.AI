@@ -92,7 +92,7 @@ export const SystemManagementTab = ({ data, isEditing, onUpdate }) => {
             </label>
             <div className="flex items-center space-x-3">
               <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                <div 
+                <div
                   className="bg-orange-500 h-3 rounded-full"
                   style={{ width: systemStats.storageUsed }}
                 ></div>
@@ -138,44 +138,41 @@ export const SystemManagementTab = ({ data, isEditing, onUpdate }) => {
           {notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`p-4 rounded-lg border ${
-                notification.type === 'warning'
+              className={`p-4 rounded-lg border ${notification.type === 'warning'
                   ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
                   : notification.type === 'success'
-                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                  : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-              }`}
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Icon 
-                    name={notification.type === 'warning' ? 'AlertTriangle' : notification.type === 'success' ? 'CheckCircle' : 'Info'} 
-                    size={20} 
+                  <Icon
+                    name={notification.type === 'warning' ? 'AlertTriangle' : notification.type === 'success' ? 'CheckCircle' : 'Info'}
+                    size={20}
                     className={
                       notification.type === 'warning'
                         ? 'text-yellow-600'
                         : notification.type === 'success'
-                        ? 'text-green-600'
-                        : 'text-blue-600'
+                          ? 'text-green-600'
+                          : 'text-blue-600'
                     }
                   />
-                  <span className={`text-sm font-medium ${
-                    notification.type === 'warning'
+                  <span className={`text-sm font-medium ${notification.type === 'warning'
                       ? 'text-yellow-900 dark:text-yellow-200'
                       : notification.type === 'success'
-                      ? 'text-green-900 dark:text-green-200'
-                      : 'text-blue-900 dark:text-blue-200'
-                  }`}>
+                        ? 'text-green-900 dark:text-green-200'
+                        : 'text-blue-900 dark:text-blue-200'
+                    }`}>
                     {notification.message}
                   </span>
                 </div>
-                <span className={`text-xs ${
-                  notification.type === 'warning'
+                <span className={`text-xs ${notification.type === 'warning'
                     ? 'text-yellow-600 dark:text-yellow-400'
                     : notification.type === 'success'
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-blue-600 dark:text-blue-400'
-                }`}>
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-blue-600 dark:text-blue-400'
+                  }`}>
                   {notification.time}
                 </span>
               </div>

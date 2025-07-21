@@ -171,7 +171,7 @@ export const CompanyBrandingTab = ({ data, isEditing, onUpdate }) => {
           {formData.brand_colors?.length > 0 ? (
             formData.brand_colors.map((color, index) => (
               <div key={index} className="flex items-center space-x-2">
-                <div 
+                <div
                   className="w-8 h-8 rounded border border-gray-300"
                   style={{ backgroundColor: color }}
                 ></div>

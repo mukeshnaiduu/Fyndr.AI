@@ -28,13 +28,13 @@ const AdminProfileManagement = () => {
           return;
         }
         const data = await res.json();
-        
+
         // Check role authorization
         if (data.role !== 'administrator') {
           navigate('/404');
           return;
         }
-        
+
         setAdminProfile(data);
       } catch (err) {
         console.error('Failed to fetch profile:', err);
@@ -74,7 +74,7 @@ const AdminProfileManagement = () => {
       const data = await res.json();
       setAdminProfile(data);
       setLastSaved(Date.now());
-      
+
       // Success feedback
       const successMessage = document.createElement('div');
       successMessage.className = 'fixed top-20 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50';
@@ -94,7 +94,7 @@ const AdminProfileManagement = () => {
     switch (activeTab) {
       case 'system':
         return (
-          <SystemManagementTab 
+          <SystemManagementTab
             data={adminProfile}
             isEditing={isEditing}
             onUpdate={handleUpdateProfile}
@@ -102,7 +102,7 @@ const AdminProfileManagement = () => {
         );
       case 'users':
         return (
-          <UserManagementTab 
+          <UserManagementTab
             data={adminProfile}
             isEditing={isEditing}
             onUpdate={handleUpdateProfile}
@@ -110,7 +110,7 @@ const AdminProfileManagement = () => {
         );
       default:
         return (
-          <SystemManagementTab 
+          <SystemManagementTab
             data={adminProfile}
             isEditing={isEditing}
             onUpdate={handleUpdateProfile}
@@ -191,11 +191,10 @@ const AdminProfileManagement = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                    activeTab === tab.id
+                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${activeTab === tab.id
                       ? 'border-red-500 text-red-600 dark:text-red-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                  }`}
+                    }`}
                 >
                   <Icon name={tab.icon} size={16} />
                   <span>{tab.label}</span>
@@ -219,7 +218,7 @@ const AdminProfileManagement = () => {
             <Icon name="ArrowLeft" size={16} className="mr-2" />
             Back to Dashboard
           </Button>
-          
+
           <div className="flex space-x-3">
             <Button variant="outline">
               <Icon name="Download" size={16} className="mr-2" />

@@ -67,30 +67,30 @@ const JobSeekerOnboardingWizard = () => {
           'Authorization': `Bearer ${token}`,
         },
       })
-      .then(res => {
-        if (!res.ok) throw new Error('Unauthorized');
-        return res.json();
-      })
-      .then(profileData => {
-        // Check if onboarding exists in database and is complete
-        if (profileData.onboarding_complete && profileData.onboarding) {
-          // Clear any local onboarding data since it's complete in database
-          localStorage.removeItem('jobSeekerOnboardingData');
-          localStorage.removeItem('jobSeekerOnboardingStep');
-          localStorage.removeItem('jobSeekerOnboardingUserId');
-          localStorage.setItem('jobSeekerOnboardingComplete', 'true');
-          // Redirect to jobs page
-          navigate('/job-search-application-hub');
-          return;
-        }
-        // Continue with normal onboarding flow
-        loadSavedProgress();
-      })
-      .catch(err => {
-        console.error('Error checking onboarding status:', err);
-        // If there's an error checking backend, proceed with local flow
-        loadSavedProgress();
-      });
+        .then(res => {
+          if (!res.ok) throw new Error('Unauthorized');
+          return res.json();
+        })
+        .then(profileData => {
+          // Check if onboarding exists in database and is complete
+          if (profileData.onboarding_complete && profileData.onboarding) {
+            // Clear any local onboarding data since it's complete in database
+            localStorage.removeItem('jobSeekerOnboardingData');
+            localStorage.removeItem('jobSeekerOnboardingStep');
+            localStorage.removeItem('jobSeekerOnboardingUserId');
+            localStorage.setItem('jobSeekerOnboardingComplete', 'true');
+            // Redirect to jobs page
+            navigate('/job-search-application-hub');
+            return;
+          }
+          // Continue with normal onboarding flow
+          loadSavedProgress();
+        })
+        .catch(err => {
+          console.error('Error checking onboarding status:', err);
+          // If there's an error checking backend, proceed with local flow
+          loadSavedProgress();
+        });
     } else {
       // No token, redirect to login
       navigate('/authentication-login-register');

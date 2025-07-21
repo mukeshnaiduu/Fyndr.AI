@@ -27,7 +27,7 @@ const CandidateProfileEvaluationInterface = () => {
     isOnline: true,
     appliedDate: '2025-01-07',
     position: 'Senior Frontend Developer',
-    
+
     experience: [
       {
         position: 'Senior Frontend Developer',
@@ -51,7 +51,7 @@ const CandidateProfileEvaluationInterface = () => {
         technologies: ['HTML5', 'CSS3', 'JavaScript', 'jQuery', 'Bootstrap']
       }
     ],
-    
+
     education: [
       {
         degree: 'Bachelor of Science in Computer Science',
@@ -67,7 +67,7 @@ const CandidateProfileEvaluationInterface = () => {
         description: 'Intensive 12-week program covering modern frontend technologies and best practices.'
       }
     ],
-    
+
     skillCategories: [
       {
         name: 'Frontend Technologies',
@@ -97,7 +97,7 @@ const CandidateProfileEvaluationInterface = () => {
         ]
       }
     ],
-    
+
     portfolio: [
       {
         title: 'E-commerce Dashboard',
@@ -124,7 +124,7 @@ const CandidateProfileEvaluationInterface = () => {
         githubUrl: 'https://github.com/sarah/weather-app'
       }
     ],
-    
+
     achievements: [
       {
         title: 'React Advanced Certification',
@@ -146,7 +146,7 @@ const CandidateProfileEvaluationInterface = () => {
         description: 'Active contributor to popular React libraries with over 500 commits and 50+ merged PRs.'
       }
     ],
-    
+
     interviewHistory: [
       {
         title: 'Phone Screening',
@@ -207,7 +207,7 @@ const CandidateProfileEvaluationInterface = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               {/* Candidate Header */}
               <CandidateHeader candidate={candidate} onAction={handleAction} />
-              
+
               {/* Main Content Area */}
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Left Sidebar - Navigation */}
@@ -219,11 +219,10 @@ const CandidateProfileEvaluationInterface = () => {
                         <button
                           key={option.id}
                           onClick={() => setActiveView(option.id)}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            activeView === option.id
+                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeView === option.id
                               ? 'bg-primary text-primary-foreground shadow-sm'
                               : 'text-muted-foreground hover:text-foreground hover:bg-white/10'
-                          }`}
+                            }`}
                         >
                           <Icon name={option.icon} size={16} />
                           <span>{option.label}</span>
@@ -255,7 +254,7 @@ const CandidateProfileEvaluationInterface = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Main Content */}
                 <div className="lg:col-span-3">
                   {renderMainContent()}

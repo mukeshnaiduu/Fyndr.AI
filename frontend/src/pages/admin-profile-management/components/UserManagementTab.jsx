@@ -25,7 +25,7 @@ export const UserManagementTab = ({ data, isEditing, onUpdate }) => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     return matchesSearch && matchesRole;
   });
@@ -46,8 +46,8 @@ export const UserManagementTab = ({ data, isEditing, onUpdate }) => {
   };
 
   const getStatusColor = (status) => {
-    return status === 'active' 
-      ? 'text-green-600 dark:text-green-400' 
+    return status === 'active'
+      ? 'text-green-600 dark:text-green-400'
       : 'text-red-600 dark:text-red-400';
   };
 
@@ -192,16 +192,16 @@ export const UserManagementTab = ({ data, isEditing, onUpdate }) => {
                     {user.lastLogin}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => handleUserAction(user.id, 'edit')}
                     >
                       <Icon name="Edit" size={14} className="mr-1" />
                       Edit
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => handleUserAction(user.id, user.status === 'active' ? 'deactivate' : 'activate')}
                     >

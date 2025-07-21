@@ -18,10 +18,10 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
   const accessToken = localStorage.getItem('accessToken');
   const isAuthenticatedFlag = localStorage.getItem('isAuthenticated') === 'true';
   const isAuthenticated = !!accessToken && isAuthenticatedFlag;
-  
+
   // Get user role from localStorage with fallback
   let userRole = localStorage.getItem('userRole');
-  
+
   // Fallback: get role from user object if userRole is not set
   if (!userRole) {
     try {
@@ -34,18 +34,18 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
       console.error('Error parsing user data:', e);
     }
   }
-  
+
   console.log('ProtectedRoute - userRole:', userRole, 'requireOnboarding:', requireOnboarding);
-  
+
   const onboardingKey =
     userRole === 'job_seeker' || userRole === 'jobseeker'
       ? 'jobSeekerOnboardingComplete'
       : userRole === 'recruiter' || userRole === 'employer'
-      ? 'recruiterOnboardingComplete'
-      : userRole === 'administrator' || userRole === 'admin'
-      ? 'adminOnboardingComplete'
-      : null;
-  
+        ? 'recruiterOnboardingComplete'
+        : userRole === 'administrator' || userRole === 'admin'
+          ? 'adminOnboardingComplete'
+          : null;
+
   const [isOnboarded, setIsOnboarded] = useState(onboardingKey ? localStorage.getItem(onboardingKey) === 'true' : true);
 
   useEffect(() => {
@@ -88,7 +88,7 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
   if (!isAuthenticated) {
     return <Navigate to="/authentication-login-register" replace />;
   }
-  
+
   if (requireOnboarding && !isOnboarded) {
     console.log('ProtectedRoute - redirecting for onboarding, userRole:', userRole, 'isOnboarded:', isOnboarded);
     // Role-specific onboarding redirects
@@ -105,7 +105,7 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
     console.log('ProtectedRoute - unknown role, redirecting to login:', userRole);
     return <Navigate to="/authentication-login-register" replace />;
   }
-  
+
   return children;
 };
 

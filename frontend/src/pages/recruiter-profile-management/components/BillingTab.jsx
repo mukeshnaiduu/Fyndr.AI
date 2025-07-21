@@ -45,7 +45,7 @@ const BillingTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
           Update Payment Method
         </Button>
       </div>
-      
+
       {/* Current Plan Overview */}
       <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg">
         <div className="flex items-center justify-between mb-4">
@@ -66,7 +66,7 @@ const BillingTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             </p>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
@@ -74,8 +74,8 @@ const BillingTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             </label>
             <div className="flex items-center space-x-2">
               <div className="flex-1 bg-blue-200 dark:bg-blue-800 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full" 
+                <div
+                  className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full"
                   style={{ width: `${((profile?.job_postings_used || 12) / (profile?.job_postings_limit || 50)) * 100}%` }}
                 ></div>
               </div>
@@ -90,8 +90,8 @@ const BillingTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             </label>
             <div className="flex items-center space-x-2">
               <div className="flex-1 bg-blue-200 dark:bg-blue-800 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full" 
+                <div
+                  className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full"
                   style={{ width: `${((profile?.team_members_count || 8) / (profile?.team_members_limit || 15)) * 100}%` }}
                 ></div>
               </div>
@@ -176,8 +176,8 @@ const BillingTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
                 {currentPlan === 'basic' ? 'Professional Plan' : 'Enterprise Plan'}
               </h5>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                {currentPlan === 'basic' 
-                  ? 'Get advanced features and better support' 
+                {currentPlan === 'basic'
+                  ? 'Get advanced features and better support'
                   : 'Unlimited access with dedicated support'
                 }
               </p>

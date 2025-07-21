@@ -27,11 +27,11 @@ function App() {
         <div className="min-h-screen bg-background">
           {/* Global Role-Based Navbar - the only navbar in the app */}
           {isNavbarVisible && <RoleBasedNavbar toggleNavbar={toggleNavbar} />}
-          
+
           <div className={`${isNavbarVisible ? 'pt-16' : 'pt-0'} transition-all duration-300`}>
             {/* Show navbar button - only visible when navbar is hidden */}
             {!isNavbarVisible && (
-              <button 
+              <button
                 onClick={toggleNavbar}
                 className="fixed top-4 right-4 z-50 p-2 bg-primary rounded-full shadow-lg hover:bg-primary/90 transition-all"
                 aria-label="Show navigation"
@@ -40,7 +40,7 @@ function App() {
                 <Icon name="Menu" size={20} className="text-white" />
               </button>
             )}
-            
+
             <Routes />
           </div>
         </div>

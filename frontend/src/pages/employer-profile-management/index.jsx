@@ -28,13 +28,13 @@ const EmployerProfileManagement = () => {
           return;
         }
         const data = await res.json();
-        
+
         // Check role authorization
         if (data.role !== 'employer') {
           navigate('/404');
           return;
         }
-        
+
         setEmployerProfile(data);
       } catch (err) {
         console.error('Failed to fetch profile:', err);
@@ -74,7 +74,7 @@ const EmployerProfileManagement = () => {
       const data = await res.json();
       setEmployerProfile(data);
       setLastSaved(Date.now());
-      
+
       // Success feedback
       const successMessage = document.createElement('div');
       successMessage.className = 'fixed top-20 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50';
@@ -94,7 +94,7 @@ const EmployerProfileManagement = () => {
     switch (activeTab) {
       case 'branding':
         return (
-          <CompanyBrandingTab 
+          <CompanyBrandingTab
             data={employerProfile}
             isEditing={isEditing}
             onUpdate={handleUpdateProfile}
@@ -102,7 +102,7 @@ const EmployerProfileManagement = () => {
         );
       case 'analytics':
         return (
-          <AnalyticsReportsTab 
+          <AnalyticsReportsTab
             data={employerProfile}
             isEditing={isEditing}
             onUpdate={handleUpdateProfile}
@@ -110,7 +110,7 @@ const EmployerProfileManagement = () => {
         );
       default:
         return (
-          <CompanyBrandingTab 
+          <CompanyBrandingTab
             data={employerProfile}
             isEditing={isEditing}
             onUpdate={handleUpdateProfile}
@@ -201,11 +201,10 @@ const EmployerProfileManagement = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                    activeTab === tab.id
+                  className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${activeTab === tab.id
                       ? 'border-purple-500 text-purple-600 dark:text-purple-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                  }`}
+                    }`}
                 >
                   <Icon name={tab.icon} size={16} />
                   <span>{tab.label}</span>
@@ -229,7 +228,7 @@ const EmployerProfileManagement = () => {
             <Icon name="ArrowLeft" size={16} className="mr-2" />
             Back to Dashboard
           </Button>
-          
+
           <div className="flex space-x-3">
             <Button variant="outline">
               <Icon name="Download" size={16} className="mr-2" />

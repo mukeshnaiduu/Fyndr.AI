@@ -64,12 +64,12 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
         sla_acknowledged: formData.slaAcknowledged || false,
         final_confirmation: formData.finalConfirmation || false,
       };
-      
+
       // Use apiRequest utility for consistency
       await import('utils/api').then(({ apiRequest }) =>
         apiRequest('/auth/recruiter-onboarding/', 'POST', payload, token)
       );
-      
+
       // Fetch updated profile and update localStorage
       const profileRes = await fetch('/api/auth/profile/', {
         method: 'GET',
@@ -96,7 +96,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
         // Force Navbar to update by dispatching a storage event
         window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
       }
-      
+
       localStorage.setItem('recruiterOnboardingComplete', 'true');
       onUpdate(formData);
       onComplete();
@@ -122,7 +122,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
           Edit
         </Button>
       </div>
-      
+
       <div className="flex items-start space-x-4">
         {data.logo && (
           <div className="w-16 h-16 rounded-card overflow-hidden bg-muted">
@@ -133,7 +133,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
             />
           </div>
         )}
-        
+
         <div className="flex-1">
           <h4 className="font-medium text-foreground mb-2">{data.companyName}</h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
@@ -178,7 +178,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
           Edit
         </Button>
       </div>
-      
+
       <div className="space-y-4">
         <div>
           <h4 className="font-medium text-foreground mb-2">Invited Members</h4>
@@ -192,7 +192,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
             ))}
           </div>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-muted-foreground">Allow invites:</span>
@@ -225,7 +225,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
           Edit
         </Button>
       </div>
-      
+
       <div className="space-y-4">
         <div>
           <h4 className="font-medium text-foreground mb-2">Diversity Goals</h4>
@@ -240,7 +240,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
             ))}
           </div>
         </div>
-        
+
         <div>
           <h4 className="font-medium text-foreground mb-2">Inclusion Policies</h4>
           <div className="flex flex-wrap gap-2">
@@ -254,7 +254,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
             ))}
           </div>
         </div>
-        
+
         <div className="text-sm">
           <span className="text-muted-foreground">Reporting:</span>
           <span className="text-foreground ml-2 capitalize">{data.reportingFrequency}</span>
@@ -277,7 +277,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
           Edit
         </Button>
       </div>
-      
+
       <div>
         {data.selectedIntegrations?.length > 0 ? (
           <div className="flex flex-wrap gap-2">
@@ -311,7 +311,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
           Edit
         </Button>
       </div>
-      
+
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -322,11 +322,11 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
           </div>
           <div className="text-right">
             <p className="font-semibold text-foreground">
-              ${data.billingCycle === 'yearly' ? 
-                (data.selectedPlan === 'starter' ? 990 : 
-                 data.selectedPlan === 'professional' ? 1990 : 3990) :
-                (data.selectedPlan === 'starter' ? 99 : 
-                 data.selectedPlan === 'professional' ? 199 : 399)
+              ${data.billingCycle === 'yearly' ?
+                (data.selectedPlan === 'starter' ? 990 :
+                  data.selectedPlan === 'professional' ? 1990 : 3990) :
+                (data.selectedPlan === 'starter' ? 99 :
+                  data.selectedPlan === 'professional' ? 199 : 399)
               }
             </p>
             <p className="text-sm text-muted-foreground">
@@ -334,7 +334,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
             </p>
           </div>
         </div>
-        
+
         <div className="text-sm">
           <p className="text-muted-foreground">Billing Address:</p>
           <p className="text-foreground">
@@ -385,7 +385,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
       {/* SLA Agreement */}
       <div className="glass-card p-6 rounded-card">
         <h3 className="text-lg font-semibold text-foreground mb-4">Service Level Agreement</h3>
-        
+
         <div className="bg-muted p-4 rounded-card mb-4 max-h-48 overflow-y-auto">
           <div className="text-sm text-foreground space-y-3">
             <p><strong>1. Service Availability:</strong> We guarantee 99.9% uptime for our platform services.</p>
@@ -397,7 +397,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
             <p><strong>7. Maintenance:</strong> Scheduled maintenance will be announced 48 hours in advance.</p>
           </div>
         </div>
-        
+
         <Checkbox
           label="I acknowledge and agree to the Service Level Agreement"
           description="By checking this box, you confirm that you have read and agree to our SLA terms"
@@ -414,10 +414,10 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
           <div className="flex-1">
             <h4 className="font-semibold text-foreground mb-2">Final Confirmation</h4>
             <p className="text-sm text-muted-foreground mb-4">
-              By completing this onboarding process, you confirm that all information provided is accurate 
+              By completing this onboarding process, you confirm that all information provided is accurate
               and you agree to our terms of service. Your account will be activated immediately.
             </p>
-            
+
             <Checkbox
               label="I confirm that all information is accurate and complete"
               description="This confirmation is required to activate your account"

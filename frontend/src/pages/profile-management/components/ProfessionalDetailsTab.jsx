@@ -88,7 +88,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
         const skillName = typeof skill === 'object' ? (skill.name || skill.skill || skill) : skill;
         return skillName === newSkill.trim();
       });
-      
+
       if (!skillExists) {
         setFormData(prev => ({
           ...prev,
@@ -113,7 +113,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
         const certName = typeof cert === 'object' ? (cert.name || cert.certification || cert) : cert;
         return certName === newCertification.trim();
       });
-      
+
       if (!certExists) {
         setFormData(prev => ({
           ...prev,
@@ -322,7 +322,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
             <Icon name="Briefcase" size={20} className="mr-2" />
             Professional Information
           </h3>
-          
+
           {userProfile.role === 'jobseeker' && renderJobSeekerFields()}
           {(userProfile.role === 'recruiter' || userProfile.role === 'employer') && renderRecruiterFields()}
         </div>
@@ -333,7 +333,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
             <Icon name="Zap" size={20} className="mr-2" />
             Skills & Expertise
           </h3>
-          
+
           <div className="space-y-4">
             <div className="flex gap-2">
               <Input
@@ -386,7 +386,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
             <Icon name="Award" size={20} className="mr-2" />
             Certifications
           </h3>
-          
+
           <div className="space-y-4">
             <div className="flex gap-2">
               <Input
@@ -436,7 +436,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
               <Icon name="FileText" size={20} className="mr-2" />
               Resume
             </h3>
-            
+
             <div className="space-y-4">
               <div className="border-2 border-dashed border-border rounded-squircle p-6 text-center hover:border-primary/50 spring-transition">
                 <Icon name="Upload" size={32} className="text-muted-foreground mx-auto mb-2" />

@@ -82,13 +82,13 @@ const MentorshipPlatform = () => {
     },
     {
       id: 3,
-      name: 'Emily Rodriguez',title: 'UX Design Lead at Airbnb',avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+      name: 'Emily Rodriguez', title: 'UX Design Lead at Airbnb', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
       expertise: ['UX Design', 'Design Systems', 'User Research', 'Prototyping', 'Design Leadership'],
       experience: 7,
       rating: 4.9,
       reviewCount: 156,
       hourlyRate: 110,
-      availability: 'available',totalSessions: 298,responseTime: '3 hours',
+      availability: 'available', totalSessions: 298, responseTime: '3 hours',
       successRate: 98,
       bio: `UX Design Lead at Airbnb with 7 years of experience creating user-centered designs for global products. I've built and led design teams and established design systems.\n\nI mentor designers at all levels, from career switchers to senior designers looking to move into leadership. My sessions cover design process, portfolio reviews, and career advancement strategies.`,
       industries: ['Technology', 'Design'],
@@ -132,13 +132,13 @@ const MentorshipPlatform = () => {
     },
     {
       id: 6,
-      name: 'James Thompson',title: 'VP of Sales at Salesforce',avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face',
+      name: 'James Thompson', title: 'VP of Sales at Salesforce', avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face',
       expertise: ['Sales Strategy', 'Team Management', 'B2B Sales', 'Negotiation', 'Leadership'],
       experience: 12,
       rating: 4.9,
       reviewCount: 203,
       hourlyRate: 150,
-      availability: 'available',totalSessions: 456,responseTime: '1 hour',
+      availability: 'available', totalSessions: 456, responseTime: '1 hour',
       successRate: 97,
       bio: `VP of Sales at Salesforce with 12 years of experience in B2B sales and team leadership. I've built and scaled sales teams from startup to enterprise level.\n\nI help sales professionals at all levels improve their skills and advance their careers. My sessions cover sales strategy, negotiation techniques, and leadership development.`,
       industries: ['Sales', 'Technology'],
@@ -158,7 +158,7 @@ const MentorshipPlatform = () => {
     // Check for saved language preference
     const savedLanguage = localStorage.getItem('language') || 'en';
     setCurrentLanguage(savedLanguage);
-    
+
     // Initialize mentors
     setMentors(mockMentors);
     setFilteredMentors(mockMentors);
@@ -291,7 +291,7 @@ const MentorshipPlatform = () => {
                   Connect with industry professionals for personalized career guidance
                 </p>
               </div>
-              
+
               <div className="flex items-center space-x-4">
                 <Button
                   variant="outline"
@@ -321,7 +321,7 @@ const MentorshipPlatform = () => {
               <div className="sticky top-32">
                 <FilterPanel
                   isOpen={true}
-                  onClose={() => {}}
+                  onClose={() => { }}
                   filters={filters}
                   onFiltersChange={handleFiltersChange}
                   onClearFilters={handleClearFilters}

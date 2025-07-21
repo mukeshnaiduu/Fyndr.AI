@@ -69,7 +69,7 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
         const storedUser = getStoredUser();
         const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
         const hasToken = localStorage.getItem('accessToken');
-        
+
         if (isAuthenticated && hasToken && storedUser) {
           setUser(storedUser);
         } else {
@@ -86,7 +86,7 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
     const storedUser = getStoredUser();
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     const hasToken = localStorage.getItem('accessToken');
-    
+
     if (isAuthenticated && hasToken && storedUser) {
       setUser(storedUser);
     } else {

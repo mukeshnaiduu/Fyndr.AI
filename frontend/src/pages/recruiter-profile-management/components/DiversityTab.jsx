@@ -19,7 +19,7 @@ const DiversityTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
           {isEditing ? 'Save Changes' : 'Edit'}
         </button>
       </div>
-      
+
       <div className="space-y-6">
         {/* D&I Commitment */}
         <div>

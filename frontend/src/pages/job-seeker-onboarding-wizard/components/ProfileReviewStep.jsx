@@ -98,13 +98,13 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
         // Force Navbar to update by dispatching a storage event
         window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
       }
-      
+
       // Clear onboarding data from localStorage since it's complete and stored in database
       localStorage.removeItem('jobSeekerOnboardingData');
       localStorage.removeItem('jobSeekerOnboardingStep');
       localStorage.removeItem('jobSeekerOnboardingUserId');
       localStorage.setItem('jobSeekerOnboardingComplete', 'true');
-      
+
       setIsSubmitting(false);
       setShowConfetti(true);
       setTimeout(() => {

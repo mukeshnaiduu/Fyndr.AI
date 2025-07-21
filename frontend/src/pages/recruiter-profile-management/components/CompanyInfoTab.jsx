@@ -20,7 +20,7 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
           {isEditing ? 'Save Changes' : 'Edit'}
         </button>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -74,7 +74,7 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             readOnly={!isEditing}
           />
         </div>
-        
+
         {/* Company Logo */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -82,9 +82,9 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
           </label>
           <div className="flex items-center space-x-4">
             {profile?.logo ? (
-              <img 
-                src={profile.logo} 
-                alt="Company Logo" 
+              <img
+                src={profile.logo}
+                alt="Company Logo"
                 className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200 dark:border-gray-600"
               />
             ) : (

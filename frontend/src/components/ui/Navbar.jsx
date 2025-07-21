@@ -69,7 +69,7 @@ const Navbar = ({ toggleNavbar }) => {
         const storedUser = getStoredUser();
         const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
         const hasToken = localStorage.getItem('accessToken');
-        
+
         // Only set user if authenticated and has token
         if (isAuthenticated && hasToken && storedUser) {
           setUser(storedUser);
@@ -87,7 +87,7 @@ const Navbar = ({ toggleNavbar }) => {
     const storedUser = getStoredUser();
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     const hasToken = localStorage.getItem('accessToken');
-    
+
     // Only set user if authenticated and has token
     if (isAuthenticated && hasToken && storedUser) {
       setUser(storedUser);

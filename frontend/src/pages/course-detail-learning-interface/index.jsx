@@ -310,7 +310,7 @@ const CourseDetailLearningInterface = () => {
         sidebar={
           <div className="h-full bg-card/30 transition-all duration-300 w-[300px] min-w-[300px]">
             <div className="flex items-center justify-between p-4">
-            <h2 className="font-semibold truncate transition-opacity duration-200">Course Content</h2>
+              <h2 className="font-semibold truncate transition-opacity duration-200">Course Content</h2>
             </div>
             <div className="overflow-y-auto transition-all duration-200 h-[calc(100%-56px)]">
               <CourseModules
@@ -360,7 +360,7 @@ const CourseDetailLearningInterface = () => {
             </div>
           </div>
 
-          <div className="max-w-screen-2xl mx-auto px-4 py-8 xl:pr-[360px]"> 
+          <div className="max-w-screen-2xl mx-auto px-4 py-8 xl:pr-[360px]">
             {/* Course Title & Info */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -403,7 +403,7 @@ const CourseDetailLearningInterface = () => {
               {activeTab === 'overview' && (
                 <CourseOverview course={courseData} />
               )}
-              
+
               {activeTab === 'modules' && (
                 <CourseModules
                   modules={moduleData}
@@ -412,7 +412,7 @@ const CourseDetailLearningInterface = () => {
                   onLessonSelect={handleLessonSelect}
                 />
               )}
-              
+
               {activeTab === 'discussion' && Array.isArray(discussionData) && (
                 <DiscussionForum
                   discussions={discussionData}
@@ -420,7 +420,7 @@ const CourseDetailLearningInterface = () => {
                   onAddReply={handleAddReply}
                 />
               )}
-              
+
               {activeTab === 'resources' && (
                 <CourseResources resources={resourcesData} />
               )}
@@ -448,7 +448,7 @@ const CourseDetailLearningInterface = () => {
           >
             <Icon name="MessageCircle" size={20} />
           </Button>
-          
+
           <Button
             variant="outline"
             size="icon"

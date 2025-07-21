@@ -34,8 +34,8 @@ export const AnalyticsReportsTab = ({ data, isEditing, onUpdate }) => {
   ];
 
   const toggleMetric = (metricId) => {
-    setSelectedMetrics(prev => 
-      prev.includes(metricId) 
+    setSelectedMetrics(prev =>
+      prev.includes(metricId)
         ? prev.filter(id => id !== metricId)
         : [...prev, metricId]
     );
@@ -141,11 +141,10 @@ export const AnalyticsReportsTab = ({ data, isEditing, onUpdate }) => {
             <div
               key={metric.id}
               onClick={() => toggleMetric(metric.id)}
-              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                selectedMetrics.includes(metric.id)
+              className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedMetrics.includes(metric.id)
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-3">
                 <Icon name={metric.icon} size={20} className={selectedMetrics.includes(metric.id) ? 'text-blue-600' : 'text-gray-400'} />

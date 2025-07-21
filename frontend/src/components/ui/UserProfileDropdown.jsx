@@ -140,9 +140,9 @@ const UserProfileDropdown = ({ className = '' }) => {
           <div className="text-sm font-medium text-foreground">{user.name}</div>
           <div className="text-xs text-muted-foreground">{getRoleLabel(currentRole)}</div>
         </div>
-        <Icon 
-          name={isOpen ? "ChevronUp" : "ChevronDown"} 
-          size={16} 
+        <Icon
+          name={isOpen ? "ChevronUp" : "ChevronDown"}
+          size={16}
           className="text-muted-foreground transition-transform duration-200"
         />
       </Button>
@@ -179,10 +179,9 @@ const UserProfileDropdown = ({ className = '' }) => {
                   <button
                     key={role}
                     onClick={() => handleRoleSwitch(role)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
-                      currentRole === role
-                        ? 'bg-primary/20 text-primary border border-primary/30' :'text-foreground hover:bg-white/10'
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${currentRole === role
+                        ? 'bg-primary/20 text-primary border border-primary/30' : 'text-foreground hover:bg-white/10'
+                      }`}
                   >
                     <Icon name={getRoleIcon(role)} size={16} />
                     <span className="flex-1 text-left">{getRoleLabel(role)}</span>
@@ -204,7 +203,7 @@ const UserProfileDropdown = ({ className = '' }) => {
               <Icon name="User" size={16} />
               <span>Edit Profile</span>
             </button>
-            
+
             <button
               onClick={handleSettings}
               className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-white/10 transition-all duration-200"
@@ -212,14 +211,14 @@ const UserProfileDropdown = ({ className = '' }) => {
               <Icon name="Settings" size={16} />
               <span>Settings</span>
             </button>
-            
+
             <button
               className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-white/10 transition-all duration-200"
             >
               <Icon name="HelpCircle" size={16} />
               <span>Help & Support</span>
             </button>
-            
+
             <button
               className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-white/10 transition-all duration-200"
             >

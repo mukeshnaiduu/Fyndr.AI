@@ -11,7 +11,7 @@ export const useRoleBasedProfileRedirect = () => {
 
   const redirectToRoleProfile = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
+
     switch (user.role) {
       case 'recruiter':
         navigate('/recruiter-profile-management');

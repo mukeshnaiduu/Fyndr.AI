@@ -202,8 +202,8 @@ const EmployerProfileManagement = () => {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${activeTab === tab.id
-                                            ? 'border-purple-500 text-purple-600 dark:text-purple-400'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                        ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                                         }`}
                                 >
                                     <Icon name={tab.icon} size={16} />
