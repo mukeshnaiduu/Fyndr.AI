@@ -43,17 +43,77 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    setIsSubmitting(false);
-    setShowConfetti(true);
-
-    // Navigate to dashboard after celebration
-    setTimeout(() => {
-      navigate('/ai-powered-job-feed-dashboard');
-    }, 3000);
+    try {
+      const token = localStorage.getItem('accessToken');
+      // Build flat payload matching backend model fields (snake_case)
+      const payload = {
+        first_name: data.firstName || '',
+        last_name: data.lastName || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        location: data.location || '',
+        profile_image: data.profileImage || '',
+        linkedin_url: data.linkedinUrl || '',
+        portfolio_url: data.portfolioUrl || '',
+        resume: data.resume || {},
+        skills: Array.isArray(data.skills) ? data.skills : [],
+        job_title: data.jobTitle || '',
+        job_types: Array.isArray(data.jobTypes) ? data.jobTypes : [],
+        work_arrangement: data.workArrangement || '',
+        salary_min: data.salaryMin || '',
+        salary_max: data.salaryMax || '',
+        preferred_locations: Array.isArray(data.preferredLocations) ? data.preferredLocations : [],
+        industries: Array.isArray(data.industries) ? data.industries : [],
+        company_size: data.companySize || '',
+        benefits: Array.isArray(data.benefits) ? data.benefits : [],
+        availability_date: data.availabilityDate || '',
+      };
+      if (payload.career_preferences) delete payload.career_preferences;
+      await import('utils/api').then(({ apiRequest }) =>
+        apiRequest('/auth/jobseeker-onboarding/', 'POST', payload, token)
+      );
+      // Fetch latest profile and update localStorage.user
+      const profileRes = await fetch('/api/auth/profile/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        // Merge profile data with onboarding data for complete user info
+        const mergedProfile = {
+          ...profileData,
+          ...(profileData.onboarding || {}),
+          id: profileData.id,
+          username: profileData.username,
+          email: profileData.email,
+          first_name: profileData.first_name,
+          last_name: profileData.last_name,
+          role: profileData.role,
+          onboarding_complete: profileData.onboarding_complete
+        };
+        localStorage.setItem('user', JSON.stringify(mergedProfile));
+        // Force Navbar to update by dispatching a storage event
+        window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
+      }
+      
+      // Clear onboarding data from localStorage since it's complete and stored in database
+      localStorage.removeItem('jobSeekerOnboardingData');
+      localStorage.removeItem('jobSeekerOnboardingStep');
+      localStorage.removeItem('jobSeekerOnboardingUserId');
+      localStorage.setItem('jobSeekerOnboardingComplete', 'true');
+      
+      setIsSubmitting(false);
+      setShowConfetti(true);
+      setTimeout(() => {
+        navigate('/job-search-application-hub');
+      }, 1000);
+    } catch (err) {
+      setIsSubmitting(false);
+      alert('Failed to save onboarding. Please try again.');
+    }
   };
 
   const formatSalaryRange = (min, max) => {
@@ -241,8 +301,8 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
                 <div key={skill.id} className="flex items-center justify-between">
                   <span className="text-sm font-medium">{skill.name}</span>
                   <span className={`text-xs px-2 py-1 rounded ${skill.proficiency === 'expert' ? 'bg-primary/10 text-primary' :
-                      skill.proficiency === 'advanced' ? 'bg-success/10 text-success' :
-                        skill.proficiency === 'intermediate' ? 'bg-accent/10 text-accent' : 'bg-warning/10 text-warning'
+                    skill.proficiency === 'advanced' ? 'bg-success/10 text-success' :
+                      skill.proficiency === 'intermediate' ? 'bg-accent/10 text-accent' : 'bg-warning/10 text-warning'
                     }`}>
                     {skill.proficiency}
                   </span>

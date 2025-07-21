@@ -3,7 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 import Button from 'components/ui/Button';
-import Navbar from 'components/ui/Navbar';
+import RoleBasedNavbar from 'components/ui/RoleBasedNavbar';
 import AuthenticatedSidebar from 'components/ui/AuthenticatedSidebar';
 import NotificationCard from './components/NotificationCard';
 import NotificationFilters from './components/NotificationFilters';
@@ -367,7 +367,7 @@ const NotificationsCenter = () => {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {showNavbar && (
-        <Navbar toggleNavbar={() => setShowNavbar(false)} key={showNavbar ? 'navbar-visible' : 'navbar-hidden'} />
+        <RoleBasedNavbar toggleNavbar={() => setShowNavbar(false)} key={showNavbar ? 'navbar-visible' : 'navbar-hidden'} />
       )}
       <main className={`flex-1${showNavbar ? ' mt-16' : ''}`}>
         {isLoading ? (

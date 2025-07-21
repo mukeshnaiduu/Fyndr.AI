@@ -12,7 +12,16 @@ import BookingModal from './components/BookingModal';
 import ChatModal from './components/ChatModal';
 import BookingDashboard from './components/BookingDashboard';
 
+import { useNavigate } from 'react-router-dom';
+
 const MentorshipPlatform = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (!isAuthenticated) {
+      navigate('/authentication-login-register');
+    }
+  }, [navigate]);
   const [mentors, setMentors] = useState([]);
   const [filteredMentors, setFilteredMentors] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');

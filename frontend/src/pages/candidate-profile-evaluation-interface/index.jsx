@@ -7,7 +7,6 @@ import CommunicationHistory from './components/CommunicationHistory';
 import CandidateJourney from './components/CandidateJourney';
 import Icon from 'components/AppIcon';
 
-
 const CandidateProfileEvaluationInterface = () => {
   const [activeView, setActiveView] = useState('profile');
 

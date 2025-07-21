@@ -150,7 +150,7 @@ const Select = React.forwardRef((props, ref) => {
                     disabled={disabled}
                     aria-expanded={isOpen}
                     aria-haspopup="listbox"
-                    {...props}
+                    {...rest}
                 >
                     <span className={cn("truncate text-left", theme === 'dark' ? "text-[#e0e7ff]" : "text-foreground")}>{getSelectedDisplay()}</span>
                     {loading && (
@@ -176,7 +176,9 @@ const Select = React.forwardRef((props, ref) => {
                 {/* Hidden native select for form submission */}
                 <select
                     name={name}
-                    value={value || ''}
+                    value={multiple
+                        ? Array.isArray(value) ? value : []
+                        : (Array.isArray(value) ? (value[0] || '') : (value ?? ''))}
                     onChange={() => { }} // Controlled by our custom logic
                     className="sr-only"
                     tabIndex={-1}

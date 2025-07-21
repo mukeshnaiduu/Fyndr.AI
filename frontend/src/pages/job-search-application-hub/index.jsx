@@ -284,7 +284,7 @@ const JobSearchApplicationHub = () => {
   const handleJobApply = async (jobId) => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     setJobs(prevJobs =>
       prevJobs.map(job =>
         job.id === jobId ? { ...job, applicationStatus: 'applied' } : job
@@ -310,14 +310,14 @@ const JobSearchApplicationHub = () => {
   const filteredJobs = jobs.filter(job => {
     // Apply search filter
     if (searchQuery && !job.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !job.company.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !job.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))) {
+      !job.company.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !job.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))) {
       return false;
     }
 
     // Apply location filter
-    if (location && !job.location.toLowerCase().includes(location.toLowerCase()) && 
-        !(location.toLowerCase() === 'remote' && job.remote)) {
+    if (location && !job.location.toLowerCase().includes(location.toLowerCase()) &&
+      !(location.toLowerCase() === 'remote' && job.remote)) {
       return false;
     }
 
@@ -326,7 +326,7 @@ const JobSearchApplicationHub = () => {
     if (filters.salaryMax && job.salary.max > parseInt(filters.salaryMax)) return false;
     if (filters.jobType && job.type.toLowerCase() !== filters.jobType.toLowerCase()) return false;
     if (filters.remote && !job.remote) return false;
-    if (filters.skills && !job.skills.some(skill => 
+    if (filters.skills && !job.skills.some(skill =>
       skill.toLowerCase().includes(filters.skills.toLowerCase())
     )) return false;
 
@@ -360,183 +360,181 @@ const JobSearchApplicationHub = () => {
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 bg-background min-h-screen">
           <div className="grid grid-cols-1 gap-6">
-          {/* Search Section */}
-          <div className="mb-6">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-foreground mb-4">
-                Find Your Dream Job
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Discover opportunities that match your skills with AI-powered job recommendations
-              </p>
+            {/* Search Section */}
+            <div className="mb-6">
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold text-foreground mb-4">
+                  Find Your Dream Job
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Discover opportunities that match your skills with AI-powered job recommendations
+                </p>
+              </div>
+
+              <SearchBar
+                onSearch={handleSearch}
+                onLocationChange={handleLocationChange}
+                searchQuery={searchQuery}
+                location={location}
+                filters={filters}
+                onFilterChange={handleFilterChange}
+              />
             </div>
 
-            <SearchBar
-              onSearch={handleSearch}
-              onLocationChange={handleLocationChange}
-              searchQuery={searchQuery}
-              location={location}
-              filters={filters}
-              onFilterChange={handleFilterChange}
-            />
-          </div>
-
-          {/* View Toggle */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-1 glassmorphic-surface rounded-lg p-1">
-              <button
-                onClick={() => setCurrentView('search')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === 'search' ?'bg-primary/20 text-primary border border-primary/30' :'text-muted-foreground hover:bg-white/10'
-                }`}
-              >
-                <Icon name="Search" size={16} />
-                <span>Search Jobs</span>
-              </button>
-              <button
-                onClick={() => setCurrentView('saved')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === 'saved' ?'bg-primary/20 text-primary border border-primary/30' :'text-muted-foreground hover:bg-white/10'
-                }`}
-              >
-                <Icon name="Heart" size={16} />
-                <span>Saved Jobs</span>
-                {savedJobs.length > 0 && (
-                  <span className="bg-error text-error-foreground text-xs rounded-full px-2 py-0.5">
-                    {savedJobs.length}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {currentView === 'search' && (
-              <div className="flex items-center space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsFilterSidebarOpen(true)}
-                  iconName="Filter"
-                  iconPosition="left"
-                  className="lg:hidden"
+            {/* View Toggle */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-1 glassmorphic-surface rounded-lg p-1">
+                <button
+                  onClick={() => setCurrentView('search')}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${currentView === 'search' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-muted-foreground hover:bg-white/10'
+                    }`}
                 >
-                  Filters
-                </Button>
-                
-                <SortDropdown
-                  currentSort={sortBy}
-                  onSortChange={handleSortChange}
+                  <Icon name="Search" size={16} />
+                  <span>Search Jobs</span>
+                </button>
+                <button
+                  onClick={() => setCurrentView('saved')}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${currentView === 'saved' ? 'bg-primary/20 text-primary border border-primary/30' : 'text-muted-foreground hover:bg-white/10'
+                    }`}
+                >
+                  <Icon name="Heart" size={16} />
+                  <span>Saved Jobs</span>
+                  {savedJobs.length > 0 && (
+                    <span className="bg-error text-error-foreground text-xs rounded-full px-2 py-0.5">
+                      {savedJobs.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {currentView === 'search' && (
+                <div className="flex items-center space-x-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsFilterSidebarOpen(true)}
+                    iconName="Filter"
+                    iconPosition="left"
+                    className="lg:hidden"
+                  >
+                    Filters
+                  </Button>
+
+                  <SortDropdown
+                    currentSort={sortBy}
+                    onSortChange={handleSortChange}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Active Filters */}
+            {currentView === 'search' && Object.keys(filters).length > 0 && (
+              <div className="mb-6">
+                <FilterChips
+                  activeFilters={filters}
+                  onRemoveFilter={handleRemoveFilter}
+                  onClearAll={handleClearAllFilters}
                 />
               </div>
             )}
-          </div>
 
-          {/* Active Filters */}
-          {currentView === 'search' && Object.keys(filters).length > 0 && (
-            <div className="mb-6">
-              <FilterChips
-                activeFilters={filters}
-                onRemoveFilter={handleRemoveFilter}
-                onClearAll={handleClearAllFilters}
-              />
-            </div>
-          )}
-
-          {/* Content */}
-          {currentView === 'search' ? (
-            <div className="bg-card rounded-xl shadow p-6">
-              {/* Results Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-xl font-semibold text-foreground">
-                    {sortedJobs.length} Job{sortedJobs.length !== 1 ? 's' : ''} Found
-                  </h2>
-                  {searchQuery && (
-                    <span className="text-muted-foreground">
-                      for "{searchQuery}"
-                    </span>
-                  )}
+            {/* Content */}
+            {currentView === 'search' ? (
+              <div className="bg-card rounded-xl shadow p-6">
+                {/* Results Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-2">
+                    <h2 className="text-xl font-semibold text-foreground">
+                      {sortedJobs.length} Job{sortedJobs.length !== 1 ? 's' : ''} Found
+                    </h2>
+                    {searchQuery && (
+                      <span className="text-muted-foreground">
+                        for "{searchQuery}"
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Job Grid */}
-              {loading ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {[...Array(6)].map((_, index) => (
-                    <div key={index} className="bg-muted p-6 rounded-xl shadow animate-pulse">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-12 h-12 bg-card rounded-lg"></div>
-                        <div className="flex-1">
-                          <div className="h-4 bg-card rounded mb-2"></div>
-                          <div className="h-3 bg-card rounded w-2/3"></div>
+                {/* Job Grid */}
+                {loading ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {[...Array(6)].map((_, index) => (
+                      <div key={index} className="bg-muted p-6 rounded-xl shadow animate-pulse">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-12 h-12 bg-card rounded-lg"></div>
+                          <div className="flex-1">
+                            <div className="h-4 bg-card rounded mb-2"></div>
+                            <div className="h-3 bg-card rounded w-2/3"></div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-3 bg-card rounded"></div>
+                          <div className="h-3 bg-card rounded w-3/4"></div>
+                          <div className="h-3 bg-card rounded w-1/2"></div>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="h-3 bg-card rounded"></div>
-                        <div className="h-3 bg-card rounded w-3/4"></div>
-                        <div className="h-3 bg-card rounded w-1/2"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : sortedJobs.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {sortedJobs.map((job) => (
-                    <JobCard
-                      key={job.id}
-                      job={job}
-                      onSave={handleJobSave}
-                      onApply={handleJobApply}
-                      onViewDetails={handleViewJobDetails}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-muted p-12 rounded-xl shadow text-center">
-                  <Icon name="Search" size={64} className="text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-foreground mb-2">No Jobs Found</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Try adjusting your search criteria or filters to find more opportunities
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={handleClearFilters}
-                    iconName="RotateCcw"
-                    iconPosition="left"
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : sortedJobs.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {sortedJobs.map((job) => (
+                      <JobCard
+                        key={job.id}
+                        job={job}
+                        onSave={handleJobSave}
+                        onApply={handleJobApply}
+                        onViewDetails={handleViewJobDetails}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-muted p-12 rounded-xl shadow text-center">
+                    <Icon name="Search" size={64} className="text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-foreground mb-2">No Jobs Found</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Try adjusting your search criteria or filters to find more opportunities
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={handleClearFilters}
+                      iconName="RotateCcw"
+                      iconPosition="left"
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                )}
 
-              {/* Load More */}
-              {sortedJobs.length > 0 && hasMore && !loading && (
-                <div className="text-center mt-8">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setLoading(true);
-                      setTimeout(() => {
-                        setLoading(false);
-                        setHasMore(false);
-                      }, 1000);
-                    }}
-                    iconName="ChevronDown"
-                    iconPosition="right"
-                  >
-                    Load More Jobs
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-card rounded-xl shadow p-6">
-              <SavedJobsSection
-                savedJobs={savedJobs}
-                onRemoveFromSaved={handleRemoveFromSaved}
-                onApply={handleJobApply}
-                onViewDetails={handleViewJobDetails}
-              />
-            </div>
-          )}
+                {/* Load More */}
+                {sortedJobs.length > 0 && hasMore && !loading && (
+                  <div className="text-center mt-8">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setLoading(true);
+                        setTimeout(() => {
+                          setLoading(false);
+                          setHasMore(false);
+                        }, 1000);
+                      }}
+                      iconName="ChevronDown"
+                      iconPosition="right"
+                    >
+                      Load More Jobs
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-card rounded-xl shadow p-6">
+                <SavedJobsSection
+                  savedJobs={savedJobs}
+                  onRemoveFromSaved={handleRemoveFromSaved}
+                  onApply={handleJobApply}
+                  onViewDetails={handleViewJobDetails}
+                />
+              </div>
+            )}
           </div>
         </div>
 

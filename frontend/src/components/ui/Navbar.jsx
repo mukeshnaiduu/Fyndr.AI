@@ -6,23 +6,27 @@ import ThemeSwitcher from './ThemeSwitcher';
 import { cn } from '../../utils/cn';
 import { MAIN_NAV, RESOURCES_NAV } from '../../utils/routes';
 
+// Utility to get user from localStorage
+function getStoredUser() {
+  try {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return null;
+    return JSON.parse(userStr);
+  } catch {
+    return null;
+  }
+}
+
+
 const Navbar = ({ toggleNavbar }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [user, setUser] = useState(getStoredUser());
   const location = useLocation();
   const profileRef = useRef(null);
   const notificationsRef = useRef(null);
-
-  // Sample user data - in a real app, this would come from auth context or redux
-  const user = {
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    role: "Job Seeker",
-    avatar: "https://i.pravatar.cc/150?img=11",
-    unreadNotifications: 3
-  };
 
   // Check if user has scrolled
   useEffect(() => {
@@ -55,6 +59,41 @@ const Navbar = ({ toggleNavbar }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, []);
+
+  // Listen for localStorage changes (signout, login, onboarding, etc)
+  useEffect(() => {
+    const handleStorage = (e) => {
+      // Update user state when user data, token, or isAuthenticated changes
+      if (e.key === 'user' || e.key === 'accessToken' || e.key === 'isAuthenticated' || e.key === null) {
+        const storedUser = getStoredUser();
+        const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+        const hasToken = localStorage.getItem('accessToken');
+        
+        // Only set user if authenticated and has token
+        if (isAuthenticated && hasToken && storedUser) {
+          setUser(storedUser);
+        } else {
+          setUser(null);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // Also update user state on mount and check authentication
+  useEffect(() => {
+    const storedUser = getStoredUser();
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const hasToken = localStorage.getItem('accessToken');
+    
+    // Only set user if authenticated and has token
+    if (isAuthenticated && hasToken && storedUser) {
+      setUser(storedUser);
+    } else {
+      setUser(null);
+    }
   }, []);
 
   // Use centralized navigation items from routes.js
@@ -221,113 +260,106 @@ const Navbar = ({ toggleNavbar }) => {
             {/* Theme Switcher */}
             <ThemeSwitcher />
 
-            {/* Notifications dropdown */}
-            <div className="relative" ref={notificationsRef}>
-              <button
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="relative p-1 rounded-full text-gray-500 hover:text-primary focus:outline-none"
-              >
-                <Icon name="Bell" size={20} />
-                {user.unreadNotifications > 0 && (
-                  <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-error text-white text-xs flex items-center justify-center">
-                    {user.unreadNotifications}
-                  </span>
-                )}
-              </button>
 
-              {/* Notifications dropdown content */}
-              {isNotificationsOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-lg shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-                  <div className="py-2">
-                    <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Notifications</h3>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={cn(
-                            "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-start",
-                            !notification.isRead ? "bg-primary/5 dark:bg-accent/5" : ""
-                          )}
-                        >
-                          <span className={cn(
-                            "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mr-3",
-                            !notification.isRead ? "bg-primary/10 dark:bg-accent/10 text-primary dark:text-accent" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-                          )}>
-                            <Icon name={notification.icon} size={16} />
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{notification.title}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{notification.description}</p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{notification.time}</p>
-                          </div>
+            {/* If not authenticated, show Sign In/Sign Up buttons */}
+            {!user ? (
+              <>
+                <Link to="/authentication-login-register">
+                  <Button variant="primary" className="ml-2">Sign In</Button>
+                </Link>
+                <Link to="/authentication-login-register" state={{ mode: 'register' }}>
+                  <Button variant="outline" className="ml-2">Sign Up</Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                {/* Notifications dropdown */}
+                <div className="relative" ref={notificationsRef}>
+                  <button
+                    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                    className="relative p-1 rounded-full text-gray-500 hover:text-primary focus:outline-none"
+                  >
+                    <Icon name="Bell" size={20} />
+                    {/* Optionally show unread notifications if available */}
+                  </button>
+                  {isNotificationsOpen && (
+                    <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-lg shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                      <div className="py-2">
+                        <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
+                          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Notifications</h3>
                         </div>
-                      ))}
+                        <div className="max-h-96 overflow-y-auto">
+                          {/* You can fetch and map notifications here if needed */}
+                          <div className="px-4 py-3 text-gray-500 text-sm">No new notifications.</div>
+                        </div>
+                        <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-800">
+                          <Link
+                            to="/notifications-center"
+                            className="text-xs font-medium text-primary dark:text-accent hover:text-primary-dark dark:hover:text-accent-dark flex justify-center"
+                          >
+                            View all notifications
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                    <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-800">
-                      <Link
-                        to="/notifications-center"
-                        className="text-xs font-medium text-primary dark:text-accent hover:text-primary-dark dark:hover:text-accent-dark flex justify-center"
-                      >
-                        View all notifications
-                      </Link>
-                    </div>
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Profile dropdown (hover) */}
-            <div
-              className="relative"
-              ref={profileRef}
-              onMouseEnter={() => setIsProfileOpen(true)}
-              onMouseLeave={() => setIsProfileOpen(false)}
-            >
-              <button
-                className="flex items-center space-x-2 focus:outline-none"
-                tabIndex={0}
-                aria-haspopup="true"
-                aria-expanded={isProfileOpen}
-              >
-                <img
-                  className="h-8 w-8 rounded-full object-cover border-2 border-white shadow-sm"
-                  src={user.avatar}
-                  alt={user.name}
-                />
-                <div className="hidden md:block text-left">
-                  <div className="text-sm font-medium text-gray-700">{user.name}</div>
-                  <div className="text-xs text-gray-500">{user.role}</div>
-                </div>
-                <Icon name="ChevronDown" size={14} className="hidden md:block text-gray-400" />
-              </button>
-
-              {/* Profile dropdown menu */}
-              {isProfileOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-                  <div className="py-2">
-                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-                      <p className="text-sm text-gray-900 dark:text-gray-100">{user.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                {/* Profile dropdown (hover) */}
+                <div
+                  className="relative"
+                  ref={profileRef}
+                  onMouseEnter={() => setIsProfileOpen(true)}
+                  onMouseLeave={() => setIsProfileOpen(false)}
+                >
+                  <button
+                    className="flex items-center space-x-2 focus:outline-none"
+                    tabIndex={0}
+                    aria-haspopup="true"
+                    aria-expanded={isProfileOpen}
+                  >
+                    <img
+                      className="h-8 w-8 rounded-full object-cover border-2 border-white shadow-sm"
+                      src={user.avatar || 'https://i.pravatar.cc/150?img=11'}
+                      alt={user.name || user.email || 'User'}
+                    />
+                    <div className="hidden md:block text-left">
+                      <div className="text-sm font-medium text-gray-700">{user.name || user.email}</div>
+                      <div className="text-xs text-gray-500">{user.role}</div>
                     </div>
-
-                    <div className="py-1">
-                      {userMenuItems.map((item) => (
-                        <Link
-                          key={item.label}
-                          to={item.href}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        >
-                          <Icon name={item.icon} size={16} className="mr-3 text-gray-400 dark:text-gray-300" />
-                          {item.label}
-                        </Link>
-                      ))}
+                    <Icon name="ChevronDown" size={14} className="hidden md:block text-gray-400" />
+                  </button>
+                  {isProfileOpen && (
+                    <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                      <div className="py-2">
+                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                          <p className="text-sm text-gray-900 dark:text-gray-100">{user.name || user.email}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                        </div>
+                        <div className="py-1">
+                          {userMenuItems.map((item) => (
+                            <Link
+                              key={item.label}
+                              to={item.href}
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                              onClick={() => {
+                                if (item.label === 'Sign out') {
+                                  // Call signOut utility
+                                  import('../../utils/signOut').then(mod => mod.signOut());
+                                }
+                              }}
+                            >
+                              <Icon name={item.icon} size={16} className="mr-3 text-gray-400 dark:text-gray-300" />
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
 
             {/* Mobile menu button */}
             <div className="flex md:hidden">

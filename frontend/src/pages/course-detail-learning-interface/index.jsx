@@ -15,7 +15,16 @@ import AITranscriptPanel from './components/AITranscriptPanel';
 import InteractiveQuiz from './components/InteractiveQuiz';
 import AICareerCoachChat from './components/AICareerCoachChat';
 
+import { useNavigate } from 'react-router-dom';
+
 const CourseDetailLearningInterface = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (!isAuthenticated) {
+      navigate('/authentication-login-register');
+    }
+  }, [navigate]);
   const [activeTab, setActiveTab] = useState('overview');
   const [showTranscript, setShowTranscript] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);

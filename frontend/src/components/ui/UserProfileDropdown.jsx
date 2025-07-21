@@ -1,17 +1,57 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { signOut } from 'utils/signOut';
 import Icon from '../AppIcon';
 import Button from './Button';
 import { useRole } from './RoleBasedNavigation';
 
+
 const UserProfileDropdown = ({ className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [user] = useState({
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@email.com',
-    avatar: null,
-    role: 'Senior Developer'
-  });
-  
+  const [user, setUser] = useState(null);
+
+  // Always read user info from localStorage on mount and when dropdown opens
+  useEffect(() => {
+    const getUser = () => {
+      const token = localStorage.getItem('accessToken');
+      const userString = localStorage.getItem('user');
+      if (token && userString) {
+        try {
+          setUser(JSON.parse(userString));
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+    getUser();
+    // Listen for localStorage changes (logout in other tabs or signOut)
+    const handleStorage = (e) => {
+      if ((e.key === 'user' || e.key === 'accessToken') && !e.newValue) {
+        setUser(null);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // Also update user info when dropdown is opened
+  useEffect(() => {
+    if (isOpen) {
+      const token = localStorage.getItem('accessToken');
+      const userString = localStorage.getItem('user');
+      if (token && userString) {
+        try {
+          setUser(JSON.parse(userString));
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    }
+  }, [isOpen]);
+
   const { currentRole, availableRoles, switchRole } = useRole();
   const dropdownRef = useRef(null);
 
@@ -26,14 +66,26 @@ const UserProfileDropdown = ({ className = '' }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Listen for localStorage changes (logout in other tabs or signOut)
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if ((e.key === 'user' || e.key === 'accessToken') && !e.newValue) {
+        setUser(null);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const handleRoleSwitch = (newRole) => {
     switchRole(newRole);
     setIsOpen(false);
   };
 
   const handleLogout = () => {
-    console.log('Logging out...');
     setIsOpen(false);
+    setUser(null);
+    signOut();
   };
 
   const handleProfileEdit = () => {
@@ -64,6 +116,8 @@ const UserProfileDropdown = ({ className = '' }) => {
     return icons[role] || 'User';
   };
 
+  if (!user) return null;
+
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       {/* Profile Button */}
@@ -78,7 +132,7 @@ const UserProfileDropdown = ({ className = '' }) => {
             <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
           ) : (
             <span className="text-white text-sm font-medium">
-              {user.name.split(' ').map(n => n[0]).join('')}
+              {user.name ? user.name.split(' ').map(n => n[0]).join('') : '?'}
             </span>
           )}
         </div>

@@ -82,12 +82,20 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
   };
 
   const addSkill = () => {
-    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        skills: [...prev.skills, newSkill.trim()]
-      }));
-      setNewSkill('');
+    if (newSkill.trim()) {
+      // Check if skill already exists (handle both string and object formats)
+      const skillExists = formData.skills.some(skill => {
+        const skillName = typeof skill === 'object' ? (skill.name || skill.skill || skill) : skill;
+        return skillName === newSkill.trim();
+      });
+      
+      if (!skillExists) {
+        setFormData(prev => ({
+          ...prev,
+          skills: [...prev.skills, newSkill.trim()]
+        }));
+        setNewSkill('');
+      }
     }
   };
 
@@ -99,12 +107,20 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
   };
 
   const addCertification = () => {
-    if (newCertification.trim() && !formData.certifications.includes(newCertification.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        certifications: [...prev.certifications, newCertification.trim()]
-      }));
-      setNewCertification('');
+    if (newCertification.trim()) {
+      // Check if certification already exists (handle both string and object formats)
+      const certExists = formData.certifications.some(cert => {
+        const certName = typeof cert === 'object' ? (cert.name || cert.certification || cert) : cert;
+        return certName === newCertification.trim();
+      });
+      
+      if (!certExists) {
+        setFormData(prev => ({
+          ...prev,
+          certifications: [...prev.certifications, newCertification.trim()]
+        }));
+        setNewCertification('');
+      }
     }
   };
 
@@ -350,7 +366,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
                   key={index}
                   className="flex items-center space-x-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-body font-body-medium hover:bg-primary/20 spring-transition group"
                 >
-                  <span>{skill}</span>
+                  <span>{typeof skill === 'object' ? skill.name || skill.skill || skill : skill}</span>
                   <button
                     type="button"
                     onClick={() => removeSkill(skill)}
@@ -399,7 +415,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile }) => {
                   key={index}
                   className="flex items-center space-x-2 bg-accent/10 text-accent px-3 py-1.5 rounded-full text-sm font-body font-body-medium hover:bg-accent/20 spring-transition group"
                 >
-                  <span>{cert}</span>
+                  <span>{typeof cert === 'object' ? cert.name || cert.certification || cert : cert}</span>
                   <button
                     type="button"
                     onClick={() => removeCertification(cert)}

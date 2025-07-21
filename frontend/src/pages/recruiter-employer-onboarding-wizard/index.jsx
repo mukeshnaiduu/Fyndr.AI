@@ -10,6 +10,7 @@ import IntegrationsStep from './components/IntegrationsStep';
 import BillingStep from './components/BillingStep';
 import ReviewStep from './components/ReviewStep';
 import CompletionStep from './components/CompletionStep';
+import { apiRequest } from 'utils/api';
 
 const defaultFormData = {
   companyName: '',
@@ -70,13 +71,48 @@ const RecruiterEmployerOnboardingWizard = () => {
   const [formData, setFormData] = useState(defaultFormData);
   const [loading, setLoading] = useState(true);
 
-  // Validate loaded data
-  const validateFormData = (data) => {
-    // Basic validation: check for required keys
-    return typeof data === 'object' && data !== null && 'companyName' in data && 'teamMembers' in data;
-  };
-
+  // Check if onboarding is already complete at the start
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      // Fetch user profile to check onboarding status from Supabase database
+      fetch('/api/auth/profile/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Unauthorized');
+          return res.json();
+        })
+        .then(profileData => {
+          // Check if onboarding exists in database and is complete
+          if (profileData.onboarding_complete && profileData.onboarding &&
+            (profileData.role === 'recruiter' || profileData.role === 'employer')) {
+            // Clear any local onboarding data since it's complete in database
+            localStorage.removeItem('recruiter-onboarding-data');
+            localStorage.setItem('recruiterOnboardingComplete', 'true');
+            // Redirect to recruiter dashboard
+            navigate('/recruiter-dashboard-pipeline-management');
+            return;
+          }
+          // Continue with normal onboarding flow
+          initializeOnboarding();
+        })
+        .catch(err => {
+          console.error('Error checking onboarding status:', err);
+          // If there's an error checking backend, proceed with local flow
+          initializeOnboarding();
+        });
+    } else {
+      // No token, redirect to login
+      navigate('/authentication-login-register');
+    }
+  }, [navigate]);
+
+  const initializeOnboarding = () => {
     // Restore from localStorage
     const savedData = localStorage.getItem('recruiter-onboarding-data');
     if (savedData) {
@@ -92,7 +128,13 @@ const RecruiterEmployerOnboardingWizard = () => {
       }
     }
     setLoading(false);
-  }, []);
+  };
+
+  // Validate loaded data
+  const validateFormData = (data) => {
+    // Basic validation: check for required keys
+    return typeof data === 'object' && data !== null && 'companyName' in data && 'teamMembers' in data;
+  };
 
   useEffect(() => {
     if (!loading) {
@@ -120,9 +162,87 @@ const RecruiterEmployerOnboardingWizard = () => {
     setCurrentStep(stepIndex + 1);
   };
 
-  const handleComplete = () => {
-    setIsCompleted(true);
-    localStorage.removeItem('recruiter-onboarding-data');
+  const handleComplete = async () => {
+    try {
+      // Save onboarding data to backend API - convert to snake_case for Django
+      const token = localStorage.getItem('accessToken');
+      const payload = {
+        company_name: formData.companyName || '',
+        industry: formData.industry || '',
+        company_size: formData.companySize || '',
+        website: formData.website || '',
+        description: formData.description || '',
+        logo: formData.logo || '',
+        headquarters: formData.headquarters || '',
+        founded_year: formData.foundedYear || '',
+        team_members: formData.teamMembers || [],
+        invite_emails: formData.inviteEmails || [],
+        default_role: formData.defaultRole || '',
+        allow_invites: formData.allowInvites || false,
+        require_approval: formData.requireApproval || true,
+        activity_notifications: formData.activityNotifications || true,
+        dei_commitment: formData.deiCommitment || '',
+        diversity_goals: formData.diversityGoals || [],
+        inclusion_policies: formData.inclusionPolicies || [],
+        compliance_requirements: formData.complianceRequirements || [],
+        reporting_frequency: formData.reportingFrequency || '',
+        diversity_metrics: formData.diversityMetrics || false,
+        anonymous_data: formData.anonymousData || false,
+        bias_alerts: formData.biasAlerts || false,
+        selected_integrations: formData.selectedIntegrations || [],
+        hris_system: formData.hrisSystem || '',
+        ats_system: formData.atsSystem || '',
+        selected_plan: formData.selectedPlan || '',
+        billing_cycle: formData.billingCycle || '',
+        payment_method: formData.paymentMethod || '',
+        billing_address: formData.billingAddress || {},
+        agree_to_terms: formData.agreeToTerms || false,
+        marketing_emails: formData.marketingEmails || false,
+        sla_acknowledged: formData.slaAcknowledged || false,
+        final_confirmation: formData.finalConfirmation || false,
+      };
+
+      await apiRequest('/auth/recruiter-onboarding/', 'POST', payload, token);
+
+      // Fetch updated profile and update localStorage
+      const profileRes = await fetch('/api/auth/profile/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        // Merge profile data with onboarding data for complete user info
+        const mergedProfile = {
+          ...profileData,
+          ...(profileData.onboarding || {}),
+          id: profileData.id,
+          username: profileData.username,
+          email: profileData.email,
+          first_name: profileData.first_name,
+          last_name: profileData.last_name,
+          role: profileData.role,
+          onboarding_complete: profileData.onboarding_complete
+        };
+        localStorage.setItem('user', JSON.stringify(mergedProfile));
+        // Force Navbar to update by dispatching a storage event
+        window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
+      }
+
+      setIsCompleted(true);
+      localStorage.removeItem('recruiter-onboarding-data');
+      // Set onboarding complete flag and redirect to recruiter dashboard
+      localStorage.setItem('recruiterOnboardingComplete', 'true');
+
+      setTimeout(() => {
+        navigate('/recruiter-dashboard-pipeline-management');
+      }, 1000);
+    } catch (err) {
+      alert('Failed to save onboarding data. Please try again.');
+      console.error('Onboarding save error:', err);
+    }
   };
 
   // Ensure all required fields are present for each step
@@ -209,50 +329,50 @@ const RecruiterEmployerOnboardingWizard = () => {
           <main className="w-full max-w-3xl px-4 py-10">
             <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-cyan-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 rounded-xl">
               {/* Progress Indicator */}
-            {/* Main Content */}
-            <ErrorBoundary>
-              <div className="p-8 rounded-xl shadow-xl w-full bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
-                {!isCompleted && (
-                  <div className="mb-8 w-full">
-                    <ProgressIndicator
-                      currentStep={currentStep}
-                      totalSteps={steps.length}
-                      steps={steps}
-                      showLabels={true}
-                      showPercentage={true}
-                    />
-                  </div>
-                )}
-                {loading ? (
-                  <div className="text-center py-8">Loading...</div>
-                ) : (
-                  <>
-                    {renderCurrentStep()}
-                    {/* Help Section - now inside card */}
-                    {!isCompleted && (
-                      <div className="mt-8 text-center w-full">
-                        <p className="text-sm text-muted-foreground mb-2 dark:text-gray-400">
-                          Need help? Our support team is available 24/7
-                        </p>
-                        <div className="flex justify-center space-x-4">
-                          <button className="text-sm text-primary hover:text-primary/80 transition-colors dark:text-blue-400 dark:hover:text-blue-300">
-                            Live Chat
-                          </button>
-                          <span className="text-muted-foreground dark:text-gray-500">•</span>
-                          <button className="text-sm text-primary hover:text-primary/80 transition-colors dark:text-blue-400 dark:hover:text-blue-300">
-                            Email Support
-                          </button>
-                          <span className="text-muted-foreground dark:text-gray-500">•</span>
-                          <button className="text-sm text-primary hover:text-primary/80 transition-colors dark:text-blue-400 dark:hover:text-blue-300">
-                            Documentation
-                          </button>
+              {/* Main Content */}
+              <ErrorBoundary>
+                <div className="p-8 rounded-xl shadow-xl w-full bg-white dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-800">
+                  {!isCompleted && (
+                    <div className="mb-8 w-full">
+                      <ProgressIndicator
+                        currentStep={currentStep}
+                        totalSteps={steps.length}
+                        steps={steps}
+                        showLabels={true}
+                        showPercentage={true}
+                      />
+                    </div>
+                  )}
+                  {loading ? (
+                    <div className="text-center py-8">Loading...</div>
+                  ) : (
+                    <>
+                      {renderCurrentStep()}
+                      {/* Help Section - now inside card */}
+                      {!isCompleted && (
+                        <div className="mt-8 text-center w-full">
+                          <p className="text-sm text-muted-foreground mb-2 dark:text-gray-400">
+                            Need help? Our support team is available 24/7
+                          </p>
+                          <div className="flex justify-center space-x-4">
+                            <button className="text-sm text-primary hover:text-primary/80 transition-colors dark:text-blue-400 dark:hover:text-blue-300">
+                              Live Chat
+                            </button>
+                            <span className="text-muted-foreground dark:text-gray-500">•</span>
+                            <button className="text-sm text-primary hover:text-primary/80 transition-colors dark:text-blue-400 dark:hover:text-blue-300">
+                              Email Support
+                            </button>
+                            <span className="text-muted-foreground dark:text-gray-500">•</span>
+                            <button className="text-sm text-primary hover:text-primary/80 transition-colors dark:text-blue-400 dark:hover:text-blue-300">
+                              Documentation
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </ErrorBoundary>
+                      )}
+                    </>
+                  )}
+                </div>
+              </ErrorBoundary>
             </div>
           </main>
         </div>

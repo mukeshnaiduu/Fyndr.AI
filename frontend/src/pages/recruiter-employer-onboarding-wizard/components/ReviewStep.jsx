@@ -25,16 +25,83 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
     if (!formData.slaAcknowledged || !formData.finalConfirmation) {
       return;
     }
-
     setIsSubmitting(true);
-    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      const token = localStorage.getItem('accessToken');
+      // Convert frontend camelCase to backend snake_case
+      const payload = {
+        company_name: formData.companyName || '',
+        industry: formData.industry || '',
+        company_size: formData.companySize || '',
+        website: formData.website || '',
+        description: formData.description || '',
+        logo: formData.logo || '',
+        headquarters: formData.headquarters || '',
+        founded_year: formData.foundedYear || '',
+        team_members: formData.teamMembers || [],
+        invite_emails: formData.inviteEmails || [],
+        default_role: formData.defaultRole || '',
+        allow_invites: formData.allowInvites || false,
+        require_approval: formData.requireApproval || true,
+        activity_notifications: formData.activityNotifications || true,
+        dei_commitment: formData.deiCommitment || '',
+        diversity_goals: formData.diversityGoals || [],
+        inclusion_policies: formData.inclusionPolicies || [],
+        compliance_requirements: formData.complianceRequirements || [],
+        reporting_frequency: formData.reportingFrequency || '',
+        diversity_metrics: formData.diversityMetrics || false,
+        anonymous_data: formData.anonymousData || false,
+        bias_alerts: formData.biasAlerts || false,
+        selected_integrations: formData.selectedIntegrations || [],
+        hris_system: formData.hrisSystem || '',
+        ats_system: formData.atsSystem || '',
+        selected_plan: formData.selectedPlan || '',
+        billing_cycle: formData.billingCycle || '',
+        payment_method: formData.paymentMethod || '',
+        billing_address: formData.billingAddress || {},
+        agree_to_terms: formData.agreeToTerms || false,
+        marketing_emails: formData.marketingEmails || false,
+        sla_acknowledged: formData.slaAcknowledged || false,
+        final_confirmation: formData.finalConfirmation || false,
+      };
       
+      // Use apiRequest utility for consistency
+      await import('utils/api').then(({ apiRequest }) =>
+        apiRequest('/auth/recruiter-onboarding/', 'POST', payload, token)
+      );
+      
+      // Fetch updated profile and update localStorage
+      const profileRes = await fetch('/api/auth/profile/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        // Merge profile data with onboarding data for complete user info
+        const mergedProfile = {
+          ...profileData,
+          ...(profileData.onboarding || {}),
+          id: profileData.id,
+          username: profileData.username,
+          email: profileData.email,
+          first_name: profileData.first_name,
+          last_name: profileData.last_name,
+          role: profileData.role,
+          onboarding_complete: profileData.onboarding_complete
+        };
+        localStorage.setItem('user', JSON.stringify(mergedProfile));
+        // Force Navbar to update by dispatching a storage event
+        window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
+      }
+      
+      localStorage.setItem('recruiterOnboardingComplete', 'true');
       onUpdate(formData);
       onComplete();
     } catch (error) {
+      alert('Failed to save onboarding. Please try again.');
       console.error('Error completing onboarding:', error);
     } finally {
       setIsSubmitting(false);

@@ -93,21 +93,6 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
 
     if (!validateForm()) return;
 
-    // Check mock credentials for login
-    if (mode === 'login') {
-      const isValidCredentials = Object.values(mockCredentials).some(
-        cred => cred.email === formData.email && cred.password === formData.password
-      );
-
-      if (!isValidCredentials) {
-        setErrors({
-          email: 'Invalid credentials. Try: jobseeker@fyndrai.com / JobSeeker123!',
-          password: 'Invalid credentials. Try: jobseeker@fyndrai.com / JobSeeker123!'
-        });
-        return;
-      }
-    }
-
     onSubmit(formData);
   };
 
@@ -147,7 +132,7 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
         error={errors.email}
         required
         disabled={isLoading}
-        inputClassName="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300"
+        className="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300"
       />
       {errors.email && (
         <p className="text-xs text-error mt-1">{errors.email}</p>
@@ -159,7 +144,7 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
         placeholder="Enter your password"
         value={formData.password}
         onChange={(e) => handleInputChange('password', e.target.value)}
-        inputClassName="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300"
+        className="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300"
         error={errors.password}
         required
         disabled={isLoading}
@@ -254,14 +239,8 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
       {/* Mock Credentials Helper */}
       <div className="glassmorphic p-4 rounded-squircle border border-accent/20">
         <h4 className="text-sm font-body font-body-semibold text-foreground mb-2">
-          Demo Credentials:
+
         </h4>
-        <div className="space-y-1 text-xs font-data">
-          <div className="text-muted-foreground">Job Seeker: jobseeker@fyndrai.com / JobSeeker123!</div>
-          <div className="text-muted-foreground">Recruiter: recruiter@fyndrai.com / Recruiter123!</div>
-          <div className="text-muted-foreground">Employer: employer@fyndrai.com / Employer123!</div>
-          <div className="text-muted-foreground">Admin: admin@fyndrai.com / Admin123!</div>
-        </div>
       </div>
     </form>
   );

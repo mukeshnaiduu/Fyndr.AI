@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Routes from "./Routes";
-import Navbar from "components/ui/Navbar";
+import RoleBasedNavbar from "components/ui/RoleBasedNavbar";
 import { ThemeProvider } from "components/ThemeProvider";
 import { BrowserRouter } from "react-router-dom";
 import Icon from "components/AppIcon";
@@ -25,8 +25,8 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <div className="min-h-screen bg-background">
-          {/* Global Navbar - the only navbar in the app */}
-          {isNavbarVisible && <Navbar toggleNavbar={toggleNavbar} />}
+          {/* Global Role-Based Navbar - the only navbar in the app */}
+          {isNavbarVisible && <RoleBasedNavbar toggleNavbar={toggleNavbar} />}
           
           <div className={`${isNavbarVisible ? 'pt-16' : 'pt-0'} transition-all duration-300`}>
             {/* Show navbar button - only visible when navbar is hidden */}

@@ -13,7 +13,16 @@ import LivePreview from './components/LivePreview';
 import AISuggestionPanel from './components/AISuggestionPanel';
 import ExportModal from './components/ExportModal';
 
+import { useNavigate } from 'react-router-dom';
+
 const AIResumeBuilder = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (!isAuthenticated) {
+      navigate('/authentication-login-register');
+    }
+  }, [navigate]);
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);

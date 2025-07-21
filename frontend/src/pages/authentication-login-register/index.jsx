@@ -7,12 +7,14 @@ import AuthToggle from './components/AuthToggle';
 import AuthForm from './components/AuthForm';
 import SocialAuthButtons from './components/SocialAuthButtons';
 import LoadingOverlay from './components/LoadingOverlay';
+import { apiRequest } from 'utils/api';
 
 const AuthenticationPage = () => {
   const [authMode, setAuthMode] = useState('login');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [typingText, setTypingText] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
   const welcomeTexts = {
@@ -50,23 +52,113 @@ const AuthenticationPage = () => {
   const handleFormSubmit = async (formData) => {
     setIsLoading(true);
     setLoadingMessage(authMode === 'login' ? 'Signing you in...' : 'Creating your account...');
-
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Set authentication status
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userRole', formData.role || 'job_seeker');
-      localStorage.setItem('userEmail', formData.email);
-
-      // Navigate to homepage/dashboard
-      navigate('/homepage');
+      let endpoint = authMode === 'login' ? '/auth/login/' : '/auth/register/';
+      let payload = { ...formData };
+      if (authMode === 'register') {
+        payload.username = formData.email; // Django requires username
+        payload.confirm_password = formData.confirmPassword;
+        payload.first_name = formData.firstName;
+        payload.last_name = formData.lastName;
+        payload.role = formData.role;
+        const regResult = await apiRequest(endpoint, 'POST', payload);
+        if (regResult && regResult.id) {
+          setShowSuccess(true);
+          setLoadingMessage('');
+          setTimeout(() => {
+            setShowSuccess(false);
+            setAuthMode('login');
+          }, 2000);
+        } else {
+          setLoadingMessage('Registration failed! User not stored in database.');
+        }
+        return;
+      }
+      // LOGIN FLOW
+      const result = await apiRequest(endpoint, 'POST', payload);
+      if (result && result.access) {
+        // Store only JWT tokens in localStorage
+        localStorage.setItem('accessToken', result.access || '');
+        localStorage.setItem('refreshToken', result.refresh || '');
+        localStorage.setItem('isAuthenticated', 'true');
+        setLoadingMessage('Successfully authenticated! Checking onboarding status...');
+        // Fetch onboarding status from backend
+        const token = result.access;
+        const profileRes = await fetch('/api/auth/profile/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          // Merge profile data with onboarding data for complete user info
+          const mergedProfile = {
+            ...profileData,
+            ...(profileData.onboarding || {}),
+            id: profileData.id,
+            username: profileData.username,
+            email: profileData.email,
+            first_name: profileData.first_name,
+            last_name: profileData.last_name,
+            role: profileData.role,
+            onboarding_complete: profileData.onboarding_complete
+          };
+          localStorage.setItem('user', JSON.stringify(mergedProfile));
+          localStorage.setItem('userRole', profileData.role); // Set userRole for ProtectedRoute
+          
+          // Force Navbar to update by dispatching a storage event
+          window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
+          window.dispatchEvent(new StorageEvent('storage', { key: 'isAuthenticated', newValue: 'true' }));
+          
+          // Check onboarding completion based on backend response
+          const isOnboardingComplete = profileData.onboarding_complete || false;
+          
+          // Set onboarding complete flags based on role and backend data
+          if (profileData.role === 'job_seeker') {
+            localStorage.setItem('jobSeekerOnboardingComplete', isOnboardingComplete ? 'true' : 'false');
+          }
+          if (profileData.role === 'recruiter' || profileData.role === 'employer') {
+            localStorage.setItem('recruiterOnboardingComplete', isOnboardingComplete ? 'true' : 'false');
+          }
+          if (profileData.role === 'administrator') {
+            localStorage.setItem('adminOnboardingComplete', 'true');
+          }
+          
+          setTimeout(() => {
+            if (profileData.role === 'administrator') {
+              navigate('/admin-dashboard-system-management');
+            } else if ((profileData.role === 'recruiter' || profileData.role === 'employer')) {
+              if (isOnboardingComplete) {
+                navigate('/recruiter-dashboard-pipeline-management');
+              } else {
+                navigate('/recruiter-employer-onboarding-wizard');
+              }
+            } else if (profileData.role === 'job_seeker') {
+              if (isOnboardingComplete) {
+                navigate('/job-search-application-hub');
+              } else {
+                navigate('/job-seeker-onboarding-wizard');
+              }
+            } else {
+              navigate('/homepage');
+            }
+          }, 1500);
+        } else {
+          setLoadingMessage('Login failed! Could not fetch user profile.');
+        }
+      } else {
+        setLoadingMessage('Login failed! User not found in database.');
+      }
     } catch (error) {
+      setLoadingMessage('Authentication failed. User not stored or found in database.');
+      // Optionally show error to user
       console.error('Authentication error:', error);
     } finally {
       setIsLoading(false);
-      setLoadingMessage('');
+      // Don't clear loadingMessage immediately if registration was successful
+      if (authMode === 'login') setLoadingMessage('');
     }
   };
 
@@ -80,6 +172,9 @@ const AuthenticationPage = () => {
 
       // Set authentication status
       localStorage.setItem('isAuthenticated', 'true');
+      // Note: Social auth currently defaults to job_seeker role
+      // In a real implementation, this should be determined by the OAuth response
+      // or prompt the user to select their role after social login
       localStorage.setItem('userRole', 'job_seeker');
       localStorage.setItem('userEmail', `user@${provider}.com`);
 
@@ -217,20 +312,17 @@ const AuthenticationPage = () => {
             </div>
           </div>
         </main>
-
         {/* Loading Overlay */}
-        <LoadingOverlay
-          isVisible={isLoading}
-          message={loadingMessage}
-        />
-
-        {/* Floating Particles */}
-        <div className="hidden md:block fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/20 rounded-full particle-float"></div>
-          <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-accent/30 rounded-full particle-float" style={{ animationDelay: '3s' }}></div>
-          <div className="absolute bottom-1/4 left-1/2 w-1.5 h-1.5 bg-secondary/25 rounded-full particle-float" style={{ animationDelay: '5s' }}></div>
-          <div className="absolute top-1/2 right-1/3 w-1 h-1 bg-primary/15 rounded-full particle-float" style={{ animationDelay: '7s' }}></div>
-        </div>
+        {isLoading && <LoadingOverlay message={loadingMessage} />}
+        {showSuccess && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center border border-success">
+              <Icon name="CheckCircle" size={48} className="text-success mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2 text-success">Registered successfully!</h3>
+              <p className="text-sm text-muted-foreground mb-4">You have been registered. Redirecting to sign in...</p>
+            </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
