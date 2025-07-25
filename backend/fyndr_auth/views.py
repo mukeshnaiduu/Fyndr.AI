@@ -1,6 +1,8 @@
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
 # Profile view for authenticated user
 class ProfileView(APIView):
@@ -73,7 +75,6 @@ class ProfileView(APIView):
         user_data['onboarding_complete'] = onboarding_complete
         return Response(user_data)
 from rest_framework import generics, status
-from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .models import User, JobSeekerOnboarding, RecruiterEmployerOnboarding
@@ -88,7 +89,16 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        return Response({'detail': 'Registration successful! Please sign in.'}, status=status.HTTP_201_CREATED)
+        # Issue JWT tokens upon successful registration
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'role': user.role,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        }, status=status.HTTP_201_CREATED)
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -101,7 +111,8 @@ class LoginView(generics.GenericAPIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            # Email not registered
+            raise ValidationError({'email': ['No account found with this email.']})
         user = authenticate(username=user.username, password=password)
         if user is not None:
             refresh = RefreshToken.for_user(user)
@@ -113,7 +124,8 @@ class LoginView(generics.GenericAPIView):
                 'first_name': user.first_name,
                 'last_name': user.last_name,
             })
-        return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Incorrect password
+        raise ValidationError({'password': ['Incorrect password.']})
 
 class JobSeekerOnboardingView(generics.CreateAPIView):
     serializer_class = JobSeekerOnboardingSerializer

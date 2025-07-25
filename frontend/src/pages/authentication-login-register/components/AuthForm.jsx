@@ -5,7 +5,7 @@ import { Checkbox } from 'components/ui/Checkbox';
 import RoleSelector from './RoleSelector';
 import PasswordStrengthIndicator from './PasswordStrengthIndicator';
 
-const AuthForm = ({ mode, onSubmit, isLoading }) => {
+const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,7 +17,6 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
     rememberMe: false
   });
 
-  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -29,70 +28,12 @@ const AuthForm = ({ mode, onSubmit, isLoading }) => {
     administrator: { email: 'admin@fyndrai.com', password: 'Admin123!' }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    if (mode === 'register') {
-      // First name validation
-      if (!formData.firstName.trim()) {
-        newErrors.firstName = 'First name is required';
-      }
-
-      // Last name validation
-      if (!formData.lastName.trim()) {
-        newErrors.lastName = 'Last name is required';
-      }
-
-      // Confirm password validation
-      if (!formData.confirmPassword) {
-        newErrors.confirmPassword = 'Please confirm your password';
-      } else if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match';
-      }
-
-      // Role validation
-      if (!formData.role) {
-        newErrors.role = 'Please select your role';
-      }
-
-      // Terms validation
-      if (!formData.agreeToTerms) {
-        newErrors.agreeToTerms = 'You must agree to the terms and conditions';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (!validateForm()) return;
-
     onSubmit(formData);
   };
 

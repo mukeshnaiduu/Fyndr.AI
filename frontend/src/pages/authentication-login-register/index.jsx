@@ -15,6 +15,7 @@ const AuthenticationPage = () => {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [typingText, setTypingText] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const navigate = useNavigate();
 
   const welcomeTexts = {
@@ -47,31 +48,32 @@ const AuthenticationPage = () => {
 
   const handleModeChange = (mode) => {
     setAuthMode(mode);
+    setFormErrors({});
   };
 
   const handleFormSubmit = async (formData) => {
+    setFormErrors({});
     setIsLoading(true);
     setLoadingMessage(authMode === 'login' ? 'Signing you in...' : 'Creating your account...');
     try {
       let endpoint = authMode === 'login' ? '/auth/login/' : '/auth/register/';
       let payload = { ...formData };
       if (authMode === 'register') {
+        // Prepare registration payload
         payload.username = formData.email; // Django requires username
         payload.confirm_password = formData.confirmPassword;
         payload.first_name = formData.firstName;
         payload.last_name = formData.lastName;
         payload.role = formData.role;
-        const regResult = await apiRequest(endpoint, 'POST', payload);
-        if (regResult && regResult.id) {
-          setShowSuccess(true);
-          setLoadingMessage('');
-          setTimeout(() => {
-            setShowSuccess(false);
-            setAuthMode('login');
-          }, 2000);
-        } else {
-          setLoadingMessage('Registration failed! User not stored in database.');
-        }
+        // Attempt registration; apiRequest will throw on validation errors
+        await apiRequest(endpoint, 'POST', payload);
+        // On success, show confirmation and switch to login
+        setShowSuccess(true);
+        setLoadingMessage('');
+        setTimeout(() => {
+          setShowSuccess(false);
+          setAuthMode('login');
+        }, 2000);
         return;
       }
       // LOGIN FLOW
@@ -146,15 +148,32 @@ const AuthenticationPage = () => {
             }
           }, 1500);
         } else {
-          setLoadingMessage('Login failed! Could not fetch user profile.');
+          // Profile fetch failed
+          throw { detail: 'Could not fetch user profile.' };
         }
       } else {
-        setLoadingMessage('Login failed! User not found in database.');
+        // Treat missing tokens as invalid credentials
+        throw { detail: 'Invalid credentials' };
       }
     } catch (error) {
-      setLoadingMessage('Authentication failed. User not stored or found in database.');
-      // Optionally show error to user
-      console.error('Authentication error:', error);
+      // Map backend validation errors to form field keys
+      const mappedErrors = {};
+      if (error && typeof error === 'object') {
+        Object.entries(error).forEach(([key, value]) => {
+          const messages = Array.isArray(value) ? value : [value];
+          if (key === 'detail' || key === 'non_field_errors') {
+            mappedErrors.non_field_errors = messages;
+          } else {
+            // Convert snake_case to camelCase for form fields
+            const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+            mappedErrors[camelKey] = messages;
+          }
+        });
+      } else {
+        mappedErrors.non_field_errors = ['Authentication failed.'];
+      }
+      setFormErrors(mappedErrors);
+      setLoadingMessage('');
     } finally {
       setIsLoading(false);
       // Don't clear loadingMessage immediately if registration was successful
@@ -246,10 +265,15 @@ const AuthenticationPage = () => {
               />
 
               {/* Auth Form */}
+              {/* Show non-field error messages from backend */}
+              {formErrors.non_field_errors && formErrors.non_field_errors.map((err, i) => (
+                <p key={i} className="text-xs text-error mb-2">{err}</p>
+              ))}
               <AuthForm
                 mode={authMode}
                 onSubmit={handleFormSubmit}
                 isLoading={isLoading}
+                errors={formErrors}
               />
 
               {/* Social Auth */}
