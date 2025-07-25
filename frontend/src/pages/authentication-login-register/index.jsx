@@ -156,22 +156,46 @@ const AuthenticationPage = () => {
         throw { detail: 'Invalid credentials' };
       }
     } catch (error) {
+      // Log the error for debugging
+      console.error('Authentication error:', error);
+
       // Map backend validation errors to form field keys
       const mappedErrors = {};
       if (error && typeof error === 'object') {
         Object.entries(error).forEach(([key, value]) => {
           const messages = Array.isArray(value) ? value : [value];
           if (key === 'detail' || key === 'non_field_errors') {
+            // Keep non-field errors as array for banner display
             mappedErrors.non_field_errors = messages;
           } else {
-            // Convert snake_case to camelCase for form fields
+            // Convert snake_case to camelCase for field errors
             const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-            mappedErrors[camelKey] = messages;
+            // Join multiple messages into one string for inline display
+            mappedErrors[camelKey] = messages.join(' ');
           }
         });
       } else {
         mappedErrors.non_field_errors = ['Authentication failed.'];
       }
+
+      // Special handling for email uniqueness errors
+      if (mappedErrors.email) {
+        const emailError = mappedErrors.email.toLowerCase();
+        if (emailError.includes('exists') || emailError.includes('already') || emailError.includes('unique')) {
+          mappedErrors.non_field_errors = ['User with this email already exists. Please sign in instead.'];
+          delete mappedErrors.email;
+        }
+      }
+
+      // Special handling for username uniqueness errors (since we use email as username)
+      if (mappedErrors.username) {
+        const usernameError = mappedErrors.username.toLowerCase();
+        if (usernameError.includes('exists') || usernameError.includes('already') || usernameError.includes('unique')) {
+          mappedErrors.non_field_errors = ['User with this email already exists. Please sign in instead.'];
+          delete mappedErrors.username;
+        }
+      }
+
       setFormErrors(mappedErrors);
       setLoadingMessage('');
     } finally {
@@ -265,10 +289,54 @@ const AuthenticationPage = () => {
               />
 
               {/* Auth Form */}
-              {/* Show non-field error messages from backend */}
-              {formErrors.non_field_errors && formErrors.non_field_errors.map((err, i) => (
-                <p key={i} className="text-xs text-error mb-2">{err}</p>
-              ))}
+              {/* Show error messages from backend */}
+              {formErrors.non_field_errors && formErrors.non_field_errors.length > 0 && (
+                <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-400 rounded-md">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <Icon name="AlertCircle" size={20} className="text-red-400" />
+                    </div>
+                    <div className="ml-3">
+                      {formErrors.non_field_errors.map((err, i) => (
+                        <p key={i} className="text-sm text-red-700 font-medium">{err}</p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Show general error messages in a clean format */}
+              {Object.entries(formErrors)
+                .filter(([key, value]) => key !== 'non_field_errors' && value && String(value).trim() !== '')
+                .length > 0 && (
+                  <div className="mb-4 p-4 bg-orange-50 border-l-4 border-orange-400 rounded-md">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <Icon name="AlertTriangle" size={20} className="text-orange-400" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-orange-700 font-medium">Please check the following:</p>
+                        <ul className="mt-2 text-sm text-orange-600 list-disc list-inside">
+                          {Object.entries(formErrors)
+                            .filter(([key, value]) => key !== 'non_field_errors' && value && String(value).trim() !== '')
+                            .map(([key, value], i) => (
+                              <li key={i}>
+                                {key === 'email' && 'Email address issue'}
+                                {key === 'username' && 'This email is already registered'}
+                                {key === 'password' && 'Password requirements not met'}
+                                {key === 'confirmPassword' && 'Password confirmation issue'}
+                                {key === 'firstName' && 'First name is required'}
+                                {key === 'lastName' && 'Last name is required'}
+                                {key === 'role' && 'Please select your role'}
+                                {!['email', 'username', 'password', 'confirmPassword', 'firstName', 'lastName', 'role'].includes(key) && `${key} issue`}
+                              </li>
+                            ))
+                          }
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
               <AuthForm
                 mode={authMode}
                 onSubmit={handleFormSubmit}
@@ -342,8 +410,8 @@ const AuthenticationPage = () => {
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
             <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full text-center border border-success">
               <Icon name="CheckCircle" size={48} className="text-success mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2 text-success">Registered successfully!</h3>
-              <p className="text-sm text-muted-foreground mb-4">You have been registered. Redirecting to sign in...</p>
+              <h3 className="text-lg font-semibold mb-2 text-success">User created successfully!</h3>
+              <p className="text-sm text-muted-foreground mb-4">Your account has been created. Redirecting to sign in...</p>
             </div>
           </div>
         )}

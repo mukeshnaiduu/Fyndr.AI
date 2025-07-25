@@ -176,13 +176,6 @@ const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
       >
         {mode === 'login' ? 'Sign In' : 'Create Account'}
       </Button>
-
-      {/* Mock Credentials Helper */}
-      <div className="glassmorphic p-4 rounded-squircle border border-accent/20">
-        <h4 className="text-sm font-body font-body-semibold text-foreground mb-2">
-
-        </h4>
-      </div>
     </form>
   );
 };
