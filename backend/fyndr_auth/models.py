@@ -5,7 +5,7 @@ class User(AbstractUser):
     ROLE_CHOICES = [
         ('job_seeker', 'Job Seeker'),
         ('recruiter', 'Recruiter'),
-        ('employer', 'Employer'),
+        ('company', 'Company'),
         ('administrator', 'Administrator'),
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
@@ -112,6 +112,7 @@ class RecruiterProfile(BaseProfile):
     last_name = models.CharField(max_length=100, blank=True)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=30, blank=True)
+    location = models.CharField(max_length=100, blank=True)
     
     # Profile Image stored in database as binary data
     profile_image_data = models.BinaryField(blank=True, null=True)
@@ -120,22 +121,35 @@ class RecruiterProfile(BaseProfile):
     profile_image_size = models.IntegerField(null=True, blank=True)
     profile_image_url = models.URLField(blank=True)
     
+    # Professional Links
+    linkedin_url = models.URLField(blank=True)
+    website_url = models.URLField(blank=True)
+    
     # Professional Information
     job_title = models.CharField(max_length=100, blank=True)
     years_of_experience = models.IntegerField(null=True, blank=True)
     specializations = models.JSONField(default=list, blank=True)
-    linkedin_url = models.URLField(blank=True)
+    industries = models.JSONField(default=list, blank=True)
     
-    # Company Association (if not using separate company model)
-    company_name = models.CharField(max_length=255, blank=True)
-    company_website = models.URLField(blank=True)
+    # Resume and Documents (stored as binary data in database)
+    resume_data = models.BinaryField(blank=True, null=True)
+    resume_filename = models.CharField(max_length=255, blank=True)
+    resume_content_type = models.CharField(max_length=100, blank=True)
+    resume_size = models.IntegerField(null=True, blank=True)
+    resume_url = models.URLField(blank=True)  # For external URLs
+    
+    # Company Associations (can be associated with multiple companies)
+    company_associations = models.JSONField(default=list, blank=True)  # List of company IDs and roles
+    current_company_id = models.IntegerField(null=True, blank=True)  # Currently active company
     
     # Bio and Additional Info
     bio = models.TextField(blank=True)
     timezone = models.CharField(max_length=50, blank=True)
+    skills = models.JSONField(default=list, blank=True)
+    certifications = models.JSONField(default=list, blank=True)
     
     def __str__(self):
-        return f"RecruiterProfile({self.first_name} {self.last_name} - {self.company_name})"
+        return f"RecruiterProfile({self.first_name} {self.last_name})"
 
     @property
     def full_name(self):
@@ -196,3 +210,38 @@ class CompanyProfile(BaseProfile):
     
     def __str__(self):
         return f"CompanyProfile({self.company_name})"
+
+
+# Company-Recruiter Relationship Model
+class CompanyRecruiterRelationship(models.Model):
+    """Model for managing relationships between companies and recruiters"""
+    company = models.ForeignKey(CompanyProfile, on_delete=models.CASCADE, related_name='recruiter_relationships')
+    recruiter = models.ForeignKey(RecruiterProfile, on_delete=models.CASCADE, related_name='company_relationships')
+    
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('recruiter', 'Recruiter'),
+        ('hiring_manager', 'Hiring Manager'),
+        ('viewer', 'Viewer'),
+    ]
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='recruiter')
+    
+    # Invitation and Status
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('declined', 'Declined'),
+        ('revoked', 'Revoked'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    invited_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+    
+    # Access Control
+    permissions = models.JSONField(default=dict, blank=True)  # JSON field for custom permissions
+    
+    class Meta:
+        unique_together = ('company', 'recruiter')
+        
+    def __str__(self):
+        return f"Company: {self.company.company_name} - Recruiter: {self.recruiter.full_name} ({self.role})"

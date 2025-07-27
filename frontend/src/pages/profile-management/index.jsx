@@ -27,10 +27,7 @@ const ProfileManagement = () => {
     }
 
     // Redirect to role-specific profile pages
-    if (user.role === 'recruiter') {
-      navigate('/recruiter-profile-management');
-      return;
-    }
+    // We'll keep recruiters on the main profile page instead of redirecting to avoid circular redirects
     if (user.role === 'employer') {
       navigate('/employer-profile-management');
       return;
@@ -39,7 +36,7 @@ const ProfileManagement = () => {
       navigate('/admin-profile-management');
       return;
     }
-    // Job seekers stay on this page
+    // Job seekers and recruiters stay on this page
   }, [navigate]);
 
   const [activeTab, setActiveTab] = useState('personal');

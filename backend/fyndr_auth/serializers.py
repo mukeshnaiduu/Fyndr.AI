@@ -100,11 +100,6 @@ class JobSeekerOnboardingSerializer(JobSeekerProfileSerializer):
     pass
 
 
-class RecruiterEmployerOnboardingSerializer(serializers.Serializer):
-    """Backward compatibility - handles both recruiter and company data"""
-    def to_representation(self, instance):
-        if hasattr(instance, 'recruiter_profile'):
-            return RecruiterProfileSerializer(instance.recruiter_profile).data
-        elif hasattr(instance, 'company_profile'):
-            return CompanyProfileSerializer(instance.company_profile).data
-        return super().to_representation(instance)
+class CompanyOnboardingSerializer(CompanyProfileSerializer):
+    """Backward compatibility - redirect to CompanyProfileSerializer"""
+    pass

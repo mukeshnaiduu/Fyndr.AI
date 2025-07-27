@@ -9,7 +9,7 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
   const [formData, setFormData] = useState({
     teamMembers: data.teamMembers || [],
     inviteEmails: data.inviteEmails || [''],
-    defaultRole: data.defaultRole || 'recruiter',
+    defaultRole: data.defaultRole || 'company',
     ...data
   });
 
@@ -18,7 +18,7 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
 
   const roleOptions = [
     { value: 'admin', label: 'Admin', description: 'Full access to all features' },
-    { value: 'recruiter', label: 'Recruiter', description: 'Can manage jobs and candidates' },
+    { value: 'company', label: 'Company', description: 'Can manage jobs and candidates' },
     { value: 'hiring-manager', label: 'Hiring Manager', description: 'Can review candidates and make decisions' },
     { value: 'interviewer', label: 'Interviewer', description: 'Can conduct interviews and provide feedback' },
     { value: 'viewer', label: 'Viewer', description: 'Read-only access to reports and analytics' }
@@ -26,7 +26,7 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
 
   const permissions = {
     admin: ['manage_users', 'manage_jobs', 'manage_candidates', 'view_analytics', 'manage_billing', 'manage_integrations'],
-    recruiter: ['manage_jobs', 'manage_candidates', 'view_analytics'],
+    company: ['manage_jobs', 'manage_candidates', 'view_analytics'],
     'hiring-manager': ['view_jobs', 'manage_candidates', 'view_analytics'],
     interviewer: ['view_jobs', 'view_candidates', 'conduct_interviews'],
     viewer: ['view_jobs', 'view_candidates', 'view_analytics']
@@ -57,7 +57,7 @@ const TeamSetupStep = ({ data, onUpdate, onNext, onPrev }) => {
       id: 2,
       name: 'Michael Chen',
       email: 'michael.chen@company.com',
-      role: 'recruiter',
+      role: 'company',
       status: 'pending',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
     }

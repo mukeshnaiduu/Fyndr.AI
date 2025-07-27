@@ -75,8 +75,8 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
       // Determine file type based on user role
       // Check localStorage for user role
       const userData = localStorage.getItem('user');
-      const userRole = userData ? JSON.parse(userData).role : 'employer';
-      const fileType = userRole === 'recruiter' ? 'profile_image' : 'logo';
+      const userRole = userData ? JSON.parse(userData).role : 'company';
+      const fileType = userRole === 'company' ? 'logo' : 'profile_image';
 
       uploadFormData.append('type', fileType);
 

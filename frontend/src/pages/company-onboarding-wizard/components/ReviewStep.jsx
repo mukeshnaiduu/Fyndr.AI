@@ -68,7 +68,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
 
       // Use apiRequest utility for consistency
       await import('utils/api').then(({ apiRequest }) =>
-        apiRequest('/auth/recruiter-onboarding/', 'POST', payload, token)
+        apiRequest('/auth/company-onboarding/', 'POST', payload, token)
       );
 
       // Fetch updated profile and update localStorage
@@ -108,7 +108,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
       // Force Navbar to update by dispatching a storage event
       window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
 
-      localStorage.setItem('recruiterOnboardingComplete', 'true');
+      localStorage.setItem('companyOnboardingComplete', 'true');
       onUpdate(formData);
       onComplete();
     } catch (error) {

@@ -121,8 +121,11 @@ const AuthenticationPage = () => {
           if (profileData.role === 'job_seeker') {
             localStorage.setItem('jobSeekerOnboardingComplete', isOnboardingComplete ? 'true' : 'false');
           }
-          if (profileData.role === 'recruiter' || profileData.role === 'employer') {
+          if (profileData.role === 'recruiter') {
             localStorage.setItem('recruiterOnboardingComplete', isOnboardingComplete ? 'true' : 'false');
+          }
+          if (profileData.role === 'company') {
+            localStorage.setItem('companyOnboardingComplete', isOnboardingComplete ? 'true' : 'false');
           }
           if (profileData.role === 'administrator') {
             localStorage.setItem('adminOnboardingComplete', 'true');
@@ -131,11 +134,17 @@ const AuthenticationPage = () => {
           setTimeout(() => {
             if (profileData.role === 'administrator') {
               navigate('/admin-dashboard-system-management');
-            } else if ((profileData.role === 'recruiter' || profileData.role === 'employer')) {
+            } else if (profileData.role === 'recruiter') {
               if (isOnboardingComplete) {
                 navigate('/recruiter-dashboard-pipeline-management');
               } else {
-                navigate('/recruiter-employer-onboarding-wizard');
+                navigate('/recruiter-onboarding-wizard');
+              }
+            } else if (profileData.role === 'company') {
+              if (isOnboardingComplete) {
+                navigate('/company-dashboard-pipeline-management');
+              } else {
+                navigate('/company-onboarding-wizard');
               }
             } else if (profileData.role === 'job_seeker') {
               if (isOnboardingComplete) {

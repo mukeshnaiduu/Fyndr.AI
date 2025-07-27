@@ -173,10 +173,10 @@ export const RECRUITER_NAV = {
   ],
   profile: [
     {
-      label: 'Company Profile',
-      path: '/recruiter-profile-management',
-      icon: 'Building',
-      description: 'Manage company information'
+      label: 'Profile',
+      path: '/profile-management',
+      icon: 'User',
+      description: 'Manage your personal profile'
     },
     {
       label: 'Team Management',
@@ -345,12 +345,107 @@ export const ADMINISTRATOR_NAV = {
   ]
 };
 
+// Navigation configuration for Company role (replaces employer)
+export const COMPANY_NAV = {
+  main: [
+    {
+      label: 'Dashboard',
+      path: '/company-dashboard-pipeline-management',
+      icon: 'Home',
+      description: 'Your recruitment overview'
+    },
+    {
+      label: 'Candidates',
+      path: '/candidate-profile-evaluation-interface',
+      icon: 'Users',
+      description: 'Browse and manage candidates'
+    },
+    {
+      label: 'Jobs',
+      path: '/job-creation-hub',
+      icon: 'Briefcase',
+      description: 'Post and manage job listings'
+    },
+    {
+      label: 'Team',
+      path: '/team-management-dashboard',
+      icon: 'UserPlus',
+      description: 'Manage your recruitment team'
+    },
+    {
+      label: 'Analytics',
+      path: '/recruiter-analytics-dashboard',
+      icon: 'BarChart2',
+      description: 'Recruitment metrics and insights'
+    }
+  ],
+  resources: [
+    {
+      label: 'AI Sourcing',
+      path: '/ai-candidate-sourcing-tool',
+      icon: 'Search',
+      description: 'Find candidates with AI matching'
+    },
+    {
+      label: 'Interview Tools',
+      path: '/video-interview-interface',
+      icon: 'Video',
+      description: 'Conduct and manage interviews'
+    },
+    {
+      label: 'ATS Integration',
+      path: '/ats-integration-management',
+      icon: 'RefreshCw',
+      description: 'Connect with your existing ATS'
+    },
+    {
+      label: 'Talent Pool',
+      path: '/talent-pool-management',
+      icon: 'Database',
+      description: 'Manage your talent database'
+    },
+    {
+      label: 'DEI Initiatives',
+      path: '/dei-dashboard',
+      icon: 'Award',
+      description: 'Track and improve diversity metrics'
+    }
+  ],
+  profile: [
+    {
+      label: 'Company Profile',
+      path: '/company-profile-management',
+      icon: 'User',
+      description: 'Manage your company profile'
+    },
+    {
+      label: 'Company Settings',
+      path: '/company-settings-dashboard',
+      icon: 'Settings',
+      description: 'Configure company preferences'
+    },
+    {
+      label: 'Billing',
+      path: '/billing-subscription-management',
+      icon: 'CreditCard',
+      description: 'Manage your billing and subscription'
+    },
+    {
+      label: 'Notifications',
+      path: '/notifications-center',
+      icon: 'Bell',
+      description: 'View all notifications'
+    }
+  ]
+};
+
 // Utility function to get navigation config by role
 export const getNavigationByRole = (role) => {
   const roleMap = {
     'job_seeker': JOB_SEEKER_NAV,
     'recruiter': RECRUITER_NAV,
     'employer': EMPLOYER_NAV,
+    'company': COMPANY_NAV,
     'administrator': ADMINISTRATOR_NAV
   };
 
@@ -377,9 +472,11 @@ export const getNavigationByRole = (role) => {
 const getRoleBasedProfilePath = (role) => {
   switch (role) {
     case 'recruiter':
-      return '/recruiter-profile-management';
+      return '/profile-management';
     case 'employer':
       return '/employer-profile-management';
+    case 'company':
+      return '/company-profile-management';
     case 'administrator':
       return '/admin-profile-management';
     case 'job_seeker':
@@ -402,7 +499,8 @@ export const hasRouteAccess = (userRole, routePath) => {
 
 // Role hierarchy for permission checking
 export const ROLE_HIERARCHY = {
-  'administrator': 4,
+  'administrator': 5,
+  'company': 4,
   'employer': 3,
   'recruiter': 2,
   'job_seeker': 1

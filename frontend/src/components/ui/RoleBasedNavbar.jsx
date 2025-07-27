@@ -98,8 +98,9 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
   const getRoleColor = (role) => {
     const colors = {
       'job_seeker': 'text-blue-600 dark:text-blue-400',
-      'recruiter': 'text-green-600 dark:text-green-400',
-      'employer': 'text-purple-600 dark:text-purple-400',
+      'company': 'text-green-600 dark:text-green-400',
+      'recruiter': 'text-purple-600 dark:text-purple-400', // Separate role for recruiters
+      'employer': 'text-purple-600 dark:text-purple-400', // Keep for backward compatibility
       'administrator': 'text-red-600 dark:text-red-400'
     };
     return colors[role] || 'text-gray-600';
@@ -108,8 +109,9 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
   const getRoleLabel = (role) => {
     const labels = {
       'job_seeker': 'Job Seeker',
-      'recruiter': 'Recruiter',
-      'employer': 'Employer',
+      'company': 'Company',
+      'recruiter': 'Recruiter', // Separate role for recruiters
+      'employer': 'Employer', // Keep for backward compatibility
       'administrator': 'Administrator'
     };
     return labels[role] || 'User';

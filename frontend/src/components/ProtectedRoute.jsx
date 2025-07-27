@@ -9,7 +9,7 @@ import { getApiUrl } from 'utils/api';
  * - If authenticated and onboarded, render the child route.
  *
  * @param {React.ReactNode} children
- * @param {string} role - userRole (job_seeker, recruiter, employer, administrator)
+ * @param {string} role - userRole (job_seeker, company, administrator)
  * @param {boolean} requireOnboarding - if true, user must have completed onboarding
  */
 
@@ -41,11 +41,13 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
   const onboardingKey =
     userRole === 'job_seeker' || userRole === 'jobseeker'
       ? 'jobSeekerOnboardingComplete'
-      : userRole === 'recruiter' || userRole === 'employer'
+      : userRole === 'recruiter'
         ? 'recruiterOnboardingComplete'
-        : userRole === 'administrator' || userRole === 'admin'
-          ? 'adminOnboardingComplete'
-          : null;
+        : userRole === 'company'
+          ? 'companyOnboardingComplete'
+          : userRole === 'administrator' || userRole === 'admin'
+            ? 'adminOnboardingComplete'
+            : null;
 
   console.log('ProtectedRoute - localStorage check:', onboardingKey, localStorage.getItem(onboardingKey));
 
@@ -85,8 +87,11 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
           if (userRole === 'job_seeker' || userRole === 'jobseeker') {
             localStorage.setItem('jobSeekerOnboardingComplete', isComplete ? 'true' : 'false');
           }
-          if (userRole === 'recruiter' || userRole === 'employer') {
+          if (userRole === 'recruiter') {
             localStorage.setItem('recruiterOnboardingComplete', isComplete ? 'true' : 'false');
+          }
+          if (userRole === 'company') {
+            localStorage.setItem('companyOnboardingComplete', isComplete ? 'true' : 'false');
           }
           if (userRole === 'administrator' || userRole === 'admin') {
             localStorage.setItem('adminOnboardingComplete', 'true');
@@ -128,8 +133,11 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
     if (userRole === 'job_seeker' || userRole === 'jobseeker') {
       return <Navigate to="/job-seeker-onboarding-wizard" replace />;
     }
-    if (userRole === 'recruiter' || userRole === 'employer') {
-      return <Navigate to="/recruiter-employer-onboarding-wizard" replace />;
+    if (userRole === 'recruiter') {
+      return <Navigate to="/recruiter-onboarding-wizard" replace />;
+    }
+    if (userRole === 'company') {
+      return <Navigate to="/company-onboarding-wizard" replace />;
     }
     if (userRole === 'administrator' || userRole === 'admin') {
       return <Navigate to="/admin-dashboard-system-management" replace />;
