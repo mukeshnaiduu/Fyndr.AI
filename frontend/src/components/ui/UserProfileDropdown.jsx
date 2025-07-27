@@ -129,10 +129,10 @@ const UserProfileDropdown = ({ className = '' }) => {
       >
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
           {user.avatar ? (
-            <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+            <img src={user.avatar} alt={user.name || ''} className="w-full h-full rounded-full object-cover" />
           ) : (
             <span className="text-white text-sm font-medium">
-              {user.name ? user.name.split(' ').map(n => n[0]).join('') : '?'}
+              {user && user.name && typeof user.name === 'string' ? user.name.split(' ').map(n => n[0]).join('') : '?'}
             </span>
           )}
         </div>
@@ -155,10 +155,10 @@ const UserProfileDropdown = ({ className = '' }) => {
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                 {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                  <img src={user.avatar} alt={user.name || ''} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   <span className="text-white font-medium">
-                    {user.name.split(' ').map(n => n[0]).join('')}
+                    {user && user.name && typeof user.name === 'string' ? user.name.split(' ').map(n => n[0]).join('') : '?'}
                   </span>
                 )}
               </div>
@@ -180,7 +180,7 @@ const UserProfileDropdown = ({ className = '' }) => {
                     key={role}
                     onClick={() => handleRoleSwitch(role)}
                     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${currentRole === role
-                        ? 'bg-primary/20 text-primary border border-primary/30' : 'text-foreground hover:bg-white/10'
+                      ? 'bg-primary/20 text-primary border border-primary/30' : 'text-foreground hover:bg-white/10'
                       }`}
                   >
                     <Icon name={getRoleIcon(role)} size={16} />

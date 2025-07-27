@@ -8,6 +8,7 @@ import TeamSetupStep from './components/TeamSetupStep';
 import DEIComplianceStep from './components/DEIComplianceStep';
 import IntegrationsStep from './components/IntegrationsStep';
 import BillingStep from './components/BillingStep';
+import { getApiUrl } from 'utils/api';
 import ReviewStep from './components/ReviewStep';
 import CompletionStep from './components/CompletionStep';
 import { apiRequest } from 'utils/api';
@@ -76,7 +77,7 @@ const RecruiterEmployerOnboardingWizard = () => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       // Fetch user profile to check onboarding status from Supabase database
-      fetch('/api/auth/profile/', {
+      fetch(getApiUrl('/auth/profile/'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -112,14 +113,55 @@ const RecruiterEmployerOnboardingWizard = () => {
     }
   }, [navigate]);
 
-  const initializeOnboarding = () => {
-    // Restore from localStorage
+  const initializeOnboarding = async () => {
+    const token = localStorage.getItem('accessToken');
+
+    // Get current user info for pre-population
+    const userString = localStorage.getItem('user');
+    let currentUser = null;
+    let initialData = {};
+
+    if (userString) {
+      try {
+        currentUser = JSON.parse(userString);
+        // Initialize with user data from registration
+        initialData = {
+          // We don't pre-populate company data since it's recruiter-specific
+          // but we can set up the structure
+        };
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+
+    // Try to fetch existing onboarding data from backend
+    let backendData = {};
+    if (token) {
+      try {
+        const response = await apiRequest('/api/auth/recruiter-profile/', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response && Object.keys(response).length > 0) {
+          backendData = response;
+          console.log('Found existing recruiter onboarding data:', backendData);
+        }
+      } catch (error) {
+        console.log('No existing recruiter onboarding data found, starting fresh');
+      }
+    }
+
+    // Restore from localStorage and merge with initial data and backend data
     const savedData = localStorage.getItem('recruiter-onboarding-data');
+    let localData = {};
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
         if (validateFormData(parsed)) {
-          setFormData(prev => ({ ...prev, ...parsed }));
+          localData = parsed;
         } else {
           localStorage.removeItem('recruiter-onboarding-data');
         }
@@ -127,6 +169,10 @@ const RecruiterEmployerOnboardingWizard = () => {
         localStorage.removeItem('recruiter-onboarding-data');
       }
     }
+
+    // Merge data: backend takes priority over local, local takes priority over initial
+    const mergedData = { ...initialData, ...localData, ...backendData };
+    setFormData(prev => ({ ...prev, ...mergedData }));
     setLoading(false);
   };
 
@@ -202,10 +248,10 @@ const RecruiterEmployerOnboardingWizard = () => {
         final_confirmation: formData.finalConfirmation || false,
       };
 
-      await apiRequest('/auth/recruiter-onboarding/', 'POST', payload, token);
+      await apiRequest('/api/auth/recruiter-profile/', 'POST', payload, token);
 
       // Fetch updated profile and update localStorage
-      const profileRes = await fetch('/api/auth/profile/', {
+      const profileRes = await fetch(getApiUrl('/auth/profile/'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

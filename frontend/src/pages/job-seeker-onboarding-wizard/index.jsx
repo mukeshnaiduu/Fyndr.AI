@@ -8,6 +8,7 @@ import ResumeUploadStep from './components/ResumeUploadStep';
 import SkillAssessmentStep from './components/SkillAssessmentStep';
 import CareerPreferencesStep from './components/CareerPreferencesStep';
 import ProfileReviewStep from './components/ProfileReviewStep';
+import { getApiUrl } from 'utils/api';
 import { apiRequest } from 'utils/api';
 
 const JobSeekerOnboardingWizard = () => {
@@ -60,7 +61,7 @@ const JobSeekerOnboardingWizard = () => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       // Fetch user profile to check onboarding status from Supabase database
-      fetch('/api/auth/profile/', {
+      fetch(getApiUrl('/auth/profile/'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -97,15 +98,17 @@ const JobSeekerOnboardingWizard = () => {
     }
   }, [navigate]);
 
-  const loadSavedProgress = () => {
+  const loadSavedProgress = async () => {
     // Get current user info and token
     const userString = localStorage.getItem('user');
     const token = localStorage.getItem('accessToken');
     let currentUserId = null;
+    let currentUser = null;
+
     if (userString) {
       try {
-        const user = JSON.parse(userString);
-        currentUserId = user?.id || user?.email || null;
+        currentUser = JSON.parse(userString);
+        currentUserId = currentUser?.id || currentUser?.email || null;
       } catch (e) {
         currentUserId = null;
       }
@@ -115,23 +118,66 @@ const JobSeekerOnboardingWizard = () => {
     const savedStep = localStorage.getItem('jobSeekerOnboardingStep');
     const savedUserId = localStorage.getItem('jobSeekerOnboardingUserId');
 
+    // Initialize form data with user info from backend
+    let backendData = {};
+    if (token) {
+      try {
+        const response = await apiRequest('/api/auth/jobseeker-profile/', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response && Object.keys(response).length > 0) {
+          backendData = {
+            firstName: response.first_name || '',
+            lastName: response.last_name || '',
+            email: response.email || '',
+            ...response // Include any other existing onboarding data
+          };
+          console.log('Loaded user data from backend:', backendData);
+          // Print fname, lname, email in console
+          console.log('fname:', backendData.firstName, 'lname:', backendData.lastName, 'email:', backendData.email);
+        }
+      } catch (error) {
+        console.log('No existing onboarding data found, using user data from registration');
+        // Fallback to localStorage user data if backend call fails
+        if (currentUser) {
+          backendData = {
+            firstName: currentUser.first_name || '',
+            lastName: currentUser.last_name || '',
+            email: currentUser.email || ''
+          };
+          // Print fname, lname, email in console (from local user)
+          console.log('fname:', backendData.firstName, 'lname:', backendData.lastName, 'email:', backendData.email);
+        }
+      }
+    }
+
     // If no user, no token, or user changed, clear onboarding progress and start fresh
     if (!currentUserId || !token || savedUserId !== currentUserId) {
       localStorage.removeItem('jobSeekerOnboardingData');
       localStorage.removeItem('jobSeekerOnboardingStep');
       localStorage.setItem('jobSeekerOnboardingUserId', currentUserId || '');
-      setFormData({});
+      setFormData(backendData);
       setCurrentStep(1);
       return;
     }
 
+    // Merge saved local data with backend data (local data takes precedence for draft changes)
+    let finalData = { ...backendData };
     if (savedData) {
       try {
-        setFormData(JSON.parse(savedData));
+        const parsedSavedData = JSON.parse(savedData);
+        finalData = { ...backendData, ...parsedSavedData };
       } catch (error) {
         console.error('Error loading saved data:', error);
+        finalData = backendData;
       }
     }
+
+    setFormData(finalData);
 
     if (savedStep) {
       setCurrentStep(parseInt(savedStep));
@@ -212,7 +258,7 @@ const JobSeekerOnboardingWizard = () => {
       };
       delete payload.career_preferences;
       const profile = await apiRequest(
-        '/api/auth/jobseeker-onboarding/',
+        '/api/auth/jobseeker-profile/',
         'POST',
         payload,
         token

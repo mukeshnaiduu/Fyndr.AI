@@ -5,6 +5,7 @@ import Input from 'components/ui/Input';
 import Select from 'components/ui/Select';
 import Button from 'components/ui/Button';
 import Image from 'components/AppImage';
+import { getApiUrl } from 'utils/api';
 
 const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
   const [formData, setFormData] = useState({
@@ -18,6 +19,16 @@ const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
     portfolioUrl: data.portfolioUrl || '',
     ...data
   });
+
+  // Autofill form fields when data prop changes (after async load)
+  React.useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      email: data.email || '',
+    }));
+  }, [data.firstName, data.lastName, data.email]);
 
   const [errors, setErrors] = useState({});
   const [isUploading, setIsUploading] = useState(false);
@@ -51,13 +62,55 @@ const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
     }
 
     setIsUploading(true);
-    
-    // Simulate upload delay
-    setTimeout(() => {
-      const imageUrl = URL.createObjectURL(file);
-      setFormData(prev => ({ ...prev, profileImage: imageUrl }));
+
+    try {
+      // Upload to backend
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'profile_image');
+
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(getApiUrl('/auth/upload/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+
+      const uploadResult = await response.json();
+
+      // Set both the file URL and create a preview blob URL for immediate display
+      const previewUrl = URL.createObjectURL(file);
+      setFormData(prev => ({
+        ...prev,
+        profileImage: previewUrl,
+        profileImageFile: {
+          name: uploadResult.filename,
+          url: uploadResult.url,
+          size: uploadResult.size,
+          uploadedAt: uploadResult.uploaded_at
+        }
+      }));
       setIsUploading(false);
-    }, 1500);
+
+      if (errors.profileImage) {
+        setErrors(prev => ({ ...prev, profileImage: '' }));
+      }
+    } catch (error) {
+      console.error('Profile image upload failed:', error);
+      setErrors(prev => ({ ...prev, profileImage: `Upload failed: ${error.message}` }));
+      setIsUploading(false);
+    }
   };
 
   const validateForm = () => {
@@ -137,7 +190,7 @@ const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
             ) : (
               <Icon name="User" size={32} color="white" />
             )}
-            
+
             {isUploading && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
                 <div className="animate-spin">
@@ -146,7 +199,7 @@ const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
               </div>
             )}
           </div>
-          
+
           <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-lg">
             <Icon name="Camera" size={16} color="white" />
             <input
@@ -252,7 +305,7 @@ const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
         >
           Previous
         </Button>
-        
+
         <Button
           onClick={handleNext}
           iconName="ArrowRight"

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 import Image from 'components/AppImage';
+import { getApiUrl } from 'utils/api';
 
 const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +53,7 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
         email: data.email || '',
         phone: data.phone || '',
         location: data.location || '',
-        profile_image: data.profileImage || '',
+        profile_image: data.profileImageFile?.url || data.profileImage || '',
         linkedin_url: data.linkedinUrl || '',
         portfolio_url: data.portfolioUrl || '',
         resume: data.resume || {},
@@ -73,7 +74,7 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
         apiRequest('/auth/jobseeker-onboarding/', 'POST', payload, token)
       );
       // Fetch latest profile and update localStorage.user
-      const profileRes = await fetch('/api/auth/profile/', {
+      const profileRes = await fetch(getApiUrl('/auth/profile/'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

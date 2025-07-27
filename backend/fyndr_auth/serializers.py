@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, JobSeekerOnboarding, RecruiterEmployerOnboarding
+from .models import User, JobSeekerProfile, RecruiterProfile, CompanyProfile
 from django.contrib.auth.password_validation import validate_password
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -37,18 +37,74 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
-class JobSeekerOnboardingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = JobSeekerOnboarding
-        fields = '__all__'
-        read_only_fields = ['user']
 
-class RecruiterEmployerOnboardingSerializer(serializers.ModelSerializer):
+class JobSeekerProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.ReadOnlyField()
+    
     class Meta:
-        model = RecruiterEmployerOnboarding
+        model = JobSeekerProfile
         fields = '__all__'
-        read_only_fields = ['user']
+        read_only_fields = ['user', 'created_at', 'updated_at']
+
+    def validate_email(self, value):
+        """Ensure email is unique if provided"""
+        if not value:  # Skip validation if email is empty
+            return value
+            
+        # Check for existing profiles with this email, excluding current instance
+        existing_profiles = JobSeekerProfile.objects.filter(email=value)
+        if self.instance:
+            existing_profiles = existing_profiles.exclude(id=self.instance.id)
+            
+        if existing_profiles.exists():
+            raise serializers.ValidationError("A profile with this email already exists.")
+        return value
+
+
+class RecruiterProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = RecruiterProfile
+        fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at']
+
+    def validate_email(self, value):
+        """Ensure email is unique if provided"""
+        if value and RecruiterProfile.objects.filter(email=value).exclude(id=self.instance.id if self.instance else None).exists():
+            raise serializers.ValidationError("A profile with this email already exists.")
+        return value
+
+
+class CompanyProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyProfile
+        fields = '__all__'
+        read_only_fields = ['user', 'created_at', 'updated_at']
+
+    def validate_company_name(self, value):
+        """Ensure company name is unique if provided"""
+        if value and CompanyProfile.objects.filter(company_name=value).exclude(id=self.instance.id if self.instance else None).exists():
+            raise serializers.ValidationError("A company with this name already exists.")
+        return value
+
+
+# Backward compatibility serializers (for gradual migration)
+class JobSeekerOnboardingSerializer(JobSeekerProfileSerializer):
+    """Backward compatibility - redirect to JobSeekerProfileSerializer"""
+    pass
+
+
+class RecruiterEmployerOnboardingSerializer(serializers.Serializer):
+    """Backward compatibility - handles both recruiter and company data"""
+    def to_representation(self, instance):
+        if hasattr(instance, 'recruiter_profile'):
+            return RecruiterProfileSerializer(instance.recruiter_profile).data
+        elif hasattr(instance, 'company_profile'):
+            return CompanyProfileSerializer(instance.company_profile).data
+        return super().to_representation(instance)

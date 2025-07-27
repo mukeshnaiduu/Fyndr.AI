@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Icon from 'components/AppIcon';
 import Image from 'components/AppImage';
 import Input from 'components/ui/Input';
 import Select from 'components/ui/Select';
 import Button from 'components/ui/Button';
+import { getApiUrl } from 'utils/api';
 
 const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     companyName: data.companyName || '',
     industry: data.industry || '',
@@ -21,6 +23,7 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
   const [errors, setErrors] = useState({});
   const [logoPreview, setLogoPreview] = useState(data.logo || null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const industryOptions = [
     { value: 'technology', label: 'Technology' },
@@ -51,15 +54,77 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
     }
   };
 
-  const handleLogoUpload = (file) => {
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const logoUrl = e.target.result;
-        setLogoPreview(logoUrl);
-        setFormData(prev => ({ ...prev, logo: logoUrl }));
-      };
-      reader.readAsDataURL(file);
+  const handleLogoUpload = async (file) => {
+    if (!file || !file.type.startsWith('image/')) {
+      setErrors(prev => ({ ...prev, logo: 'Please select a valid image file' }));
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, logo: 'File size must be less than 5MB' }));
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      // Upload to backend
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      // Determine file type based on user role
+      // Check localStorage for user role
+      const userData = localStorage.getItem('user');
+      const userRole = userData ? JSON.parse(userData).role : 'employer';
+      const fileType = userRole === 'recruiter' ? 'profile_image' : 'logo';
+
+      uploadFormData.append('type', fileType);
+
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(getApiUrl('/auth/upload/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: uploadFormData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+
+      const uploadResult = await response.json();
+
+      // Create preview URL for immediate display
+      const previewUrl = URL.createObjectURL(file);
+      setLogoPreview(previewUrl);
+
+      // Store the uploaded file info
+      setFormData(prev => ({
+        ...prev,
+        logo: previewUrl,
+        logoFile: {
+          name: uploadResult.filename,
+          url: uploadResult.url,
+          size: uploadResult.size,
+          uploadedAt: uploadResult.uploaded_at
+        }
+      }));
+
+      setIsUploading(false);
+
+      if (errors.logo) {
+        setErrors(prev => ({ ...prev, logo: '' }));
+      }
+    } catch (error) {
+      console.error('Logo upload failed:', error);
+      setErrors(prev => ({ ...prev, logo: `Upload failed: ${error.message}` }));
+      setIsUploading(false);
     }
   };
 
@@ -84,25 +149,25 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.companyName.trim()) {
       newErrors.companyName = 'Company name is required';
     }
-    
+
     if (!formData.industry) {
       newErrors.industry = 'Please select an industry';
     }
-    
+
     if (!formData.companySize) {
       newErrors.companySize = 'Please select company size';
     }
-    
+
     if (!formData.website.trim()) {
       newErrors.website = 'Website URL is required';
     } else if (!/^https?:\/\/.+\..+/.test(formData.website)) {
       newErrors.website = 'Please enter a valid website URL';
     }
-    
+
     if (!formData.description.trim()) {
       newErrors.description = 'Company description is required';
     } else if (formData.description.length < 50) {
@@ -133,11 +198,11 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
       {/* Logo Upload Section */}
       <div className="glass-card p-6 rounded-card">
         <h3 className="text-lg font-semibold text-foreground mb-4">Company Logo</h3>
-        
+
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Logo Preview */}
           <div className="flex-shrink-0">
-            <div className="w-32 h-32 rounded-card border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden">
+            <div className="w-32 h-32 rounded-card border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden relative">
               {logoPreview ? (
                 <Image
                   src={logoPreview}
@@ -150,16 +215,23 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
                   <p className="text-xs text-muted-foreground">Logo Preview</p>
                 </div>
               )}
+
+              {isUploading && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-card">
+                  <div className="animate-spin">
+                    <Icon name="Loader2" size={20} color="white" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Upload Area */}
           <div className="flex-1">
             <div
-              className={`border-2 border-dashed rounded-card p-6 text-center transition-all duration-300 ${
-                isDragOver
-                  ? 'border-primary bg-primary/5' :'border-border hover:border-primary/50'
-              }`}
+              className={`border-2 border-dashed rounded-card p-6 text-center transition-all duration-300 ${isDragOver
+                ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -171,20 +243,28 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
               <p className="text-xs text-muted-foreground mb-4">
                 PNG, JPG or SVG. Max file size 5MB. Recommended: 200x200px
               </p>
-              
+
               <input
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleLogoUpload(e.target.files[0])}
                 className="hidden"
-                id="logo-upload"
+                disabled={isUploading}
               />
-              <label htmlFor="logo-upload">
-                <Button variant="outline" size="sm">
-                  Choose File
-                </Button>
-              </label>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isUploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {isUploading ? 'Uploading...' : 'Choose File'}
+              </Button>
             </div>
+
+            {errors.logo && (
+              <p className="text-error text-sm mt-2">{errors.logo}</p>
+            )}
           </div>
         </div>
       </div>
@@ -192,7 +272,7 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
       {/* Company Information */}
       <div className="glass-card p-6 rounded-card">
         <h3 className="text-lg font-semibold text-foreground mb-6">Company Information</h3>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Input
             label="Company Name"
@@ -270,9 +350,8 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
             <p className="text-xs text-muted-foreground">
               Minimum 50 characters required
             </p>
-            <p className={`text-xs ${
-              formData.description.length < 50 ? 'text-error' : 'text-success'
-            }`}>
+            <p className={`text-xs ${formData.description.length < 50 ? 'text-error' : 'text-success'
+              }`}>
               {formData.description.length}/500
             </p>
           </div>

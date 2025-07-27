@@ -7,7 +7,7 @@ import AuthToggle from './components/AuthToggle';
 import AuthForm from './components/AuthForm';
 import SocialAuthButtons from './components/SocialAuthButtons';
 import LoadingOverlay from './components/LoadingOverlay';
-import { apiRequest } from 'utils/api';
+import { apiRequest, getApiUrl } from 'utils/api';
 
 const AuthenticationPage = () => {
   const [authMode, setAuthMode] = useState('login');
@@ -86,7 +86,7 @@ const AuthenticationPage = () => {
         setLoadingMessage('Successfully authenticated! Checking onboarding status...');
         // Fetch onboarding status from backend
         const token = result.access;
-        const profileRes = await fetch('/api/auth/profile/', {
+        const profileRes = await fetch(getApiUrl('/auth/profile/'), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
