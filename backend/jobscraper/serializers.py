@@ -35,6 +35,10 @@ class JobPostingSerializer(serializers.ModelSerializer):
     
     def get_employment_type(self, obj):
         """Extract employment type from description or return default."""
+        # Handle None or empty description
+        if not obj.description:
+            return 'To be updated'
+            
         # Try to extract employment type from description
         description_lower = obj.description.lower()
         if 'full-time' in description_lower or 'full time' in description_lower:
@@ -46,10 +50,14 @@ class JobPostingSerializer(serializers.ModelSerializer):
         elif 'intern' in description_lower:
             return 'Internship'
         else:
-            return 'Full-time'  # Default
+            return 'To be updated'  # Default when no clear type is found
     
     def get_requirements(self, obj):
         """Extract requirements from description."""
+        # Handle None or empty description
+        if not obj.description:
+            return ['To be updated']
+            
         # Simple extraction - look for common requirement patterns
         description = obj.description
         requirements = []
@@ -70,10 +78,14 @@ class JobPostingSerializer(serializers.ModelSerializer):
                 elif len(requirements) > 0:
                     break
         
-        return requirements if requirements else ['Requirements not specified']
+        return requirements if requirements else ['To be updated']
     
     def get_salary_range(self, obj):
         """Extract salary information from description."""
+        # Handle None or empty description
+        if not obj.description:
+            return 'To be updated'
+            
         # Look for salary patterns in description
         description = obj.description.lower()
         
@@ -91,7 +103,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
             if match:
                 return match.group(0)
         
-        return None
+        return 'To be updated'
 
 
 class JobPostingListSerializer(serializers.ModelSerializer):
@@ -118,6 +130,9 @@ class JobPostingListSerializer(serializers.ModelSerializer):
         return obj.id
     
     def get_employment_type(self, obj):
+        if not obj.description:
+            return 'To be updated'
+            
         description_lower = obj.description.lower()
         if 'full-time' in description_lower or 'full time' in description_lower:
             return 'Full-time'
@@ -128,4 +143,4 @@ class JobPostingListSerializer(serializers.ModelSerializer):
         elif 'intern' in description_lower:
             return 'Internship'
         else:
-            return 'Full-time'
+            return 'To be updated'

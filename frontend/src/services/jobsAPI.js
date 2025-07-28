@@ -102,33 +102,33 @@ class JobsAPI {
   // Transform API job data to match frontend format
   transformJobData(apiJob) {
     return {
-      id: apiJob.job_id,
-      external_id: apiJob.external_id,
-      title: apiJob.title,
+      id: apiJob.job_id || apiJob.id,
+      external_id: apiJob.external_id || 'N/A',
+      title: apiJob.title || 'To be updated',
       company: {
-        name: apiJob.company,
-        logo: this.generateCompanyLogo(apiJob.company),
-        size: "Not specified",
-        headquarters: "Not specified", 
-        founded: "Not specified",
-        industry: "Technology",
-        description: `${apiJob.company} is a leading company in the technology sector.`
+        name: apiJob.company || 'To be updated',
+        logo: this.generateCompanyLogo(apiJob.company || 'Company'),
+        size: "To be updated",
+        headquarters: "To be updated", 
+        founded: "To be updated",
+        industry: "To be updated",
+        description: apiJob.company ? `${apiJob.company} is a leading company.` : "To be updated"
       },
-      location: apiJob.location,
-      type: apiJob.employment_type || 'Full-time',
-      remote: this.isRemoteLocation(apiJob.location),
-      salary: this.parseSalaryRange(apiJob.salary_range),
+      location: apiJob.location || 'To be updated',
+      type: apiJob.employment_type || 'To be updated',
+      remote: apiJob.location ? this.isRemoteLocation(apiJob.location) : false,
+      salary: this.parseSalaryRange(apiJob.salary_range) || { min: null, max: null, text: 'To be updated' },
       matchPercentage: Math.floor(Math.random() * 20) + 80, // Random match percentage for now
-      description: apiJob.description,
+      description: apiJob.description || 'To be updated',
       skills: this.extractSkills(apiJob.description, apiJob.requirements),
-      requirements: apiJob.requirements || [],
+      requirements: Array.isArray(apiJob.requirements) ? apiJob.requirements : (apiJob.requirements ? [apiJob.requirements] : ['To be updated']),
       applicationStatus: "not-applied",
-      postedDate: apiJob.date_posted,
-      dateScraped: apiJob.date_scraped,
+      postedDate: apiJob.date_posted || 'To be updated',
+      dateScraped: apiJob.date_scraped || 'To be updated',
       isSaved: false,
-      url: apiJob.url,
-      source: apiJob.source,
-      teamSize: "Not specified",
+      url: apiJob.url || '#',
+      source: apiJob.source || 'To be updated',
+      teamSize: "To be updated",
       benefits: this.extractBenefits(apiJob.description)
     };
   }
@@ -141,6 +141,9 @@ class JobsAPI {
   }
 
   isRemoteLocation(location) {
+    if (!location || typeof location !== 'string') {
+      return false;
+    }
     const remoteKeywords = ['remote', 'work from home', 'wfh', 'anywhere'];
     return remoteKeywords.some(keyword => 
       location.toLowerCase().includes(keyword)
@@ -148,17 +151,20 @@ class JobsAPI {
   }
 
   parseSalaryRange(salaryRange) {
-    if (!salaryRange) return null;
+    if (!salaryRange || typeof salaryRange !== 'string') {
+      return { min: null, max: null, text: 'To be updated' };
+    }
     
     // Try to extract salary numbers from the range
     const numbers = salaryRange.match(/\d+/g);
     if (numbers && numbers.length >= 2) {
       return {
         min: parseInt(numbers[0]),
-        max: parseInt(numbers[1])
+        max: parseInt(numbers[1]),
+        text: salaryRange
       };
     }
-    return null;
+    return { min: null, max: null, text: salaryRange || 'To be updated' };
   }
 
   extractSkills(description, requirements) {
@@ -170,11 +176,21 @@ class JobsAPI {
       'Machine Learning', 'AI', 'Data Science', 'DevOps', 'CI/CD'
     ];
     
-    const text = `${description} ${Array.isArray(requirements) ? requirements.join(' ') : requirements || ''}`.toLowerCase();
+    // Handle undefined or null description and requirements
+    const safeDescription = description || '';
+    const safeRequirements = Array.isArray(requirements) ? requirements.join(' ') : (requirements || '');
+    const text = `${safeDescription} ${safeRequirements}`.toLowerCase();
     
-    return skillKeywords.filter(skill => 
+    const foundSkills = skillKeywords.filter(skill => 
       text.includes(skill.toLowerCase())
     ).slice(0, 8); // Limit to 8 skills
+    
+    // If no skills found, return "To be updated"
+    if (foundSkills.length === 0) {
+      return ['To be updated'];
+    }
+    
+    return foundSkills;
   }
 
   extractBenefits(description) {
@@ -183,6 +199,11 @@ class JobsAPI {
       'remote work', 'flexible hours', 'vacation', 'pto', 'stock options',
       'equity', 'bonus', 'learning budget', 'conference', 'gym'
     ];
+    
+    // Handle undefined or null description
+    if (!description || typeof description !== 'string') {
+      return ['To be updated', 'Competitive Salary', 'Health Insurance'];
+    }
     
     const text = description.toLowerCase();
     const foundBenefits = [];
@@ -195,7 +216,7 @@ class JobsAPI {
     
     // Add some default benefits if none found
     if (foundBenefits.length === 0) {
-      foundBenefits.push('Competitive Salary', 'Health Insurance', 'Professional Development');
+      foundBenefits.push('To be updated', 'Competitive Salary', 'Health Insurance');
     }
     
     return foundBenefits.slice(0, 6); // Limit to 6 benefits

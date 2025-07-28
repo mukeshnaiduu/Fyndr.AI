@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             "fyndr_auth",
-            "0003_companyprofile_jobseekerprofile_recruiterprofile_and_more",
+            "0003_jobseekerprofile_delete_jobseekeronboarding",
         ),
     ]
 

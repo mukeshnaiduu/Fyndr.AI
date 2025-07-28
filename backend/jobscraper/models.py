@@ -24,7 +24,7 @@ class JobPosting(models.Model):
         null=True, 
         help_text="Job location (can be 'Remote', city, etc.)"
     )
-    description = models.TextField(help_text="Full job description")
+    description = models.TextField(help_text="Full job description", blank=True, null=True)
     url = models.URLField(help_text="Direct link to the job posting")
     
     # Source tracking
