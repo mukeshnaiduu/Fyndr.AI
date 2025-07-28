@@ -11,285 +11,132 @@ import JobDetailModal from './components/JobDetailModal';
 import SavedJobsSection from './components/SavedJobsSection';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
+import { useJobs, useJobStats, useFilterOptions } from '../../hooks/useJobs';
 
 const JobSearchApplicationHub = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState('');
-  const [filters, setFilters] = useState({});
   const [sortBy, setSortBy] = useState('relevance');
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [isJobDetailOpen, setIsJobDetailOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [currentView, setCurrentView] = useState('search'); // 'search' or 'saved'
-
-  // Mock job data
-  const [jobs, setJobs] = useState([
-    {
-      id: 1,
-      title: "Senior Frontend Developer",
-      company: {
-        name: "TechCorp Solutions",
-        logo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center",
-        size: "500-1000 employees",
-        headquarters: "San Francisco, CA",
-        founded: "2015",
-        industry: "Technology",
-        description: "TechCorp Solutions is a leading technology company focused on innovation and excellence in software development."
-      },
-      location: "San Francisco, CA",
-      type: "Full-time",
-      remote: true,
-      salary: { min: 120, max: 180 },
-      matchPercentage: 95,
-      description: "We are looking for a Senior Frontend Developer to join our dynamic team. You will be responsible for building user-facing features using modern JavaScript frameworks and ensuring optimal user experience across all devices.",
-      skills: ["React", "TypeScript", "JavaScript", "CSS", "Node.js", "GraphQL"],
-      applicationStatus: "not-applied",
-      postedDate: "2025-01-07T10:00:00Z",
-      isSaved: false,
-      teamSize: "8-12 people",
-      requirements: {
-        minimum: [
-          "Bachelor\'s degree in Computer Science or related field",
-          "5+ years of experience with React and JavaScript",
-          "Strong understanding of web development fundamentals",
-          "Experience with version control systems (Git)"
-        ],
-        preferred: [
-          "Experience with TypeScript and modern build tools",
-          "Knowledge of testing frameworks (Jest, React Testing Library)",
-          "Familiarity with cloud platforms (AWS, Azure, GCP)",
-          "Previous experience in agile development environments"
-        ]
-      },
-      benefits: [
-        "Health, Dental & Vision Insurance",
-        "401(k) with Company Match",
-        "Unlimited PTO",
-        "Remote Work Options",
-        "Professional Development Budget",
-        "Stock Options"
-      ]
-    },
-    {
-      id: 2,
-      title: "Full Stack Engineer",
-      company: {
-        name: "InnovateLab",
-        logo: "https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=100&h=100&fit=crop&crop=center",
-        size: "50-200 employees",
-        headquarters: "Austin, TX",
-        founded: "2018",
-        industry: "Software",
-        description: "InnovateLab is a fast-growing startup building the next generation of productivity tools."
-      },
-      location: "Austin, TX",
-      type: "Full-time",
-      remote: false,
-      salary: { min: 100, max: 140 },
-      matchPercentage: 88,
-      description: "Join our team as a Full Stack Engineer and help build scalable web applications that serve millions of users. You\'ll work with cutting-edge technologies and collaborate with a talented team of engineers.",
-      skills: ["React", "Node.js", "Python", "PostgreSQL", "AWS", "Docker"],
-      applicationStatus: "applied",
-      postedDate: "2025-01-06T14:30:00Z",
-      isSaved: true,
-      teamSize: "5-8 people",
-      benefits: [
-        "Health Insurance",
-        "Flexible Hours",
-        "Catered Meals",
-        "Gym Membership",
-        "Learning Budget"
-      ]
-    },
-    {
-      id: 3,
-      title: "React Developer",
-      company: {
-        name: "StartupXYZ",
-        logo: "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=100&h=100&fit=crop&crop=center",
-        size: "10-50 employees",
-        headquarters: "New York, NY",
-        founded: "2020",
-        industry: "Fintech",
-        description: "StartupXYZ is revolutionizing the financial technology space with innovative solutions."
-      },
-      location: "New York, NY",
-      type: "Contract",
-      remote: true,
-      salary: { min: 80, max: 120 },
-      matchPercentage: 82,
-      description: "We\'re seeking a talented React Developer to join our growing team. You\'ll be working on exciting projects that directly impact our users\' financial well-being.",
-      skills: ["React", "JavaScript", "Redux", "Material-UI", "Jest"],
-      applicationStatus: "not-applied",
-      postedDate: "2025-01-05T09:15:00Z",
-      isSaved: false,
-      teamSize: "3-5 people",
-      benefits: [
-        "Health Insurance",
-        "Remote Work",
-        "Flexible Schedule",
-        "Professional Development"
-      ]
-    },
-    {
-      id: 4,
-      title: "UI/UX Developer",
-      company: {
-        name: "DesignStudio Pro",
-        logo: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=100&h=100&fit=crop&crop=center",
-        size: "200-500 employees",
-        headquarters: "Los Angeles, CA",
-        founded: "2012",
-        industry: "Design",
-        description: "DesignStudio Pro creates beautiful and functional digital experiences for leading brands."
-      },
-      location: "Los Angeles, CA",
-      type: "Full-time",
-      remote: true,
-      salary: { min: 90, max: 130 },
-      matchPercentage: 75,
-      description: "Looking for a UI/UX Developer who can bridge the gap between design and development. You'll work closely with our design team to bring mockups to life.",
-      skills: ["React", "CSS", "Figma", "JavaScript", "SASS", "Responsive Design"],
-      applicationStatus: "reviewing",
-      postedDate: "2025-01-04T16:45:00Z",
-      isSaved: true,
-      teamSize: "6-10 people",
-      benefits: [
-        "Health & Dental Insurance",
-        "Creative Freedom",
-        "Design Tools Budget",
-        "Flexible Hours"
-      ]
-    },
-    {
-      id: 5,
-      title: "JavaScript Engineer",
-      company: {
-        name: "CodeCraft Inc",
-        logo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&h=100&fit=crop&crop=center",
-        size: "100-300 employees",
-        headquarters: "Seattle, WA",
-        founded: "2016",
-        industry: "Software Development",
-        description: "CodeCraft Inc specializes in building custom software solutions for enterprise clients."
-      },
-      location: "Seattle, WA",
-      type: "Full-time",
-      remote: false,
-      salary: { min: 110, max: 150 },
-      matchPercentage: 70,
-      description: "We\'re looking for a JavaScript Engineer to join our development team. You\'ll work on various client projects and help maintain our internal tools and frameworks.",
-      skills: ["JavaScript", "Vue.js", "Node.js", "MongoDB", "Express", "Git"],
-      applicationStatus: "not-applied",
-      postedDate: "2025-01-03T11:20:00Z",
-      isSaved: false,
-      teamSize: "10-15 people",
-      benefits: [
-        "Comprehensive Health Coverage",
-        "401(k) Matching",
-        "Paid Time Off",
-        "Professional Training"
-      ]
-    },
-    {
-      id: 6,
-      title: "Frontend Architect",
-      company: {
-        name: "MegaCorp Enterprise",
-        logo: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=100&h=100&fit=crop&crop=center",
-        size: "1000+ employees",
-        headquarters: "Chicago, IL",
-        founded: "2005",
-        industry: "Enterprise Software",
-        description: "MegaCorp Enterprise provides comprehensive business solutions to Fortune 500 companies."
-      },
-      location: "Chicago, IL",
-      type: "Full-time",
-      remote: true,
-      salary: { min: 150, max: 200 },
-      matchPercentage: 92,
-      description: "Lead our frontend architecture initiatives and mentor junior developers. You\'ll be responsible for making key technical decisions and ensuring code quality across all projects.",
-      skills: ["React", "TypeScript", "Architecture", "Mentoring", "GraphQL", "Microservices"],
-      applicationStatus: "interview",
-      postedDate: "2025-01-02T08:30:00Z",
-      isSaved: true,
-      teamSize: "20+ people",
-      benefits: [
-        "Premium Health Insurance",
-        "Stock Options",
-        "Unlimited PTO",
-        "Executive Training",
-        "Relocation Assistance"
-      ]
-    }
-  ]);
-
   const [savedJobs, setSavedJobs] = useState([]);
 
+  // Use real data hooks
+  const {
+    jobs,
+    loading,
+    error,
+    hasMore,
+    totalCount,
+    filters,
+    loadMore,
+    updateFilters,
+    refresh
+  } = useJobs({ country: 'india' }); // Start with India jobs
+
+  const { stats } = useJobStats({ country: 'india' });
+  const { filterOptions } = useFilterOptions({ country: 'india' });
+
+  // Initialize saved jobs from localStorage
   useEffect(() => {
-    // Filter saved jobs
-    setSavedJobs(jobs.filter(job => job.isSaved));
+    const savedJobIds = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    setSavedJobs(jobs.filter(job => savedJobIds.includes(job.id)));
   }, [jobs]);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    updateFilters({ 
+      ...filters,
+      search: query,
+      location: location 
+    });
   };
-
   const handleLocationChange = (newLocation) => {
     setLocation(newLocation);
+    updateFilters({ 
+      ...filters,
+      location: newLocation 
+    });
   };
 
   const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
+    updateFilters(newFilters);
   };
 
   const handleApplyFilters = (newFilters) => {
-    setFilters(newFilters);
+    updateFilters(newFilters);
     setIsFilterSidebarOpen(false);
   };
 
   const handleClearFilters = () => {
-    setFilters({});
+    updateFilters({});
   };
 
   const handleRemoveFilter = (filterKey) => {
     const newFilters = { ...filters };
     delete newFilters[filterKey];
-    setFilters(newFilters);
+    updateFilters(newFilters);
   };
 
   const handleClearAllFilters = () => {
-    setFilters({});
+    updateFilters({});
   };
 
   const handleSortChange = (newSort) => {
     setSortBy(newSort);
+    let ordering = '';
+    switch (newSort) {
+      case 'date':
+        ordering = '-date_posted';
+        break;
+      case 'relevance':
+        ordering = '-date_scraped';
+        break;
+      case 'company':
+        ordering = 'company';
+        break;
+      default:
+        ordering = '-date_posted';
+    }
+    updateFilters({ ...filters, ordering });
   };
 
   const handleJobSave = (jobId, saved) => {
-    setJobs(prevJobs =>
-      prevJobs.map(job =>
-        job.id === jobId ? { ...job, isSaved: saved } : job
-      )
-    );
+    // Update localStorage for saved jobs
+    const savedJobIds = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    if (saved) {
+      if (!savedJobIds.includes(jobId)) {
+        savedJobIds.push(jobId);
+      }
+    } else {
+      const index = savedJobIds.indexOf(jobId);
+      if (index > -1) {
+        savedJobIds.splice(index, 1);
+      }
+    }
+    localStorage.setItem('savedJobs', JSON.stringify(savedJobIds));
+    
+    // Update local saved jobs state
+    if (saved) {
+      const job = jobs.find(j => j.id === jobId);
+      if (job) {
+        setSavedJobs(prev => [...prev, { ...job, isSaved: true }]);
+      }
+    } else {
+      setSavedJobs(prev => prev.filter(job => job.id !== jobId));
+    }
   };
 
   const handleJobApply = async (jobId) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    setJobs(prevJobs =>
-      prevJobs.map(job =>
-        job.id === jobId ? { ...job, applicationStatus: 'applied' } : job
-      )
-    );
+    // Simulate API call - in real app, this would make an API request
+    // For now, just track in localStorage
+    const appliedJobs = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+    if (!appliedJobs.includes(jobId)) {
+      appliedJobs.push(jobId);
+      localStorage.setItem('appliedJobs', JSON.stringify(appliedJobs));
+    }
   };
 
   const handleViewJobDetails = (jobId) => {
@@ -307,48 +154,22 @@ const JobSearchApplicationHub = () => {
     handleJobSave(jobId, false);
   };
 
-  const filteredJobs = jobs.filter(job => {
-    // Apply search filter
-    if (searchQuery && !job.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !job.company.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !job.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))) {
-      return false;
-    }
-
-    // Apply location filter
-    if (location && !job.location.toLowerCase().includes(location.toLowerCase()) &&
-      !(location.toLowerCase() === 'remote' && job.remote)) {
-      return false;
-    }
-
-    // Apply other filters
-    if (filters.salaryMin && job.salary.min < parseInt(filters.salaryMin)) return false;
-    if (filters.salaryMax && job.salary.max > parseInt(filters.salaryMax)) return false;
-    if (filters.jobType && job.type.toLowerCase() !== filters.jobType.toLowerCase()) return false;
-    if (filters.remote && !job.remote) return false;
-    if (filters.skills && !job.skills.some(skill =>
-      skill.toLowerCase().includes(filters.skills.toLowerCase())
-    )) return false;
-
-    return true;
-  });
-
-  const sortedJobs = [...filteredJobs].sort((a, b) => {
+  // Simple sorting logic for display (API handles main filtering)
+  const sortedJobs = [...jobs].sort((a, b) => {
     switch (sortBy) {
       case 'date':
         return new Date(b.postedDate) - new Date(a.postedDate);
-      case 'salary-high':
-        return (b.salary.max || 0) - (a.salary.max || 0);
-      case 'salary-low':
-        return (a.salary.min || 0) - (b.salary.min || 0);
-      case 'match':
-        return b.matchPercentage - a.matchPercentage;
+      case 'relevance':
+        return (b.matchPercentage || 0) - (a.matchPercentage || 0);
       case 'company':
         return a.company.name.localeCompare(b.company.name);
-      default: // relevance
-        return b.matchPercentage - a.matchPercentage;
+      default:
+        return new Date(b.postedDate) - new Date(a.postedDate);
     }
   });
+
+  // Display stats
+  const displayStats = stats || { total_jobs: jobs.length };
 
   return (
     <MainLayout
@@ -445,11 +266,16 @@ const JobSearchApplicationHub = () => {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-2">
                     <h2 className="text-xl font-semibold text-foreground">
-                      {sortedJobs.length} Job{sortedJobs.length !== 1 ? 's' : ''} Found
+                      {totalCount} Job{totalCount !== 1 ? 's' : ''} Found in India
                     </h2>
                     {searchQuery && (
                       <span className="text-muted-foreground">
                         for "{searchQuery}"
+                      </span>
+                    )}
+                    {error && (
+                      <span className="text-error text-sm">
+                        Error loading jobs: {error}
                       </span>
                     )}
                   </div>
@@ -510,13 +336,7 @@ const JobSearchApplicationHub = () => {
                   <div className="text-center mt-8">
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        setLoading(true);
-                        setTimeout(() => {
-                          setLoading(false);
-                          setHasMore(false);
-                        }, 1000);
-                      }}
+                      onClick={loadMore}
                       iconName="ChevronDown"
                       iconPosition="right"
                     >

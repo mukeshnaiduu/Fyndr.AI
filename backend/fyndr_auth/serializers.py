@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, JobSeekerOnboarding, RecruiterEmployerOnboarding
+from .models import User, JobSeekerProfile, RecruiterEmployerOnboarding
 from django.contrib.auth.password_validation import validate_password
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -43,7 +43,7 @@ class LoginSerializer(serializers.Serializer):
 
 class JobSeekerOnboardingSerializer(serializers.ModelSerializer):
     class Meta:
-        model = JobSeekerOnboarding
+        model = JobSeekerProfile
         fields = '__all__'
         read_only_fields = ['user']
 

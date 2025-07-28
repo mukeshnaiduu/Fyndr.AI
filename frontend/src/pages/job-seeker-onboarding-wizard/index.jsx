@@ -58,43 +58,64 @@ const JobSeekerOnboardingWizard = () => {
   useEffect(() => {
     // Check if onboarding is already complete by checking the backend
     const token = localStorage.getItem('accessToken');
-    if (token) {
-      // Fetch user profile to check onboarding status from Supabase database
-      fetch('/api/auth/profile/', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Unauthorized');
-          return res.json();
-        })
-        .then(profileData => {
-          // Check if onboarding exists in database and is complete
-          if (profileData.onboarding_complete && profileData.onboarding) {
-            // Clear any local onboarding data since it's complete in database
-            localStorage.removeItem('jobSeekerOnboardingData');
-            localStorage.removeItem('jobSeekerOnboardingStep');
-            localStorage.removeItem('jobSeekerOnboardingUserId');
-            localStorage.setItem('jobSeekerOnboardingComplete', 'true');
-            // Redirect to jobs page
-            navigate('/job-search-application-hub');
-            return;
-          }
-          // Continue with normal onboarding flow
-          loadSavedProgress();
-        })
-        .catch(err => {
-          console.error('Error checking onboarding status:', err);
-          // If there's an error checking backend, proceed with local flow
-          loadSavedProgress();
-        });
-    } else {
+    const isAuthenticatedFlag = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (!token || !isAuthenticatedFlag || token.trim() === '') {
+      console.error('JobSeekerOnboardingWizard - no valid authentication token');
       // No token, redirect to login
       navigate('/authentication-login-register');
+      return;
     }
+    
+    console.log('JobSeekerOnboardingWizard - checking onboarding status...');
+    
+    // Fetch user profile to check onboarding status from Supabase database
+    fetch('/api/auth/profile/', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then(res => {
+        if (!res.ok) {
+          console.error('JobSeekerOnboardingWizard - profile fetch failed:', res.status, res.statusText);
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(profileData => {
+        console.log('JobSeekerOnboardingWizard - profile data received:', profileData);
+        
+        // Check if onboarding exists in database and is complete
+        if (profileData.onboarding_complete && profileData.onboarding) {
+          console.log('JobSeekerOnboardingWizard - onboarding already complete, redirecting...');
+          // Clear any local onboarding data since it's complete in database
+          localStorage.removeItem('jobSeekerOnboardingData');
+          localStorage.removeItem('jobSeekerOnboardingStep');
+          localStorage.removeItem('jobSeekerOnboardingUserId');
+          localStorage.setItem('jobSeekerOnboardingComplete', 'true');
+          // Redirect to jobs page
+          navigate('/job-search-application-hub');
+          return;
+        }
+        // Continue with normal onboarding flow
+        console.log('JobSeekerOnboardingWizard - proceeding with onboarding flow');
+        loadSavedProgress();
+      })
+      .catch(err => {
+        console.error('JobSeekerOnboardingWizard - error checking onboarding status:', err);
+        // If there's an error checking backend, check if it's an auth issue
+        if (err.message.includes('401') || err.message.includes('Unauthorized')) {
+          // Token is invalid, redirect to login
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('isAuthenticated');
+          navigate('/authentication-login-register');
+        } else {
+          // Other error, proceed with local flow
+          loadSavedProgress();
+        }
+      });
   }, [navigate]);
 
   const loadSavedProgress = () => {

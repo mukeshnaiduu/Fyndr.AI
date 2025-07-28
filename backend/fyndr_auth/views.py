@@ -15,15 +15,21 @@ class ProfileView(APIView):
         user.email = data.get('email', user.email)
         user.save()
         # Optionally update onboarding/profile details if present
-        if user.role == 'job_seeker' and 'onboarding' in data:
-            onboarding_data = data['onboarding']
+        if user.role == 'jobseeker':
             try:
-                onboarding = JobSeekerOnboarding.objects.get(user=user)
-                for k, v in onboarding_data.items():
-                    setattr(onboarding, k, v)
-                onboarding.save()
-            except JobSeekerOnboarding.DoesNotExist:
-                JobSeekerOnboarding.objects.create(user=user, **onboarding_data)
+                onboarding = JobSeekerProfile.objects.get(user=user)
+                # Update any onboarding fields if provided in the request
+                if 'onboarding' in data:
+                    onboarding_data = data['onboarding']
+                    for k, v in onboarding_data.items():
+                        if hasattr(onboarding, k):
+                            setattr(onboarding, k, v)
+                    onboarding.save()
+            except JobSeekerProfile.DoesNotExist:
+                # Create onboarding profile if it doesn't exist and onboarding data is provided
+                if 'onboarding' in data:
+                    onboarding_data = data['onboarding']
+                    JobSeekerProfile.objects.create(user=user, **onboarding_data)
         elif user.role in ['recruiter', 'employer'] and 'onboarding' in data:
             onboarding_data = data['onboarding']
             try:
@@ -50,10 +56,10 @@ class ProfileView(APIView):
         onboarding_complete = False
         if user.role == 'job_seeker':
             try:
-                onboarding_obj = JobSeekerOnboarding.objects.filter(user=user).last()
+                onboarding_obj = JobSeekerProfile.objects.filter(user=user).last()
                 if not onboarding_obj:
                     # Try by email if not found by user
-                    onboarding_obj = JobSeekerOnboarding.objects.filter(email=user.email).last()
+                    onboarding_obj = JobSeekerProfile.objects.filter(email=user.email).last()
                 if onboarding_obj:
                     onboarding = JobSeekerOnboardingSerializer(onboarding_obj).data
                     onboarding_complete = True
@@ -77,7 +83,7 @@ class ProfileView(APIView):
 from rest_framework import generics, status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from .models import User, JobSeekerOnboarding, RecruiterEmployerOnboarding
+from .models import User, JobSeekerProfile, RecruiterEmployerOnboarding
 from .serializers import RegisterSerializer, LoginSerializer, JobSeekerOnboardingSerializer, RecruiterEmployerOnboardingSerializer
 from rest_framework.permissions import IsAuthenticated
 
@@ -127,9 +133,17 @@ class LoginView(generics.GenericAPIView):
         # Incorrect password
         raise ValidationError({'password': ['Incorrect password.']})
 
-class JobSeekerOnboardingView(generics.CreateAPIView):
-    serializer_class = JobSeekerOnboardingSerializer
+class JobSeekerOnboardingView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            onboarding = JobSeekerProfile.objects.get(user=user)
+            serializer = JobSeekerOnboardingSerializer(onboarding)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except JobSeekerProfile.DoesNotExist:
+            return Response({"detail": "Onboarding not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, *args, **kwargs):
         user = request.user
@@ -137,17 +151,25 @@ class JobSeekerOnboardingView(generics.CreateAPIView):
         data['user'] = user.id
         # Only one onboarding per user: update if exists, else create
         try:
-            onboarding = JobSeekerOnboarding.objects.get(user=user)
-            serializer = self.get_serializer(onboarding, data=data, partial=True)
-        except JobSeekerOnboarding.DoesNotExist:
-            serializer = self.get_serializer(data=data)
+            onboarding = JobSeekerProfile.objects.get(user=user)
+            serializer = JobSeekerOnboardingSerializer(onboarding, data=data, partial=True)
+        except JobSeekerProfile.DoesNotExist:
+            serializer = JobSeekerOnboardingSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class RecruiterEmployerOnboardingView(generics.CreateAPIView):
-    serializer_class = RecruiterEmployerOnboardingSerializer
+class RecruiterEmployerOnboardingView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            onboarding = RecruiterEmployerOnboarding.objects.get(user=user)
+            serializer = RecruiterEmployerOnboardingSerializer(onboarding)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except RecruiterEmployerOnboarding.DoesNotExist:
+            return Response({"detail": "Onboarding not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, *args, **kwargs):
         user = request.user
@@ -156,9 +178,9 @@ class RecruiterEmployerOnboardingView(generics.CreateAPIView):
         # Only one onboarding per user: update if exists, else create
         try:
             onboarding = RecruiterEmployerOnboarding.objects.get(user=user)
-            serializer = self.get_serializer(onboarding, data=data, partial=True)
+            serializer = RecruiterEmployerOnboardingSerializer(onboarding, data=data, partial=True)
         except RecruiterEmployerOnboarding.DoesNotExist:
-            serializer = self.get_serializer(data=data)
+            serializer = RecruiterEmployerOnboardingSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -51,16 +51,30 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
   useEffect(() => {
     // Fetch onboarding status from backend for robustness
     const fetchOnboardingStatus = async () => {
-      if (!isAuthenticated) return;
+      // Ensure we have both authentication flag and valid token
+      if (!isAuthenticated || !accessToken || accessToken.trim() === '') {
+        console.log('ProtectedRoute - skipping onboarding check: no valid token');
+        setIsOnboarded(false);
+        return;
+      }
+      
       try {
+        console.log('ProtectedRoute - fetching onboarding status for role:', userRole);
         const res = await fetch('/api/auth/profile/', {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
         });
-        if (!res.ok) throw new Error('Unauthorized');
+        
+        if (!res.ok) {
+          console.error('ProtectedRoute - profile fetch failed:', res.status, res.statusText);
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
         const data = await res.json();
+        console.log('ProtectedRoute - profile data received:', data);
+        
         if (typeof data.onboarding_complete !== 'undefined') {
           const isComplete = !!data.onboarding_complete;
           if (userRole === 'job_seeker' || userRole === 'jobseeker') {
@@ -75,15 +89,20 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
           setIsOnboarded(isComplete);
           console.log('ProtectedRoute - onboarding status updated:', isComplete, 'for role:', userRole);
         } else {
+          console.log('ProtectedRoute - no onboarding_complete field in response');
           setIsOnboarded(false);
         }
-      } catch {
+      } catch (error) {
+        console.error('ProtectedRoute - error fetching onboarding status:', error);
         setIsOnboarded(false);
       }
     };
-    if (requireOnboarding) fetchOnboardingStatus();
+    
+    if (requireOnboarding && userRole) {
+      fetchOnboardingStatus();
+    }
     // eslint-disable-next-line
-  }, [isAuthenticated, userRole, requireOnboarding]);
+  }, [isAuthenticated, userRole, requireOnboarding, accessToken]);
 
   if (!isAuthenticated) {
     return <Navigate to="/authentication-login-register" replace />;
