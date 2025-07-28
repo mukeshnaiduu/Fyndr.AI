@@ -1,5 +1,5 @@
 
-import { apiRequest } from 'utils/api';
+import { apiRequest, getApiUrl } from 'utils/api';
 import React, { useState, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
@@ -27,10 +27,7 @@ const ProfileManagement = () => {
     }
 
     // Redirect to role-specific profile pages
-    if (user.role === 'recruiter') {
-      navigate('/recruiter-profile-management');
-      return;
-    }
+    // We'll keep recruiters on the main profile page instead of redirecting to avoid circular redirects
     if (user.role === 'employer') {
       navigate('/employer-profile-management');
       return;
@@ -39,7 +36,7 @@ const ProfileManagement = () => {
       navigate('/admin-profile-management');
       return;
     }
-    // Job seekers stay on this page
+    // Job seekers and recruiters stay on this page
   }, [navigate]);
 
   const [activeTab, setActiveTab] = useState('personal');
@@ -52,7 +49,7 @@ const ProfileManagement = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const data = await fetch('/api/auth/profile/', {
+        const data = await fetch(getApiUrl('/auth/profile/'), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -138,7 +135,7 @@ const ProfileManagement = () => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const res = await fetch('/api/auth/profile/', {
+      const res = await fetch(getApiUrl('/auth/profile/'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

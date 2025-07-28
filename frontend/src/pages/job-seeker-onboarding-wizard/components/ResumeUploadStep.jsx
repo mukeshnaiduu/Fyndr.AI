@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
+import { getApiUrl } from 'utils/api';
 
 const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
   const [uploadedFile, setUploadedFile] = useState(data.resume || null);
@@ -59,38 +60,108 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
     setIsUploading(true);
     setUploadProgress(0);
 
-    // Simulate upload progress
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return prev;
-        }
-        return prev + Math.random() * 20;
-      });
-    }, 200);
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'resume');
 
-    // Simulate upload delay
-    setTimeout(() => {
+      const token = localStorage.getItem('accessToken');
+      console.log('Upload token:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN FOUND');
+
+      if (!token) {
+        throw new Error('No authentication token found. Please log in again.');
+      }
+
+      // Test token validity first
+      try {
+        const testResponse = await fetch(getApiUrl('/auth/profile/'), {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        console.log('Token test response:', testResponse.status);
+        if (!testResponse.ok) {
+          // Clear the invalid token
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          throw new Error('Your session has expired. Please log in again to upload files.');
+        }
+      } catch (authError) {
+        console.error('Authentication test failed:', authError);
+        throw new Error('Authentication failed. Please log in again.');
+      }
+
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Upload progress simulation
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + Math.random() * 20;
+        });
+      }, 200);
+
+      // Actual file upload
+      console.log('Uploading file to:', getApiUrl('/auth/upload/'));
+      console.log('Authorization header:', `Bearer ${token.substring(0, 20)}...`);
+
+      const response = await fetch(getApiUrl('/auth/upload/'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
       clearInterval(progressInterval);
+
+      console.log('Upload response status:', response.status);
+      console.log('Upload response ok:', response.ok);
+
+      if (!response.ok) {
+        let errorMessage = 'Upload failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.detail || 'Upload failed';
+        } catch (jsonError) {
+          console.log('Failed to parse error response as JSON:', jsonError);
+          errorMessage = `Upload failed with status ${response.status}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
       setUploadProgress(100);
-      
+
       const fileData = {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        uploadedAt: new Date().toISOString(),
-        url: URL.createObjectURL(file) // In real app, this would be server URL
+        name: result.filename,
+        size: result.size,
+        type: result.type,
+        uploadedAt: result.uploaded_at,
+        url: result.url
       };
-      
+
       setUploadedFile(fileData);
       setIsUploading(false);
-      
+
       // Trigger sparkle animation
       setTimeout(() => {
         setUploadProgress(0);
       }, 1000);
-    }, 2000);
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      setError(error.message || 'Upload failed. Please try again.');
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   const handleRemoveFile = () => {
@@ -140,10 +211,9 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`relative border-2 border-dashed rounded-card p-8 text-center transition-all duration-300 ${
-              isDragging
-                ? 'border-primary bg-primary/5 scale-105' :'border-border hover:border-primary/50 hover:bg-muted/50'
-            }`}
+            className={`relative border-2 border-dashed rounded-card p-8 text-center transition-all duration-300 ${isDragging
+              ? 'border-primary bg-primary/5 scale-105' : 'border-border hover:border-primary/50 hover:bg-muted/50'
+              }`}
           >
             <input
               ref={fileInputRef}
@@ -154,9 +224,8 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
             />
 
             <div className="space-y-4">
-              <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-primary flex items-center justify-center transition-transform duration-300 ${
-                isDragging ? 'scale-110' : ''
-              }`}>
+              <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-primary flex items-center justify-center transition-transform duration-300 ${isDragging ? 'scale-110' : ''
+                }`}>
                 <Icon name="Upload" size={24} color="white" />
               </div>
 
@@ -167,7 +236,7 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
                 <p className="text-muted-foreground mb-4">
                   or click to browse your files
                 </p>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
@@ -199,7 +268,7 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
               <div className="w-12 h-12 bg-success/10 rounded-card flex items-center justify-center flex-shrink-0">
                 <Icon name="FileCheck" size={20} className="text-success" />
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-foreground mb-1">
                   {uploadedFile.name}
@@ -207,13 +276,13 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
                 <p className="text-sm text-muted-foreground mb-2">
                   {formatFileSize(uploadedFile.size)} • Uploaded successfully
                 </p>
-                
+
                 <div className="flex items-center space-x-2 text-sm text-success">
                   <Icon name="CheckCircle" size={16} />
                   <span>Resume analyzed and processed</span>
                 </div>
               </div>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -257,7 +326,7 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
               <Icon name="Sparkles" size={16} className="text-accent" />
               <span className="text-sm font-medium text-accent">AI Analysis Complete</span>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Skills Detected</p>
@@ -296,7 +365,7 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
         >
           Previous
         </Button>
-        
+
         <Button
           onClick={handleNext}
           iconName="ArrowRight"

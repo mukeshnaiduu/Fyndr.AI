@@ -24,7 +24,7 @@ const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
   const mockCredentials = {
     job_seeker: { email: 'jobseeker@fyndrai.com', password: 'JobSeeker123!' },
     recruiter: { email: 'recruiter@fyndrai.com', password: 'Recruiter123!' },
-    employer: { email: 'employer@fyndrai.com', password: 'Employer123!' },
+    company: { email: 'company@fyndrai.com', password: 'Company123!' },
     administrator: { email: 'admin@fyndrai.com', password: 'Admin123!' }
   };
 

@@ -3,6 +3,7 @@ import Icon from 'components/AppIcon';
 import Image from 'components/AppImage';
 import Button from 'components/ui/Button';
 import { Checkbox } from 'components/ui/Checkbox';
+import { getApiUrl } from 'utils/api';
 
 const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
   const [formData, setFormData] = useState({
@@ -67,37 +68,47 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
 
       // Use apiRequest utility for consistency
       await import('utils/api').then(({ apiRequest }) =>
-        apiRequest('/auth/recruiter-onboarding/', 'POST', payload, token)
+        apiRequest('/auth/company-onboarding/', 'POST', payload, token)
       );
 
       // Fetch updated profile and update localStorage
-      const profileRes = await fetch('/api/auth/profile/', {
+      const profileRes = await fetch(getApiUrl('/auth/profile/'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
       });
-      if (profileRes.ok) {
-        const profileData = await profileRes.json();
-        // Merge profile data with onboarding data for complete user info
-        const mergedProfile = {
-          ...profileData,
-          ...(profileData.onboarding || {}),
-          id: profileData.id,
-          username: profileData.username,
-          email: profileData.email,
-          first_name: profileData.first_name,
-          last_name: profileData.last_name,
-          role: profileData.role,
-          onboarding_complete: profileData.onboarding_complete
-        };
-        localStorage.setItem('user', JSON.stringify(mergedProfile));
-        // Force Navbar to update by dispatching a storage event
-        window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
+
+      if (!profileRes.ok) {
+        throw new Error(`Failed to fetch updated profile: ${profileRes.status} ${profileRes.statusText}`);
       }
 
-      localStorage.setItem('recruiterOnboardingComplete', 'true');
+      const contentType = profileRes.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await profileRes.text();
+        throw new Error(`Server returned non-JSON response: ${textResponse.substring(0, 200)}...`);
+      }
+
+      const profileData = await profileRes.json();
+
+      // Merge profile data with onboarding data for complete user info
+      const mergedProfile = {
+        ...profileData,
+        ...(profileData.onboarding || {}),
+        id: profileData.id,
+        username: profileData.username,
+        email: profileData.email,
+        first_name: profileData.first_name,
+        last_name: profileData.last_name,
+        role: profileData.role,
+        onboarding_complete: profileData.onboarding_complete
+      };
+      localStorage.setItem('user', JSON.stringify(mergedProfile));
+      // Force Navbar to update by dispatching a storage event
+      window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(mergedProfile) }));
+
+      localStorage.setItem('companyOnboardingComplete', 'true');
       onUpdate(formData);
       onComplete();
     } catch (error) {

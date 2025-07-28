@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { getApiUrl } from 'utils/api';
 
 /**
  * Checks authentication and onboarding status, and redirects accordingly.
@@ -8,7 +9,7 @@ import { Navigate } from 'react-router-dom';
  * - If authenticated and onboarded, render the child route.
  *
  * @param {React.ReactNode} children
- * @param {string} role - userRole (job_seeker, recruiter, employer, administrator)
+ * @param {string} role - userRole (job_seeker, company, administrator)
  * @param {boolean} requireOnboarding - if true, user must have completed onboarding
  */
 
@@ -40,91 +41,113 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
   const onboardingKey =
     userRole === 'job_seeker' || userRole === 'jobseeker'
       ? 'jobSeekerOnboardingComplete'
-      : userRole === 'recruiter' || userRole === 'employer'
+      : userRole === 'recruiter'
         ? 'recruiterOnboardingComplete'
-        : userRole === 'administrator' || userRole === 'admin'
-          ? 'adminOnboardingComplete'
-          : null;
+        : userRole === 'company'
+          ? 'companyOnboardingComplete'
+          : userRole === 'administrator' || userRole === 'admin'
+            ? 'adminOnboardingComplete'
+            : null;
+
+  console.log('ProtectedRoute - localStorage check:', onboardingKey, localStorage.getItem(onboardingKey));
 
   const [isOnboarded, setIsOnboarded] = useState(onboardingKey ? localStorage.getItem(onboardingKey) === 'true' : true);
+  const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(requireOnboarding);
+
+  console.log('ProtectedRoute - initial isOnboarded state:', isOnboarded, 'isCheckingOnboarding:', isCheckingOnboarding);
 
   useEffect(() => {
+    if (!requireOnboarding || !isAuthenticated) {
+      setIsCheckingOnboarding(false);
+      return;
+    }
+
     // Fetch onboarding status from backend for robustness
     const fetchOnboardingStatus = async () => {
-      // Ensure we have both authentication flag and valid token
-      if (!isAuthenticated || !accessToken || accessToken.trim() === '') {
-        console.log('ProtectedRoute - skipping onboarding check: no valid token');
-        setIsOnboarded(false);
-        return;
-      }
-      
       try {
-        console.log('ProtectedRoute - fetching onboarding status for role:', userRole);
-        const res = await fetch('/api/auth/profile/', {
+        const apiUrl = getApiUrl('/auth/profile/');
+        console.log('ProtectedRoute - Calling API:', apiUrl);
+
+        const res = await fetch(apiUrl, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
         });
-        
-        if (!res.ok) {
-          console.error('ProtectedRoute - profile fetch failed:', res.status, res.statusText);
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        
+
+        if (!res.ok) throw new Error('Unauthorized');
         const data = await res.json();
-        console.log('ProtectedRoute - profile data received:', data);
-        
+
+        console.log('ProtectedRoute - API response onboarding_complete:', data.onboarding_complete);
+
         if (typeof data.onboarding_complete !== 'undefined') {
           const isComplete = !!data.onboarding_complete;
+
+          // Update localStorage based on role
           if (userRole === 'job_seeker' || userRole === 'jobseeker') {
             localStorage.setItem('jobSeekerOnboardingComplete', isComplete ? 'true' : 'false');
           }
-          if (userRole === 'recruiter' || userRole === 'employer') {
+          if (userRole === 'recruiter') {
             localStorage.setItem('recruiterOnboardingComplete', isComplete ? 'true' : 'false');
+          }
+          if (userRole === 'company') {
+            localStorage.setItem('companyOnboardingComplete', isComplete ? 'true' : 'false');
           }
           if (userRole === 'administrator' || userRole === 'admin') {
             localStorage.setItem('adminOnboardingComplete', 'true');
           }
+
           setIsOnboarded(isComplete);
-          console.log('ProtectedRoute - onboarding status updated:', isComplete, 'for role:', userRole);
+          console.log('ProtectedRoute - Updated isOnboarded to:', isComplete);
         } else {
-          console.log('ProtectedRoute - no onboarding_complete field in response');
           setIsOnboarded(false);
+          console.log('ProtectedRoute - No onboarding_complete field, setting to false');
         }
       } catch (error) {
-        console.error('ProtectedRoute - error fetching onboarding status:', error);
-        setIsOnboarded(false);
+        console.error('ProtectedRoute - API error:', error.message);
+        // On error, trust localStorage
+        const localValue = onboardingKey ? localStorage.getItem(onboardingKey) === 'true' : true;
+        setIsOnboarded(localValue);
+      } finally {
+        setIsCheckingOnboarding(false);
       }
     };
-    
-    if (requireOnboarding && userRole) {
-      fetchOnboardingStatus();
-    }
-    // eslint-disable-next-line
-  }, [isAuthenticated, userRole, requireOnboarding, accessToken]);
+
+    fetchOnboardingStatus();
+  }, [isAuthenticated, userRole, requireOnboarding, accessToken, onboardingKey]);
 
   if (!isAuthenticated) {
+    console.log('ProtectedRoute - Not authenticated, redirecting to login');
     return <Navigate to="/authentication-login-register" replace />;
   }
 
+  // Don't redirect while still checking onboarding status from API
+  if (requireOnboarding && isCheckingOnboarding) {
+    console.log('ProtectedRoute - waiting for API check to complete');
+    return <div style={{ padding: '20px' }}>Checking profile status...</div>;
+  }
+
   if (requireOnboarding && !isOnboarded) {
-    console.log('ProtectedRoute - redirecting for onboarding, userRole:', userRole, 'isOnboarded:', isOnboarded);
+    console.log(`ProtectedRoute - redirecting for onboarding - userRole: ${userRole}, isOnboarded: ${isOnboarded}`);
     // Role-specific onboarding redirects
     if (userRole === 'job_seeker' || userRole === 'jobseeker') {
       return <Navigate to="/job-seeker-onboarding-wizard" replace />;
     }
-    if (userRole === 'recruiter' || userRole === 'employer') {
-      return <Navigate to="/recruiter-employer-onboarding-wizard" replace />;
+    if (userRole === 'recruiter') {
+      return <Navigate to="/recruiter-onboarding-wizard" replace />;
+    }
+    if (userRole === 'company') {
+      return <Navigate to="/company-onboarding-wizard" replace />;
     }
     if (userRole === 'administrator' || userRole === 'admin') {
       return <Navigate to="/admin-dashboard-system-management" replace />;
     }
     // Fallback for unknown roles - redirect to login
-    console.log('ProtectedRoute - unknown role, redirecting to login:', userRole);
+    console.log(`ProtectedRoute - unknown role, redirecting to login: ${userRole}`);
     return <Navigate to="/authentication-login-register" replace />;
   }
 
+  console.log(`ProtectedRoute - Allowing access - requireOnboarding: ${requireOnboarding}, isOnboarded: ${isOnboarded}`);
   return children;
 };
 

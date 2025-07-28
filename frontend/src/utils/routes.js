@@ -21,7 +21,10 @@ export const ROUTES_B = {
   JOB_FEED: '/ai-powered-job-feed-dashboard',
   TEAM_MANAGEMENT: '/team-management-dashboard',
   RESUME_BUILDER: '/ai-resume-builder',
-  RECRUITER_ONBOARDING: '/recruiter-employer-onboarding-wizard',
+  RECRUITER_ONBOARDING: '/recruiter-onboarding-wizard',
+  COMPANY_ONBOARDING: '/company-onboarding-wizard',
+  // Legacy route kept for backward compatibility
+  RECRUITER_EMPLOYER_ONBOARDING: '/company-onboarding-wizard',
 };
 
 // Routes from Repository C

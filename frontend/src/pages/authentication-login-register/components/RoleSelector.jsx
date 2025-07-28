@@ -14,9 +14,9 @@ const RoleSelector = ({ selectedRole, onRoleChange, error }) => {
       description: 'HR professional seeking top talent'
     },
     {
-      value: 'employer',
-      label: 'Employer',
-      description: 'Company hiring manager or team lead'
+      value: 'company',
+      label: 'Company',
+      description: 'Organization looking to hire talent'
     },
     {
       value: 'administrator',

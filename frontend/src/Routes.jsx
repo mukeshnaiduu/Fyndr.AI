@@ -10,7 +10,7 @@ import AuthenticationLoginRegister from "pages/authentication-login-register";
 import AboutContactPage from "pages/about-contact-page";
 import NotificationsCenter from "pages/notifications-center";
 import ProfileManagement from "pages/profile-management";
-import RecruiterProfileManagement from "pages/recruiter-profile-management";
+import CompanyProfileManagement from "pages/company-profile-management";
 import EmployerProfileManagement from "pages/employer-profile-management";
 import AdminProfileManagement from "pages/admin-profile-management";
 import VideoInterviewInterface from "pages/video-interview-interface";
@@ -21,12 +21,13 @@ import JobDetailView from "pages/job-detail-view";
 import AiPoweredJobFeedDashboard from "pages/ai-powered-job-feed-dashboard";
 import TeamManagementDashboard from "pages/team-management-dashboard";
 import AiResumeBuilder from "pages/ai-resume-builder";
-import RecruiterEmployerOnboardingWizard from "pages/recruiter-employer-onboarding-wizard";
+import RecruiterOnboardingWizard from "pages/recruiter-onboarding-wizard";
+import CompanyOnboardingWizard from "pages/company-onboarding-wizard";
 
 // Import pages from Project C
 import CourseDetailLearningInterface from "pages/course-detail-learning-interface";
 import AiCareerCoachChatInterface from "pages/ai-career-coach-chat-interface";
-import RecruiterDashboardPipelineManagement from "pages/recruiter-dashboard-pipeline-management";
+import CompanyDashboardPipelineManagement from "pages/company-dashboard-pipeline-management";
 import CandidateProfileEvaluationInterface from "pages/candidate-profile-evaluation-interface";
 import JobSearchApplicationHub from "pages/job-search-application-hub";
 import AdminDashboardSystemManagement from "pages/admin-dashboard-system-management";
@@ -54,7 +55,9 @@ const Routes = () => {
         <Route path="/about-contact-page" element={<ProtectedRoute requireOnboarding={true}><AboutContactPage /></ProtectedRoute>} />
         <Route path="/notifications-center" element={<ProtectedRoute requireOnboarding={true}><NotificationsCenter /></ProtectedRoute>} />
         <Route path="/profile-management" element={<ProtectedRoute requireOnboarding={true}><ProfileManagement /></ProtectedRoute>} />
-        <Route path="/recruiter-profile-management" element={<ProtectedRoute requireOnboarding={true}><RecruiterProfileManagement /></ProtectedRoute>} />
+        <Route path="/company-profile-management" element={<ProtectedRoute requireOnboarding={true}><CompanyProfileManagement /></ProtectedRoute>} />
+        {/* Keep the old route for backward compatibility */}
+        <Route path="/recruiter-profile-management" element={<ProtectedRoute requireOnboarding={true}><CompanyProfileManagement /></ProtectedRoute>} />
         <Route path="/employer-profile-management" element={<ProtectedRoute requireOnboarding={true}><EmployerProfileManagement /></ProtectedRoute>} />
         <Route path="/admin-profile-management" element={<ProtectedRoute requireOnboarding={true}><AdminProfileManagement /></ProtectedRoute>} />
         <Route path="/video-interview-interface" element={<ProtectedRoute requireOnboarding={true}><VideoInterviewInterface /></ProtectedRoute>} />
@@ -65,12 +68,17 @@ const Routes = () => {
         <Route path="/ai-powered-job-feed-dashboard" element={<ProtectedRoute requireOnboarding={true}><AiPoweredJobFeedDashboard /></ProtectedRoute>} />
         <Route path="/team-management-dashboard" element={<ProtectedRoute requireOnboarding={true}><TeamManagementDashboard /></ProtectedRoute>} />
         <Route path="/ai-resume-builder" element={<ProtectedRoute requireOnboarding={true}><AiResumeBuilder /></ProtectedRoute>} />
-        <Route path="/recruiter-employer-onboarding-wizard" element={<ProtectedRoute><RecruiterEmployerOnboardingWizard /></ProtectedRoute>} />
+        <Route path="/recruiter-onboarding-wizard" element={<ProtectedRoute><RecruiterOnboardingWizard /></ProtectedRoute>} />
+        <Route path="/company-onboarding-wizard" element={<ProtectedRoute><CompanyOnboardingWizard /></ProtectedRoute>} />
+        {/* Keep the old route for backward compatibility */}
+        <Route path="/recruiter-employer-onboarding-wizard" element={<ProtectedRoute><CompanyOnboardingWizard /></ProtectedRoute>} />
 
         {/* Routes from Project C */}
         <Route path="/course-detail-learning-interface" element={<ProtectedRoute requireOnboarding={true}><CourseDetailLearningInterface /></ProtectedRoute>} />
         <Route path="/ai-career-coach-chat-interface" element={<ProtectedRoute requireOnboarding={true}><AiCareerCoachChatInterface /></ProtectedRoute>} />
-        <Route path="/recruiter-dashboard-pipeline-management" element={<ProtectedRoute requireOnboarding={true}><RecruiterDashboardPipelineManagement /></ProtectedRoute>} />
+        <Route path="/company-dashboard-pipeline-management" element={<ProtectedRoute requireOnboarding={true}><CompanyDashboardPipelineManagement /></ProtectedRoute>} />
+        {/* Keep the old route for backward compatibility */}
+        <Route path="/recruiter-dashboard-pipeline-management" element={<ProtectedRoute requireOnboarding={true}><CompanyDashboardPipelineManagement /></ProtectedRoute>} />
         <Route path="/candidate-profile-evaluation-interface" element={<ProtectedRoute requireOnboarding={true}><CandidateProfileEvaluationInterface /></ProtectedRoute>} />
         <Route path="/job-search-application-hub" element={<ProtectedRoute requireOnboarding={true}><JobSearchApplicationHub /></ProtectedRoute>} />
         <Route path="/admin-dashboard-system-management" element={<ProtectedRoute><AdminDashboardSystemManagement /></ProtectedRoute>} />

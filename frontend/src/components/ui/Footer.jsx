@@ -12,7 +12,8 @@ const Footer = () => {
       { label: 'Features', href: '/about-contact-page#features' },
       { label: 'Pricing', href: '/about-contact-page#pricing' },
       { label: 'For Job Seekers', href: '/job-seeker-onboarding-wizard' },
-      { label: 'For Employers', href: '/recruiter-employer-onboarding-wizard' },
+      { label: 'For Recruiters', href: '/recruiter-onboarding-wizard' },
+      { label: 'For Companies', href: '/company-onboarding-wizard' },
     ],
     resources: [
       { label: 'Resource Library', href: '/resource-library' },
@@ -60,7 +61,7 @@ const Footer = () => {
             <p className="mt-4 text-sm text-muted-foreground max-w-xs">
               The AI-powered hiring platform connecting talent with opportunity through intelligent matching and bias-free recruitment tools.
             </p>
-            
+
             {/* Social links */}
             <div className="mt-6 flex space-x-4">
               {socialLinks.map((link) => (
@@ -77,7 +78,7 @@ const Footer = () => {
               ))}
             </div>
           </div>
-          
+
           {/* Link sections */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category} className="col-span-1">
@@ -99,13 +100,13 @@ const Footer = () => {
             </div>
           ))}
         </div>
-        
+
         {/* Footer bottom section with copyright and policies */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center">
           <p className="text-xs text-muted-foreground">
             &copy; {currentYear} FyndrAI. All rights reserved.
           </p>
-          
+
           <div className="mt-4 sm:mt-0 flex flex-wrap justify-center space-x-4">
             <Link
               to="/about-contact-page/privacy"

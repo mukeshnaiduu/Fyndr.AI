@@ -89,8 +89,20 @@ const UserProfileDropdown = ({ className = '' }) => {
   };
 
   const handleProfileEdit = () => {
-    console.log('Edit profile clicked');
     setIsOpen(false);
+    // Navigate based on user role
+    const role = user?.role;
+    if (role === 'company') {
+      window.location.href = '/company-profile-management';
+    } else if (role === 'recruiter') {
+      window.location.href = '/recruiter-profile-management';
+    } else if (role === 'job_seeker') {
+      window.location.href = '/profile-management';
+    } else if (role === 'administrator') {
+      window.location.href = '/admin-profile-management';
+    } else {
+      window.location.href = '/profile-management';
+    }
   };
 
   const handleSettings = () => {
@@ -101,8 +113,12 @@ const UserProfileDropdown = ({ className = '' }) => {
   const getRoleLabel = (role) => {
     const labels = {
       jobseeker: 'Job Seeker',
+      job_seeker: 'Job Seeker',
+      company: 'Company',
       recruiter: 'Recruiter',
-      admin: 'Administrator'
+      employer: 'Employer',
+      admin: 'Administrator',
+      administrator: 'Administrator'
     };
     return labels[role] || role;
   };
@@ -110,8 +126,12 @@ const UserProfileDropdown = ({ className = '' }) => {
   const getRoleIcon = (role) => {
     const icons = {
       jobseeker: 'User',
+      job_seeker: 'User',
+      company: 'Building',
       recruiter: 'Briefcase',
-      admin: 'Shield'
+      employer: 'Briefcase',
+      admin: 'Shield',
+      administrator: 'Shield'
     };
     return icons[role] || 'User';
   };
@@ -129,15 +149,19 @@ const UserProfileDropdown = ({ className = '' }) => {
       >
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
           {user.avatar ? (
-            <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+            <img src={user.avatar} alt={user.name || ''} className="w-full h-full rounded-full object-cover" />
           ) : (
             <span className="text-white text-sm font-medium">
-              {user.name ? user.name.split(' ').map(n => n[0]).join('') : '?'}
+              {user && (user.name || (user.first_name && user.last_name)) ?
+                (user.name ? user.name.split(' ') : [user.first_name, user.last_name]).map(n => n[0]).join('')
+                : '?'}
             </span>
           )}
         </div>
         <div className="hidden md:block text-left">
-          <div className="text-sm font-medium text-foreground">{user.name}</div>
+          <div className="text-sm font-medium text-foreground">
+            {user.name || (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email)}
+          </div>
           <div className="text-xs text-muted-foreground">{getRoleLabel(currentRole)}</div>
         </div>
         <Icon
@@ -155,15 +179,19 @@ const UserProfileDropdown = ({ className = '' }) => {
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                 {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                  <img src={user.avatar} alt={user.name || ''} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   <span className="text-white font-medium">
-                    {user.name.split(' ').map(n => n[0]).join('')}
+                    {user && (user.name || (user.first_name && user.last_name)) ?
+                      (user.name ? user.name.split(' ') : [user.first_name, user.last_name]).map(n => n[0]).join('')
+                      : '?'}
                   </span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-foreground truncate">{user.name}</div>
+                <div className="font-medium text-foreground truncate">
+                  {user.name || (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email)}
+                </div>
                 <div className="text-sm text-muted-foreground truncate">{user.email}</div>
                 <div className="text-xs text-accent font-medium">{user.role}</div>
               </div>
@@ -180,7 +208,7 @@ const UserProfileDropdown = ({ className = '' }) => {
                     key={role}
                     onClick={() => handleRoleSwitch(role)}
                     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${currentRole === role
-                        ? 'bg-primary/20 text-primary border border-primary/30' : 'text-foreground hover:bg-white/10'
+                      ? 'bg-primary/20 text-primary border border-primary/30' : 'text-foreground hover:bg-white/10'
                       }`}
                   >
                     <Icon name={getRoleIcon(role)} size={16} />
@@ -201,7 +229,10 @@ const UserProfileDropdown = ({ className = '' }) => {
               className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-white/10 transition-all duration-200"
             >
               <Icon name="User" size={16} />
-              <span>Edit Profile</span>
+              <span>{user.role === 'company' ? 'Company Profile Management' :
+                user.role === 'recruiter' ? 'Recruiter Profile Management' :
+                  user.role === 'job_seeker' ? 'Profile Management' :
+                    user.role === 'administrator' ? 'Admin Profile Management' : 'Profile Management'}</span>
             </button>
 
             <button
