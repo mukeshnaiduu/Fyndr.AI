@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
 from .models import JobPosting
-from .serializers import JobPostingSerializer, JobPostingListSerializer
+from .serializers import JobPostingSerializer, JobPostingListSerializer, RecruiterJobSerializer
+from .permissions import IsRecruiter
 
 
 class JobPostingViewSet(viewsets.ReadOnlyModelViewSet):
@@ -19,6 +20,10 @@ class JobPostingViewSet(viewsets.ReadOnlyModelViewSet):
     # Filtering options
     filterset_fields = {
         'source': ['exact', 'in'],
+        'source_type': ['exact', 'in'],
+        'application_mode': ['exact', 'in'],
+        'recruiter_owner': ['exact'],
+        'is_active': ['exact'],
         'location': ['icontains', 'exact'],
         'company': ['icontains', 'exact'],
         'date_posted': ['gte', 'lte', 'exact'],
@@ -99,6 +104,26 @@ class JobPostingViewSet(viewsets.ReadOnlyModelViewSet):
         if date_to:
             queryset = queryset.filter(date_posted__lte=date_to)
         
+        # Optional explicit params
+        recruiter_owner = self.request.query_params.get('recruiter_owner')
+        if recruiter_owner:
+            queryset = queryset.filter(recruiter_owner_id=recruiter_owner)
+
+        source_type = self.request.query_params.get('source_type')
+        if source_type:
+            queryset = queryset.filter(source_type=source_type)
+
+        application_mode = self.request.query_params.get('application_mode')
+        if application_mode:
+            queryset = queryset.filter(application_mode=application_mode)
+
+        is_active = self.request.query_params.get('is_active')
+        if is_active is not None:
+            if is_active in ['true', 'True', '1']:
+                queryset = queryset.filter(is_active=True)
+            elif is_active in ['false', 'False', '0']:
+                queryset = queryset.filter(is_active=False)
+
         return queryset
     
     @action(detail=False, methods=['get'])
@@ -139,3 +164,64 @@ class JobPostingViewSet(viewsets.ReadOnlyModelViewSet):
         self.request.query_params['country'] = 'india'
         
         return self.list(request)
+
+
+class RecruiterJobViewSet(viewsets.ModelViewSet):
+    """CRUD for recruiter-posted jobs. Recruiter-only."""
+    permission_classes = [IsRecruiter]
+    serializer_class = RecruiterJobSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return JobPosting.objects.filter(
+            source_type='recruiter', recruiter_owner=user
+        ).annotate(applications_count=Count('applications')).order_by('-updated_at')
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        # Emit WS events
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                payload = {
+                    'type': 'job_created',
+                    'job': {
+                        'id': instance.id,
+                        'title': instance.title,
+                        'company': instance.company,
+                        'application_mode': instance.application_mode,
+                        'source_type': instance.source_type,
+                    }
+                }
+                async_to_sync(channel_layer.group_send)(f"recruiter_{self.request.user.id}", payload)
+                async_to_sync(channel_layer.group_send)("job_feed", payload)
+        except Exception:
+            pass
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                payload = {
+                    'type': 'job_updated',
+                    'job': {
+                        'id': instance.id,
+                        'title': instance.title,
+                        'company': instance.company,
+                        'application_mode': instance.application_mode,
+                        'source_type': instance.source_type,
+                    }
+                }
+                async_to_sync(channel_layer.group_send)(f"recruiter_{self.request.user.id}", payload)
+                async_to_sync(channel_layer.group_send)("job_feed", payload)
+        except Exception:
+            pass
+
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save(update_fields=['is_active', 'updated_at'])

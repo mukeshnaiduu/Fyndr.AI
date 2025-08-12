@@ -17,6 +17,7 @@ import hashlib
 
 from django.utils import timezone
 from .models import JobPosting, ScrapingLog
+from .simple_job_parser import parse_job_content
 
 
 logger = logging.getLogger(__name__)
@@ -163,13 +164,13 @@ class BaseScraper(ABC):
     
     def normalize_job(self, raw_job_data: Dict) -> Dict:
         """
-        Normalize raw job data into the standard schema.
+        Normalize raw job data into the standard schema using comprehensive parsing.
         
         Args:
             raw_job_data (Dict): Raw job data from the source
             
         Returns:
-            Dict: Normalized job data matching our schema
+            Dict: Normalized job data matching our comprehensive schema
         """
         # Extract and clean the required fields
         title = self.clean_text(raw_job_data.get('title', ''))
@@ -188,6 +189,7 @@ class BaseScraper(ABC):
         if raw_job_data.get('date_posted'):
             date_posted = self.parse_date(raw_job_data['date_posted'])
         
+        # Start with basic normalized job data
         normalized_job = {
             'external_id': external_id,
             'title': title,
@@ -200,10 +202,109 @@ class BaseScraper(ABC):
             'date_scraped': timezone.now()
         }
         
-        # Add optional fields if present
-        optional_fields = ['salary_min', 'salary_max', 'employment_type', 'experience_level']
+        # Use comprehensive job parser for enhanced field extraction
+        try:
+            # Get HTML content for parsing
+            html_content = raw_job_data.get('html_content', '')
+            
+            # Parse comprehensive job information
+            parsed_data = parse_job_content(
+                html_content=html_content,
+                text_content=description,
+                url=url
+            )
+            
+            # Integrate parsed data with normalized job
+            # Job Classification
+            if parsed_data.get('job_type'):
+                normalized_job['job_type'] = parsed_data['job_type']
+            if parsed_data.get('employment_mode'):
+                normalized_job['employment_mode'] = parsed_data['employment_mode']
+            if parsed_data.get('experience_level'):
+                normalized_job['experience_level'] = parsed_data['experience_level']
+            if parsed_data.get('education_level'):
+                normalized_job['education_level'] = parsed_data['education_level']
+            
+            # Job Content
+            if parsed_data.get('responsibilities'):
+                normalized_job['responsibilities'] = parsed_data['responsibilities']
+            if parsed_data.get('requirements'):
+                normalized_job['requirements'] = parsed_data['requirements']
+            if parsed_data.get('skills_required'):
+                normalized_job['skills_required'] = parsed_data['skills_required']
+            if parsed_data.get('skills_preferred'):
+                normalized_job['skills_preferred'] = parsed_data['skills_preferred']
+            if parsed_data.get('tools_technologies'):
+                normalized_job['tools_technologies'] = parsed_data['tools_technologies']
+            if parsed_data.get('certifications'):
+                normalized_job['certifications'] = parsed_data['certifications']
+            
+            # Compensation & Benefits
+            if parsed_data.get('salary_min'):
+                normalized_job['salary_min'] = parsed_data['salary_min']
+            if parsed_data.get('salary_max'):
+                normalized_job['salary_max'] = parsed_data['salary_max']
+            if parsed_data.get('currency'):
+                normalized_job['currency'] = parsed_data['currency']
+            if parsed_data.get('compensation_type'):
+                normalized_job['compensation_type'] = parsed_data['compensation_type']
+            if parsed_data.get('benefits'):
+                normalized_job['benefits'] = parsed_data['benefits']
+            if parsed_data.get('bonus_equity'):
+                normalized_job['bonus_equity'] = parsed_data['bonus_equity']
+            
+            # Company Insights
+            if parsed_data.get('company_size'):
+                normalized_job['company_size'] = parsed_data['company_size']
+            if parsed_data.get('industry'):
+                normalized_job['industry'] = parsed_data['industry']
+            if parsed_data.get('company_website'):
+                normalized_job['company_website'] = parsed_data['company_website']
+            
+            # Recruitment Details
+            if parsed_data.get('application_deadline'):
+                normalized_job['application_deadline'] = parsed_data['application_deadline']
+            if parsed_data.get('hiring_manager'):
+                normalized_job['hiring_manager'] = parsed_data['hiring_manager']
+            if parsed_data.get('number_of_openings'):
+                normalized_job['number_of_openings'] = parsed_data['number_of_openings']
+            
+            # Contextual Data
+            if parsed_data.get('visa_sponsorship') is not None:
+                normalized_job['visa_sponsorship'] = parsed_data['visa_sponsorship']
+            if parsed_data.get('relocation_assistance') is not None:
+                normalized_job['relocation_assistance'] = parsed_data['relocation_assistance']
+            if parsed_data.get('travel_requirements'):
+                normalized_job['travel_requirements'] = parsed_data['travel_requirements']
+            if parsed_data.get('languages_required'):
+                normalized_job['languages_required'] = parsed_data['languages_required']
+            
+            # ML Enrichments
+            if parsed_data.get('job_category'):
+                normalized_job['job_category'] = parsed_data['job_category']
+            if parsed_data.get('seniority_score'):
+                normalized_job['seniority_score'] = parsed_data['seniority_score']
+            if parsed_data.get('keywords'):
+                normalized_job['keywords'] = parsed_data['keywords']
+            if parsed_data.get('projects_portfolio_examples'):
+                normalized_job['projects_portfolio_examples'] = parsed_data['projects_portfolio_examples']
+            
+            # Metadata
+            if parsed_data.get('parse_confidence'):
+                normalized_job['parse_confidence'] = parsed_data['parse_confidence']
+            if parsed_data.get('raw_data'):
+                normalized_job['raw_data'] = parsed_data['raw_data']
+                
+            logger.debug(f"Enhanced parsing completed for job: {title} with confidence: {parsed_data.get('parse_confidence', 0)}%")
+            
+        except Exception as e:
+            logger.warning(f"Enhanced parsing failed for job {title}, falling back to basic parsing: {str(e)}")
+            # Continue with basic normalization
+        
+        # Add any remaining optional fields from raw data
+        optional_fields = ['salary_min', 'salary_max', 'employment_type']
         for field in optional_fields:
-            if field in raw_job_data:
+            if field in raw_job_data and field not in normalized_job:
                 normalized_job[field] = raw_job_data[field]
         
         return normalized_job

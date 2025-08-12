@@ -77,13 +77,13 @@ class GreenhouseScraper(BaseScraper):
     
     def parse_data(self, raw_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Parse Greenhouse API response data.
+        Parse Greenhouse API response data and fetch detailed HTML content.
         
         Args:
             raw_data: List of job dictionaries from Greenhouse API
             
         Returns:
-            List of parsed job dictionaries
+            List of parsed job dictionaries with HTML content
         """
         parsed_jobs = []
         
@@ -101,6 +101,23 @@ class GreenhouseScraper(BaseScraper):
                     'departments': job_data.get('departments', []),
                     'offices': job_data.get('offices', []),
                 }
+                
+                # Fetch HTML content from job URL for comprehensive parsing
+                job_url = job_data.get('absolute_url')
+                if job_url:
+                    try:
+                        logger.debug(f"Fetching HTML content for job: {job_data.get('title')}")
+                        response = self.session.get(job_url, timeout=10)
+                        if response.status_code == 200:
+                            parsed_job['html_content'] = response.text
+                        else:
+                            logger.warning(f"Failed to fetch HTML content for {job_url}: Status {response.status_code}")
+                            parsed_job['html_content'] = ''
+                    except Exception as e:
+                        logger.warning(f"Error fetching HTML content for {job_url}: {str(e)}")
+                        parsed_job['html_content'] = ''
+                else:
+                    parsed_job['html_content'] = ''
                 
                 parsed_jobs.append(parsed_job)
                 
@@ -177,6 +194,10 @@ class GreenhouseScraper(BaseScraper):
         # Greenhouse content is usually HTML, we'll keep it as-is for now
         # In a production system, you might want to clean HTML tags
         return content if content else 'No description available'
+    
+    def _extract_html_content(self, job_data: Dict[str, Any]) -> str:
+        """Extract HTML content for comprehensive parsing."""
+        return job_data.get('html_content', '')
     
     def _extract_url(self, job_data: Dict[str, Any]) -> str:
         """Extract job URL from Greenhouse job data."""

@@ -1,5 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import jobsAPI from '../services/jobsAPI';
+
+// Debounce utility
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 export const useJobs = (initialParams = {}) => {
   const [jobs, setJobs] = useState([]);
@@ -9,26 +26,47 @@ export const useJobs = (initialParams = {}) => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState(initialParams);
+  const requestIdRef = useRef(0);
+  
+  // Use refs to store current values without causing re-renders
+  const filtersRef = useRef(filters);
+  const currentPageRef = useRef(currentPage);
+  
+  // Update refs when values change
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+  
+  useEffect(() => {
+    currentPageRef.current = currentPage;
+  }, [currentPage]);
 
   const fetchJobs = useCallback(async (params = {}, append = false) => {
+    const currentRequestId = ++requestIdRef.current;
+    
     try {
       setLoading(true);
       setError(null);
-      
-      const searchParams = { 
-        ...filters, 
+
+      const searchParams = {
+        ...filtersRef.current,
         ...params,
-        page: append ? currentPage + 1 : 1,
+        page: append ? currentPageRef.current + 1 : 1,
         pageSize: 20
       };
-      
+
       const response = await jobsAPI.fetchJobs(searchParams);
-      
+
+      // Only update if this is still the most recent request
+      if (currentRequestId !== requestIdRef.current) {
+        return; // Request was superseded
+      }
+
       // Transform API data to frontend format
-      const transformedJobs = response.results.map(job => 
+      const transformedJobs = response.results.map(job =>
         jobsAPI.transformJobData(job)
       );
-      
+
       if (append) {
         setJobs(prevJobs => [...prevJobs, ...transformedJobs]);
         setCurrentPage(prev => prev + 1);
@@ -36,23 +74,41 @@ export const useJobs = (initialParams = {}) => {
         setJobs(transformedJobs);
         setCurrentPage(1);
       }
-      
+
       setTotalCount(response.count);
       setHasMore(!!response.next);
-      
+
     } catch (err) {
-      setError(err.message);
+      // Only update if this is still the most recent request
+      if (currentRequestId !== requestIdRef.current) {
+        return; // Request was superseded
+      }
+      
       console.error('Error fetching jobs:', err);
+      
+      // Handle authentication errors gracefully
+      if (err.message.includes('Authentication required') || err.message.includes('401')) {
+        setError('Jobs loaded without personalization. Log in for personalized recommendations.');
+        console.warn('🔓 Loading jobs without authentication - limited features available');
+      } else if (err.message.includes('cooldown')) {
+        // Don't set error for cooldown - just wait
+        console.log('⏳ Request in cooldown, skipping...');
+      } else {
+        setError(err.message);
+      }
     } finally {
-      setLoading(false);
+      // Only update if this is still the most recent request
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
-  }, [filters, currentPage]);
+  }, []); // No dependencies - use refs for current values
 
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {
-      fetchJobs(filters, true);
+      fetchJobs(filtersRef.current, true);
     }
-  }, [fetchJobs, filters, loading, hasMore]);
+  }, [fetchJobs, loading, hasMore]);
 
   const updateFilters = useCallback((newFilters) => {
     setFilters(newFilters);
@@ -61,20 +117,37 @@ export const useJobs = (initialParams = {}) => {
 
   const refresh = useCallback(() => {
     setCurrentPage(1);
-    fetchJobs(filters, false);
-  }, [fetchJobs, filters]);
+    fetchJobs(filtersRef.current, false);
+  }, [fetchJobs]);
+
+  // Track if this is the initial load
+  const isInitialLoad = useRef(true);
+  const lastFiltersRef = useRef(JSON.stringify(initialParams));
 
   // Initial load
   useEffect(() => {
-    fetchJobs();
-  }, []);
-
-  // Reload when filters change
-  useEffect(() => {
-    if (Object.keys(filters).length > 0) {
-      fetchJobs(filters, false);
+    if (isInitialLoad.current) {
+      isInitialLoad.current = false;
+      fetchJobs();
     }
-  }, [filters, fetchJobs]);
+  }, []); // Empty dependencies - only run once on mount
+
+  // Reload when filters actually change
+  useEffect(() => {
+    const currentFiltersString = JSON.stringify(filters);
+    
+    // Only fetch if filters actually changed from last fetch
+    if (!isInitialLoad.current && currentFiltersString !== lastFiltersRef.current) {
+      lastFiltersRef.current = currentFiltersString;
+      
+      // Add a small delay to prevent rapid successive calls
+      const timeoutId = setTimeout(() => {
+        fetchJobs(filters, false);
+      }, 300);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [JSON.stringify(filters)]); // Use string comparison for stable dependency
 
   return {
     jobs,
@@ -95,24 +168,46 @@ export const useJobStats = (filters = {}) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const requestIdRef = useRef(0);
+  
+  // Debounce filters to prevent rapid API calls
+  const debouncedFilters = useDebounce(JSON.stringify(filters), 500);
 
   useEffect(() => {
     const fetchStats = async () => {
+      const currentRequestId = ++requestIdRef.current;
+      
       try {
         setLoading(true);
         setError(null);
-        const response = await jobsAPI.fetchJobStats(filters);
-        setStats(response);
+        const parsedFilters = JSON.parse(debouncedFilters);
+        const response = await jobsAPI.fetchJobStats(parsedFilters);
+        
+        // Only update if this is still the most recent request
+        if (currentRequestId === requestIdRef.current) {
+          setStats(response);
+        }
       } catch (err) {
-        setError(err.message);
-        console.error('Error fetching job stats:', err);
+        // Only update if this is still the most recent request
+        if (currentRequestId === requestIdRef.current) {
+          if (err.message.includes('cooldown')) {
+            // Don't set error for cooldown - just log and continue
+            console.log('⏳ Job stats request in cooldown, skipping...');
+          } else {
+            setError(err.message);
+            console.error('Error fetching job stats:', err);
+          }
+        }
       } finally {
-        setLoading(false);
+        // Only update if this is still the most recent request
+        if (currentRequestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchStats();
-  }, [filters]);
+  }, [debouncedFilters]);
 
   return { stats, loading, error };
 };
@@ -125,24 +220,46 @@ export const useFilterOptions = (filters = {}) => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const requestIdRef = useRef(0);
+  
+  // Debounce filters to prevent rapid API calls
+  const debouncedFilters = useDebounce(JSON.stringify(filters), 500);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
+      const currentRequestId = ++requestIdRef.current;
+      
       try {
         setLoading(true);
         setError(null);
-        const response = await jobsAPI.fetchFilterOptions(filters);
-        setFilterOptions(response);
+        const parsedFilters = JSON.parse(debouncedFilters);
+        const response = await jobsAPI.fetchFilterOptions(parsedFilters);
+        
+        // Only update if this is still the most recent request
+        if (currentRequestId === requestIdRef.current) {
+          setFilterOptions(response);
+        }
       } catch (err) {
-        setError(err.message);
-        console.error('Error fetching filter options:', err);
+        // Only update if this is still the most recent request
+        if (currentRequestId === requestIdRef.current) {
+          if (err.message.includes('cooldown')) {
+            // Don't set error for cooldown - just log and continue
+            console.log('⏳ Filter options request in cooldown, skipping...');
+          } else {
+            setError(err.message);
+            console.error('Error fetching filter options:', err);
+          }
+        }
       } finally {
-        setLoading(false);
+        // Only update if this is still the most recent request
+        if (currentRequestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchFilterOptions();
-  }, [filters]);
+  }, [debouncedFilters]);
 
   return { filterOptions, loading, error };
 };
@@ -154,7 +271,7 @@ export const useJobDetail = (jobId) => {
 
   const fetchJob = useCallback(async (id) => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
       setError(null);

@@ -30,6 +30,7 @@ import AiCareerCoachChatInterface from "pages/ai-career-coach-chat-interface";
 import CompanyDashboardPipelineManagement from "pages/company-dashboard-pipeline-management";
 import CandidateProfileEvaluationInterface from "pages/candidate-profile-evaluation-interface";
 import JobSearchApplicationHub from "pages/job-search-application-hub";
+import JobApplications from "pages/job-applications";
 import AdminDashboardSystemManagement from "pages/admin-dashboard-system-management";
 
 // Import pages from Project D
@@ -40,8 +41,12 @@ import AlumniNetworkReferrals from "pages/alumni-network-referrals";
 import VirtualCareerFair from "pages/virtual-career-fair";
 import HackathonsCompetitions from "pages/hackathons-competitions";
 
+// Import Real-Time Dashboard
+import RealTimeDashboard from "components/dashboard/RealTimeDashboard";
+
 // Import Not Found page
 import NotFound from "pages/NotFound";
+import GoogleCallback from "pages/oauth/GoogleCallback";
 
 const Routes = () => {
   return (
@@ -52,6 +57,7 @@ const Routes = () => {
         <Route path="/" element={<Homepage />} />
         <Route path="/homepage" element={<Homepage />} />
         <Route path="/authentication-login-register" element={<AuthenticationLoginRegister />} />
+  <Route path="/oauth/google/callback" element={<ProtectedRoute><GoogleCallback /></ProtectedRoute>} />
         <Route path="/about-contact-page" element={<ProtectedRoute requireOnboarding={true}><AboutContactPage /></ProtectedRoute>} />
         <Route path="/notifications-center" element={<ProtectedRoute requireOnboarding={true}><NotificationsCenter /></ProtectedRoute>} />
         <Route path="/profile-management" element={<ProtectedRoute requireOnboarding={true}><ProfileManagement /></ProtectedRoute>} />
@@ -81,6 +87,7 @@ const Routes = () => {
         <Route path="/recruiter-dashboard-pipeline-management" element={<ProtectedRoute requireOnboarding={true}><CompanyDashboardPipelineManagement /></ProtectedRoute>} />
         <Route path="/candidate-profile-evaluation-interface" element={<ProtectedRoute requireOnboarding={true}><CandidateProfileEvaluationInterface /></ProtectedRoute>} />
         <Route path="/job-search-application-hub" element={<ProtectedRoute requireOnboarding={true}><JobSearchApplicationHub /></ProtectedRoute>} />
+        <Route path="/job-applications" element={<ProtectedRoute requireOnboarding={true}><JobApplications /></ProtectedRoute>} />
         <Route path="/admin-dashboard-system-management" element={<ProtectedRoute><AdminDashboardSystemManagement /></ProtectedRoute>} />
 
         {/* Routes from Project D */}
@@ -90,6 +97,9 @@ const Routes = () => {
         <Route path="/alumni-network-referrals" element={<ProtectedRoute requireOnboarding={true}><AlumniNetworkReferrals /></ProtectedRoute>} />
         <Route path="/virtual-career-fair" element={<ProtectedRoute requireOnboarding={true}><VirtualCareerFair /></ProtectedRoute>} />
         <Route path="/hackathons-competitions" element={<ProtectedRoute requireOnboarding={true}><HackathonsCompetitions /></ProtectedRoute>} />
+
+        {/* Real-Time Dashboard */}
+        <Route path="/real-time-dashboard" element={<ProtectedRoute requireOnboarding={true}><RealTimeDashboard /></ProtectedRoute>} />
 
         {/* 404 Not Found Route */}
         <Route path="*" element={<NotFound />} />

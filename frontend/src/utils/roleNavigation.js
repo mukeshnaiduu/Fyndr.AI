@@ -15,16 +15,16 @@ export const JOB_SEEKER_NAV = {
       description: 'Your dashboard and overview'
     },
     {
-      label: 'Jobs',
+      label: 'AI Job Feed',
       path: ROUTES_B.JOB_FEED,
       icon: 'Briefcase',
-      description: 'Browse and apply to jobs'
+      description: 'AI-powered job recommendations'
     },
     {
-      label: 'Applications',
+      label: 'Job Search',
       path: ROUTES_C.JOB_SEARCH,
-      icon: 'ClipboardList',
-      description: 'Track your applications'
+      icon: 'Search',
+      description: 'Advanced job search and filtering'
     },
     {
       label: 'Learn',
@@ -92,7 +92,7 @@ export const JOB_SEEKER_NAV = {
     },
     {
       label: 'Applications',
-      path: ROUTES_C.JOB_SEARCH,
+      path: '/job-applications',
       icon: 'ClipboardCheck',
       description: 'View your job applications'
     },
@@ -127,10 +127,16 @@ export const RECRUITER_NAV = {
       description: 'Browse and evaluate candidates'
     },
     {
-      label: 'Jobs',
+      label: 'AI Job Feed',
       path: ROUTES_B.JOB_FEED,
       icon: 'Briefcase',
-      description: 'Manage job postings'
+      description: 'AI-powered job recommendations'
+    },
+    {
+      label: 'Job Search',
+      path: ROUTES_C.JOB_SEARCH,
+      icon: 'Search',
+      description: 'Advanced job search and management'
     },
     {
       label: 'Team',
@@ -174,7 +180,7 @@ export const RECRUITER_NAV = {
   profile: [
     {
       label: 'Profile',
-      path: '/profile-management',
+      path: '/recruiter-profile-management',
       icon: 'User',
       description: 'Manage your personal profile'
     },
@@ -209,10 +215,16 @@ export const EMPLOYER_NAV = {
       description: 'Company hiring overview'
     },
     {
-      label: 'Job Postings',
+      label: 'AI Job Feed',
       path: ROUTES_B.JOB_FEED,
       icon: 'Briefcase',
-      description: 'Create and manage job posts'
+      description: 'AI-powered job recommendations'
+    },
+    {
+      label: 'Job Search',
+      path: ROUTES_C.JOB_SEARCH,
+      icon: 'Search',
+      description: 'Advanced job search and management'
     },
     {
       label: 'Candidates',
@@ -472,7 +484,7 @@ export const getNavigationByRole = (role) => {
 const getRoleBasedProfilePath = (role) => {
   switch (role) {
     case 'recruiter':
-      return '/profile-management';
+      return '/recruiter-profile-management';
     case 'employer':
       return '/employer-profile-management';
     case 'company':

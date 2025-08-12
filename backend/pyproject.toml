@@ -75,14 +75,9 @@ exclude = [
 ]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "fyndr_backend.settings"
+DJANGO_SETTINGS_MODULE = "fyndr_backend.settings_test"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
-addopts = [
-    "--cov=.",
-    "--cov-report=html",
-    "--cov-report=term-missing",
-    "--cov-fail-under=80",
-]
+addopts = []
 testpaths = ["tests"]
 
 [tool.mypy]

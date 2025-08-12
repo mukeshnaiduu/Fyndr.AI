@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { getApiUrl } from 'utils/api';
+import tokenManager from 'utils/tokenManager';
 
 /**
  * Checks authentication and onboarding status, and redirects accordingly.
@@ -16,9 +17,7 @@ import { getApiUrl } from 'utils/api';
 import { useEffect, useState } from 'react';
 
 const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
-  const accessToken = localStorage.getItem('accessToken');
-  const isAuthenticatedFlag = localStorage.getItem('isAuthenticated') === 'true';
-  const isAuthenticated = !!accessToken && isAuthenticatedFlag;
+  const isAuthenticated = tokenManager.isAuthenticated();
 
   // Get user role from localStorage with fallback
   let userRole = localStorage.getItem('userRole');
@@ -68,6 +67,9 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
         const apiUrl = getApiUrl('/auth/profile/');
         console.log('ProtectedRoute - Calling API:', apiUrl);
 
+        // Use token manager to get valid token
+        const accessToken = await tokenManager.getValidAccessToken();
+
         const res = await fetch(apiUrl, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -114,7 +116,7 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
     };
 
     fetchOnboardingStatus();
-  }, [isAuthenticated, userRole, requireOnboarding, accessToken, onboardingKey]);
+  }, [isAuthenticated, userRole, requireOnboarding, onboardingKey]);
 
   if (!isAuthenticated) {
     console.log('ProtectedRoute - Not authenticated, redirecting to login');

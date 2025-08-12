@@ -81,11 +81,8 @@ const JobSearchApplicationHub = () => {
   };
 
   const handleViewJobDetails = (jobId) => {
-    // For now, just open the job URL in a new tab
-    const job = jobs.find(j => j.id === jobId);
-    if (job && job.url) {
-      window.open(job.url, '_blank');
-    }
+    // Navigate to job detail view with the job ID
+    window.location.href = `/job-detail-view?id=${jobId}`;
   };
 
   if (error) {

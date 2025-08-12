@@ -65,7 +65,7 @@ const RelatedJobs = ({ jobs }) => {
                     {job.title}
                   </h4>
                   <p className="text-xs text-muted-foreground truncate">
-                    {job.company}
+                    {typeof job.company === 'string' ? job.company : job.company?.name || 'Company name not available'}
                   </p>
                 </div>
               </div>

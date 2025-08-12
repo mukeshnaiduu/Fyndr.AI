@@ -8,6 +8,7 @@ import AuthForm from './components/AuthForm';
 import SocialAuthButtons from './components/SocialAuthButtons';
 import LoadingOverlay from './components/LoadingOverlay';
 import { apiRequest, getApiUrl } from 'utils/api';
+import tokenManager from 'utils/tokenManager';
 
 const AuthenticationPage = () => {
   const [authMode, setAuthMode] = useState('login');
@@ -79,10 +80,9 @@ const AuthenticationPage = () => {
       // LOGIN FLOW
       const result = await apiRequest(endpoint, 'POST', payload);
       if (result && result.access) {
-        // Store only JWT tokens in localStorage
-        localStorage.setItem('accessToken', result.access || '');
-        localStorage.setItem('refreshToken', result.refresh || '');
-        localStorage.setItem('isAuthenticated', 'true');
+        // Store JWT tokens using token manager
+        tokenManager.setTokens(result.access, result.refresh);
+        
         setLoadingMessage('Successfully authenticated! Checking onboarding status...');
         // Fetch onboarding status from backend
         const token = result.access;
@@ -222,8 +222,15 @@ const AuthenticationPage = () => {
       // Simulate OAuth flow
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Set authentication status
-      localStorage.setItem('isAuthenticated', 'true');
+      // Set authentication status using token manager (for demo)
+      // In real implementation, you'd get actual tokens from OAuth response
+      const demoTokens = {
+        access: 'demo_access_token',
+        refresh: 'demo_refresh_token'
+      };
+      
+      tokenManager.setTokens(demoTokens.access, demoTokens.refresh);
+      
       // Note: Social auth currently defaults to job_seeker role
       // In a real implementation, this should be determined by the OAuth response
       // or prompt the user to select their role after social login

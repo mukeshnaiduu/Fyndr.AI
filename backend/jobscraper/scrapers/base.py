@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date
 import time
+from ..logo_scraper import scrape_company_logo
 
 
 logger = logging.getLogger(__name__)
@@ -96,18 +97,39 @@ class BaseScraper(ABC):
         Returns:
             Normalized job dictionary with standard fields
         """
+        # Extract basic fields
+        company_name = self._extract_company(job_data)
+        job_url = self._extract_url(job_data)
+        
         # Standard schema fields
         normalized = {
             'external_id': self._extract_external_id(job_data),
             'title': self._extract_title(job_data),
-            'company': self._extract_company(job_data),
+            'company': company_name,
             'location': self._extract_location(job_data),
             'description': self._extract_description(job_data),
-            'url': self._extract_url(job_data),
+            'url': job_url,
             'source': self.source_name,
             'date_posted': self._extract_date_posted(job_data),
             'date_scraped': datetime.now().date(),
         }
+        
+        # Scrape company logo
+        try:
+            company_logo = scrape_company_logo(company_name, job_url)
+            if company_logo:
+                normalized['company_logo'] = company_logo
+                logger.info(f"Found logo for {company_name}: {company_logo}")
+            else:
+                logger.debug(f"No logo found for {company_name}")
+        except Exception as e:
+            logger.warning(f"Logo scraping failed for {company_name}: {e}")
+        
+        # Add HTML content if available (for comprehensive parsing)
+        if hasattr(self, '_extract_html_content'):
+            html_content = self._extract_html_content(job_data)
+            if html_content:
+                normalized['html_content'] = html_content
         
         # Remove None values
         return {k: v for k, v in normalized.items() if v is not None}

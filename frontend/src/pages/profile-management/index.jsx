@@ -11,6 +11,7 @@ import PersonalInfoTab from './components/PersonalInfoTab';
 import ProfessionalDetailsTab from './components/ProfessionalDetailsTab';
 import PreferencesTab from './components/PreferencesTab';
 import SecurityTab from './components/SecurityTab';
+import ApplicationsTab from './components/ApplicationsTab';
 import ProfileCompletionMeter from './components/ProfileCompletionMeter';
 
 
@@ -113,6 +114,12 @@ const ProfileManagement = () => {
       icon: 'Briefcase',
       component: ProfessionalDetailsTab
     },
+    ...(userProfile?.role === 'jobseeker' ? [{
+      id: 'applications',
+      label: 'Applications',
+      icon: 'ClipboardCheck',
+      component: ApplicationsTab
+    }] : []),
     {
       id: 'preferences',
       label: 'Preferences',

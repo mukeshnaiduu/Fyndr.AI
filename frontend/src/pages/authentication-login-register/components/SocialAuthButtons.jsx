@@ -1,14 +1,35 @@
 import React, { useState } from 'react';
 import Button from 'components/ui/Button';
+import { apiRequest } from 'utils/api';
+import tokenManager from 'utils/tokenManager';
 
 
 const SocialAuthButtons = ({ onSocialAuth, isLoading }) => {
   const [rippleButton, setRippleButton] = useState(null);
 
-  const handleSocialClick = (provider) => {
+  const handleSocialClick = async (provider) => {
     setRippleButton(provider);
     setTimeout(() => setRippleButton(null), 300);
-    onSocialAuth(provider);
+    if (provider === 'google') {
+      // Real Google OAuth connect flow: requires authenticated user
+      if (!tokenManager.isAuthenticated()) {
+        // Defer to parent handler (may simulate or show login)
+        return onSocialAuth && onSocialAuth(provider);
+      }
+      try {
+  // Remember next path for post-connect
+  try { localStorage.setItem('postGoogleConnectNext', window.location.pathname || '/job-applications'); } catch {}
+  const res = await apiRequest('/auth/oauth/google/init/', 'GET');
+        if (res && res.authorize_url) {
+          window.location.href = res.authorize_url;
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to start Google OAuth:', e);
+      }
+      return;
+    }
+    onSocialAuth && onSocialAuth(provider);
   };
 
   return (

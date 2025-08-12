@@ -1,37 +1,83 @@
 import React from 'react';
+import Button from 'components/ui/Button';
 
-const JobFeedFilters = ({ onFilter }) => {
-    return (
-        <aside className="hidden lg:block lg:col-span-2">
-            <div className="bg-glass-card rounded-card p-4 mb-6">
-                <h2 className="font-bold text-lg mb-4">Filters</h2>
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Job Type</label>
-                        <select className="w-full bg-background border border-glass-border rounded px-2 py-1">
-                            <option>All</option>
-                            <option>Full-time</option>
-                            <option>Part-time</option>
-                            <option>Contract</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Location</label>
-                        <input type="text" className="w-full bg-background border border-glass-border rounded px-2 py-1" placeholder="Enter location" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Salary Range</label>
-                        <input type="range" min="50000" max="250000" className="w-full" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Remote Only</label>
-                        <input type="checkbox" className="mr-2" /> Yes
-                    </div>
-                </div>
-                <button className="mt-6 w-full bg-primary text-primary-foreground py-2 rounded font-semibold">Apply Filters</button>
-            </div>
-        </aside>
-    );
+const JobFeedFilters = ({ activeFilters, onFilterChange }) => {
+  const locationOptions = ['Remote', 'New York', 'San Francisco', 'London', 'Berlin'];
+  const jobTypeOptions = ['Full-time', 'Part-time', 'Contract', 'Internship'];
+  const experienceOptions = ['Entry', 'Mid', 'Senior', 'Lead'];
+
+  const handleFilterToggle = (filterType, value) => {
+    const currentValues = activeFilters[filterType] || [];
+    const newValues = currentValues.includes(value)
+      ? currentValues.filter(v => v !== value)
+      : [...currentValues, value];
+    
+    onFilterChange({
+      ...activeFilters,
+      [filterType]: newValues
+    });
+  };
+
+  return (
+    <div className="flex items-center space-x-4">
+      {/* Location Filter */}
+      <div className="relative">
+        <select 
+          className="bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          onChange={(e) => {
+            if (e.target.value) {
+              handleFilterToggle('location', e.target.value);
+              e.target.value = '';
+            }
+          }}
+          defaultValue=""
+        >
+          <option value="" disabled>Location</option>
+          {locationOptions.map(location => (
+            <option key={location} value={location}>{location}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Job Type Filter */}
+      <div className="relative">
+        <select 
+          className="bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          onChange={(e) => {
+            if (e.target.value) {
+              handleFilterToggle('jobType', e.target.value);
+              e.target.value = '';
+            }
+          }}
+          defaultValue=""
+        >
+          <option value="" disabled>Job Type</option>
+          {jobTypeOptions.map(type => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Experience Filter */}
+      <div className="relative">
+        <select 
+          className="bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          onChange={(e) => {
+            if (e.target.value) {
+              handleFilterToggle('experience', e.target.value);
+              e.target.value = '';
+            }
+          }}
+          defaultValue=""
+        >
+          <option value="" disabled>Experience</option>
+          {experienceOptions.map(exp => (
+            <option key={exp} value={exp}>{exp}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
 };
 
 export default JobFeedFilters;

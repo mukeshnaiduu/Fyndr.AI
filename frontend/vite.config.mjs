@@ -23,10 +23,22 @@ export default defineConfig({
     port: "4028",
     host: "0.0.0.0",
     strictPort: true,
-    allowedHosts: ['.amazonaws.com', '.builtwithrocket.new'],
+    allowedHosts: ['.amazonaws.com', '.builtwithrocket.new', '.app.github.dev'],
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, options) => {
+          // Add headers for better CORS support
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('Access-Control-Allow-Origin', '*');
+          });
+        }
+      },
+      '/ws': {
+        target: 'ws://127.0.0.1:8000',
+        ws: true,
         changeOrigin: true,
         secure: false,
       },

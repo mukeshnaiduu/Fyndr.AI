@@ -4,7 +4,8 @@ from .views import (
     JobSeekerProfileView, RecruiterProfileView, CompanyProfileView,
     JobSeekerOnboardingView, RecruiterOnboardingView, CompanyOnboardingView,  # Backward compatibility
     CompanyRecruiterInvitationView, CompanyRecruiterResponseView, RecruiterCompanySelectionView,
-    FileUploadView, FileServeView
+    FileUploadView, FileServeView,
+    GoogleAuthInitView, GoogleAuthCallbackView, GoogleDisconnectView, GoogleAuthStatusView
 )
 
 urlpatterns = [
@@ -12,6 +13,11 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('profile/', ProfileView.as_view(), name='profile'),
+    # Google OAuth
+    path('oauth/google/init/', GoogleAuthInitView.as_view(), name='google-oauth-init'),
+    path('oauth/google/callback/', GoogleAuthCallbackView.as_view(), name='google-oauth-callback'),
+    path('oauth/google/disconnect/', GoogleDisconnectView.as_view(), name='google-oauth-disconnect'),
+    path('oauth/google/status/', GoogleAuthStatusView.as_view(), name='google-oauth-status'),
     
     # File Upload and Serving
     path('upload/', FileUploadView.as_view(), name='file-upload'),

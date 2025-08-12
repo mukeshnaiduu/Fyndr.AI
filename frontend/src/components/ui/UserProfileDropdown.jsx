@@ -110,6 +110,11 @@ const UserProfileDropdown = ({ className = '' }) => {
     setIsOpen(false);
   };
 
+  const handleJobApplications = () => {
+    setIsOpen(false);
+    window.location.href = '/job-applications';
+  };
+
   const getRoleLabel = (role) => {
     const labels = {
       jobseeker: 'Job Seeker',
@@ -234,6 +239,17 @@ const UserProfileDropdown = ({ className = '' }) => {
                   user.role === 'job_seeker' ? 'Profile Management' :
                     user.role === 'administrator' ? 'Admin Profile Management' : 'Profile Management'}</span>
             </button>
+
+            {/* Job Applications - Only for job seekers */}
+            {(user.role === 'job_seeker' || user.role === 'jobseeker') && (
+              <button
+                onClick={handleJobApplications}
+                className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-white/10 transition-all duration-200"
+              >
+                <Icon name="FileText" size={16} />
+                <span>Job Applications</span>
+              </button>
+            )}
 
             <button
               onClick={handleSettings}
