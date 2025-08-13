@@ -15,6 +15,7 @@ import MainLayout from 'components/layout/MainLayout';
 
 const CompanyDashboard = () => {
     const [activeView, setActiveView] = useState('overview');
+    const [selectedJobId, setSelectedJobId] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     const metricsData = [
@@ -98,8 +99,26 @@ const CompanyDashboard = () => {
                 </div>
             </div>
         ),
-        candidates: <CandidateTable />,
-        jobs: <JobPostingManagement />,
+        candidates: (
+            selectedJobId ? (
+                <CandidateTable jobId={selectedJobId} />
+            ) : (
+                <div className="glassmorphic-card p-10 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                        <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M3 7h18" />
+                                <path d="M3 12h18" />
+                                <path d="M3 17h18" />
+                            </svg>
+                        </span>
+                        <h3 className="text-lg font-semibold text-foreground">Select a job to view candidates</h3>
+                        <p className="text-sm text-muted-foreground">Go to the Job Postings tab and pick a job to see its applicant pipeline here.</p>
+                    </div>
+                </div>
+            )
+        ),
+        jobs: <JobPostingManagement selectedJobId={selectedJobId} onSelectJob={(id) => { setSelectedJobId(id); setActiveView('candidates'); }} />,
         analytics: <DEIMetrics />
     };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import MainLayout from 'components/layout/MainLayout'
 import SidebarLayout from 'components/layout/SidebarLayout';
@@ -8,294 +8,245 @@ import JobCard from './components/JobCard';
 // import FilterSidebar from './components/FilterSidebar';
 import SortDropdown from './components/SortDropdown';
 import JobDetailModal from './components/JobDetailModal';
+import QuickApplyModal from 'components/QuickApplyModal';
 import SavedJobsSection from './components/SavedJobsSection';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
+import { useJobs, useJobStats, useFilterOptions } from '../../hooks/useJobs';
+import { clearInvalidTokens } from '../../utils/auth';
+
+// Dynamic imports for real-time features
+import { useRealTimeConnection, useRealTimeJobMatching, useRealTimeApplications } from "../../services/hooks/useRealTime";
+import jobApplicationService from "../../services/jobApplicationService";
+import dynamicAPI from "../../services/dynamicAPI";
+import realTimeService from "../../services/realTimeService";
+import { useApplications } from "../../hooks/useApplications";
+import showToast from 'utils/showToast';
+import { apiRequest } from '../../utils/api';
 
 const JobSearchApplicationHub = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState('');
-  const [filters, setFilters] = useState({});
   const [sortBy, setSortBy] = useState('relevance');
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [isJobDetailOpen, setIsJobDetailOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [currentView, setCurrentView] = useState('search'); // 'search' or 'saved'
-
-  // Mock job data
-  const [jobs, setJobs] = useState([
-    {
-      id: 1,
-      title: "Senior Frontend Developer",
-      company: {
-        name: "TechCorp Solutions",
-        logo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center",
-        size: "500-1000 employees",
-        headquarters: "San Francisco, CA",
-        founded: "2015",
-        industry: "Technology",
-        description: "TechCorp Solutions is a leading technology company focused on innovation and excellence in software development."
-      },
-      location: "San Francisco, CA",
-      type: "Full-time",
-      remote: true,
-      salary: { min: 120, max: 180 },
-      matchPercentage: 95,
-      description: "We are looking for a Senior Frontend Developer to join our dynamic team. You will be responsible for building user-facing features using modern JavaScript frameworks and ensuring optimal user experience across all devices.",
-      skills: ["React", "TypeScript", "JavaScript", "CSS", "Node.js", "GraphQL"],
-      applicationStatus: "not-applied",
-      postedDate: "2025-01-07T10:00:00Z",
-      isSaved: false,
-      teamSize: "8-12 people",
-      requirements: {
-        minimum: [
-          "Bachelor\'s degree in Computer Science or related field",
-          "5+ years of experience with React and JavaScript",
-          "Strong understanding of web development fundamentals",
-          "Experience with version control systems (Git)"
-        ],
-        preferred: [
-          "Experience with TypeScript and modern build tools",
-          "Knowledge of testing frameworks (Jest, React Testing Library)",
-          "Familiarity with cloud platforms (AWS, Azure, GCP)",
-          "Previous experience in agile development environments"
-        ]
-      },
-      benefits: [
-        "Health, Dental & Vision Insurance",
-        "401(k) with Company Match",
-        "Unlimited PTO",
-        "Remote Work Options",
-        "Professional Development Budget",
-        "Stock Options"
-      ]
-    },
-    {
-      id: 2,
-      title: "Full Stack Engineer",
-      company: {
-        name: "InnovateLab",
-        logo: "https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=100&h=100&fit=crop&crop=center",
-        size: "50-200 employees",
-        headquarters: "Austin, TX",
-        founded: "2018",
-        industry: "Software",
-        description: "InnovateLab is a fast-growing startup building the next generation of productivity tools."
-      },
-      location: "Austin, TX",
-      type: "Full-time",
-      remote: false,
-      salary: { min: 100, max: 140 },
-      matchPercentage: 88,
-      description: "Join our team as a Full Stack Engineer and help build scalable web applications that serve millions of users. You\'ll work with cutting-edge technologies and collaborate with a talented team of engineers.",
-      skills: ["React", "Node.js", "Python", "PostgreSQL", "AWS", "Docker"],
-      applicationStatus: "applied",
-      postedDate: "2025-01-06T14:30:00Z",
-      isSaved: true,
-      teamSize: "5-8 people",
-      benefits: [
-        "Health Insurance",
-        "Flexible Hours",
-        "Catered Meals",
-        "Gym Membership",
-        "Learning Budget"
-      ]
-    },
-    {
-      id: 3,
-      title: "React Developer",
-      company: {
-        name: "StartupXYZ",
-        logo: "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=100&h=100&fit=crop&crop=center",
-        size: "10-50 employees",
-        headquarters: "New York, NY",
-        founded: "2020",
-        industry: "Fintech",
-        description: "StartupXYZ is revolutionizing the financial technology space with innovative solutions."
-      },
-      location: "New York, NY",
-      type: "Contract",
-      remote: true,
-      salary: { min: 80, max: 120 },
-      matchPercentage: 82,
-      description: "We\'re seeking a talented React Developer to join our growing team. You\'ll be working on exciting projects that directly impact our users\' financial well-being.",
-      skills: ["React", "JavaScript", "Redux", "Material-UI", "Jest"],
-      applicationStatus: "not-applied",
-      postedDate: "2025-01-05T09:15:00Z",
-      isSaved: false,
-      teamSize: "3-5 people",
-      benefits: [
-        "Health Insurance",
-        "Remote Work",
-        "Flexible Schedule",
-        "Professional Development"
-      ]
-    },
-    {
-      id: 4,
-      title: "UI/UX Developer",
-      company: {
-        name: "DesignStudio Pro",
-        logo: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=100&h=100&fit=crop&crop=center",
-        size: "200-500 employees",
-        headquarters: "Los Angeles, CA",
-        founded: "2012",
-        industry: "Design",
-        description: "DesignStudio Pro creates beautiful and functional digital experiences for leading brands."
-      },
-      location: "Los Angeles, CA",
-      type: "Full-time",
-      remote: true,
-      salary: { min: 90, max: 130 },
-      matchPercentage: 75,
-      description: "Looking for a UI/UX Developer who can bridge the gap between design and development. You'll work closely with our design team to bring mockups to life.",
-      skills: ["React", "CSS", "Figma", "JavaScript", "SASS", "Responsive Design"],
-      applicationStatus: "reviewing",
-      postedDate: "2025-01-04T16:45:00Z",
-      isSaved: true,
-      teamSize: "6-10 people",
-      benefits: [
-        "Health & Dental Insurance",
-        "Creative Freedom",
-        "Design Tools Budget",
-        "Flexible Hours"
-      ]
-    },
-    {
-      id: 5,
-      title: "JavaScript Engineer",
-      company: {
-        name: "CodeCraft Inc",
-        logo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&h=100&fit=crop&crop=center",
-        size: "100-300 employees",
-        headquarters: "Seattle, WA",
-        founded: "2016",
-        industry: "Software Development",
-        description: "CodeCraft Inc specializes in building custom software solutions for enterprise clients."
-      },
-      location: "Seattle, WA",
-      type: "Full-time",
-      remote: false,
-      salary: { min: 110, max: 150 },
-      matchPercentage: 70,
-      description: "We\'re looking for a JavaScript Engineer to join our development team. You\'ll work on various client projects and help maintain our internal tools and frameworks.",
-      skills: ["JavaScript", "Vue.js", "Node.js", "MongoDB", "Express", "Git"],
-      applicationStatus: "not-applied",
-      postedDate: "2025-01-03T11:20:00Z",
-      isSaved: false,
-      teamSize: "10-15 people",
-      benefits: [
-        "Comprehensive Health Coverage",
-        "401(k) Matching",
-        "Paid Time Off",
-        "Professional Training"
-      ]
-    },
-    {
-      id: 6,
-      title: "Frontend Architect",
-      company: {
-        name: "MegaCorp Enterprise",
-        logo: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=100&h=100&fit=crop&crop=center",
-        size: "1000+ employees",
-        headquarters: "Chicago, IL",
-        founded: "2005",
-        industry: "Enterprise Software",
-        description: "MegaCorp Enterprise provides comprehensive business solutions to Fortune 500 companies."
-      },
-      location: "Chicago, IL",
-      type: "Full-time",
-      remote: true,
-      salary: { min: 150, max: 200 },
-      matchPercentage: 92,
-      description: "Lead our frontend architecture initiatives and mentor junior developers. You\'ll be responsible for making key technical decisions and ensuring code quality across all projects.",
-      skills: ["React", "TypeScript", "Architecture", "Mentoring", "GraphQL", "Microservices"],
-      applicationStatus: "interview",
-      postedDate: "2025-01-02T08:30:00Z",
-      isSaved: true,
-      teamSize: "20+ people",
-      benefits: [
-        "Premium Health Insurance",
-        "Stock Options",
-        "Unlimited PTO",
-        "Executive Training",
-        "Relocation Assistance"
-      ]
-    }
-  ]);
-
   const [savedJobs, setSavedJobs] = useState([]);
+  const [appliedJobs, setAppliedJobs] = useState(new Set());
+  const { quickApply } = useApplications();
 
+  // Real-time features state
+  const [realTimeMode, setRealTimeMode] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [jobScores, setJobScores] = useState({});
+  const [liveJobUpdates, setLiveJobUpdates] = useState([]);
+  const [quickApplyJob, setQuickApplyJob] = useState(null);
+  const [quickApplyOpen, setQuickApplyOpen] = useState(false);
+  const [dynamicInsights, setDynamicInsights] = useState(null);
+  const [realTimeStats, setRealTimeStats] = useState({
+    activeJobs: 0,
+    newJobs: 0,
+    matchingJobs: 0,
+    totalViews: 0
+  });
+
+  // Dynamic hooks
+  const { isConnected } = useRealTimeConnection();
+  const {
+    matches,
+    startMatching,
+    stopMatching
+  } = useRealTimeJobMatching();
+
+  const { applyDynamically } = useRealTimeApplications();
+
+  // Define static filter objects to prevent infinite re-renders
+  const indiaFilters = useMemo(() => ({ country: 'india' }), []);
+
+  // Use real data hooks with static filter reference
+  const {
+    jobs,
+    loading,
+    error,
+    hasMore,
+    totalCount,
+    filters,
+    loadMore,
+    updateFilters,
+    refresh
+  } = useJobs(indiaFilters); // Start with India jobs
+
+  const { stats } = useJobStats(indiaFilters);
+  const { filterOptions } = useFilterOptions(indiaFilters);
+
+  // On mount, quickly verify backend DB health to surface environment issues early
   useEffect(() => {
-    // Filter saved jobs
-    setSavedJobs(jobs.filter(job => job.isSaved));
+    (async () => {
+      try {
+        const health = await apiRequest('/applications/health/');
+        const ok = !!health?.ok;
+        const hasApps = !!health?.tables?.jobapplier_application;
+        const hasJobs = !!health?.tables?.jobscraper_jobposting;
+        if (!ok || !hasApps || !hasJobs) {
+          showToast('Backend DB not migrated or tables missing. Please run migrations on the active backend.', 'warning');
+        }
+      } catch (e) {
+        // Non-blocking; just surface a helpful hint
+        showToast('Backend health check failed. Ensure the API target is reachable and migrated.', 'error');
+      }
+    })();
+  }, []);
+
+  // Initialize saved jobs from localStorage
+  useEffect(() => {
+    const savedJobIds = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    setSavedJobs(jobs.filter(job => savedJobIds.includes(job.id)));
   }, [jobs]);
+
+  // Initialize applied jobs from localStorage
+  useEffect(() => {
+    const appliedJobIds = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+    setAppliedJobs(new Set(appliedJobIds));
+  }, []);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    updateFilters({
+      ...filters,
+      search: query,
+      location: location
+    });
   };
-
   const handleLocationChange = (newLocation) => {
     setLocation(newLocation);
+    updateFilters({
+      ...filters,
+      location: newLocation
+    });
   };
 
   const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
+    updateFilters(newFilters);
   };
 
   const handleApplyFilters = (newFilters) => {
-    setFilters(newFilters);
+    updateFilters(newFilters);
     setIsFilterSidebarOpen(false);
   };
 
   const handleClearFilters = () => {
-    setFilters({});
+    updateFilters({});
   };
 
   const handleRemoveFilter = (filterKey) => {
     const newFilters = { ...filters };
     delete newFilters[filterKey];
-    setFilters(newFilters);
+    updateFilters(newFilters);
   };
 
   const handleClearAllFilters = () => {
-    setFilters({});
+    updateFilters({});
   };
 
   const handleSortChange = (newSort) => {
     setSortBy(newSort);
+    let ordering = '';
+    switch (newSort) {
+      case 'date':
+        ordering = '-date_posted';
+        break;
+      case 'relevance':
+        ordering = '-date_scraped';
+        break;
+      case 'company':
+        ordering = 'company';
+        break;
+      default:
+        ordering = '-date_posted';
+    }
+    updateFilters({ ...filters, ordering });
   };
 
   const handleJobSave = (jobId, saved) => {
-    setJobs(prevJobs =>
-      prevJobs.map(job =>
-        job.id === jobId ? { ...job, isSaved: saved } : job
-      )
-    );
+    // Update localStorage for saved jobs
+    const savedJobIds = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    if (saved) {
+      if (!savedJobIds.includes(jobId)) {
+        savedJobIds.push(jobId);
+      }
+    } else {
+      const index = savedJobIds.indexOf(jobId);
+      if (index > -1) {
+        savedJobIds.splice(index, 1);
+      }
+    }
+    localStorage.setItem('savedJobs', JSON.stringify(savedJobIds));
+
+    // Update local saved jobs state
+    if (saved) {
+      const job = jobs.find(j => j.id === jobId);
+      if (job) {
+        setSavedJobs(prev => [...prev, { ...job, isSaved: true }]);
+      }
+    } else {
+      setSavedJobs(prev => prev.filter(job => job.id !== jobId));
+    }
   };
 
   const handleJobApply = async (jobId) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        showToast('Please log in to apply for jobs', 'warning');
+        return;
+      }
 
-    setJobs(prevJobs =>
-      prevJobs.map(job =>
-        job.id === jobId ? { ...job, applicationStatus: 'applied' } : job
-      )
-    );
+      // Redirect-first for consistency
+  const job = jobs.find(j => j.id === jobId) || { id: jobId };
+      const result = await jobApplicationService.redirectAndRecord(job, { notes: 'User redirected from job hub' });
+
+      showToast(result.already_applied
+        ? 'You already applied to this job. Showing your existing application.'
+        : 'Opened careers site and recorded your application.', 'success');
+
+      // Update local state to track applied jobs
+  const updatedAppliedJobs = new Set(appliedJobs);
+      updatedAppliedJobs.add(jobId);
+      setAppliedJobs(updatedAppliedJobs);
+
+      const appliedJobsArray = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+      if (!appliedJobsArray.includes(jobId)) {
+        appliedJobsArray.push(jobId);
+        localStorage.setItem('appliedJobs', JSON.stringify(appliedJobsArray));
+      }
+
+    } catch (error) {
+      console.error('Error applying to job:', error);
+
+  showToast(error.message || 'Failed to apply for job', 'error');
+    }
   };
 
   const handleViewJobDetails = (jobId) => {
     const job = jobs.find(j => j.id === jobId);
     setSelectedJob(job);
     setIsJobDetailOpen(true);
+  };
+
+  const handleQuickApply = async (jobId) => {
+    const job = jobs.find(j => j.id === jobId);
+    if (job?.application_mode === 'quick' || job?.source_type === 'recruiter') {
+      setQuickApplyJob(job);
+      setQuickApplyOpen(true);
+      return;
+    }
+    try {
+      const res = await quickApply(jobId, 'dynamic');
+      showToast(res?.message || 'Attempted Quick Apply (Beta).', 'success');
+    } catch (e) {
+      showToast(e?.message || 'Quick Apply failed.', 'error');
+    }
   };
 
   const handleCloseJobDetail = () => {
@@ -307,48 +258,143 @@ const JobSearchApplicationHub = () => {
     handleJobSave(jobId, false);
   };
 
-  const filteredJobs = jobs.filter(job => {
-    // Apply search filter
-    if (searchQuery && !job.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !job.company.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !job.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))) {
-      return false;
-    }
-
-    // Apply location filter
-    if (location && !job.location.toLowerCase().includes(location.toLowerCase()) &&
-      !(location.toLowerCase() === 'remote' && job.remote)) {
-      return false;
-    }
-
-    // Apply other filters
-    if (filters.salaryMin && job.salary.min < parseInt(filters.salaryMin)) return false;
-    if (filters.salaryMax && job.salary.max > parseInt(filters.salaryMax)) return false;
-    if (filters.jobType && job.type.toLowerCase() !== filters.jobType.toLowerCase()) return false;
-    if (filters.remote && !job.remote) return false;
-    if (filters.skills && !job.skills.some(skill =>
-      skill.toLowerCase().includes(filters.skills.toLowerCase())
-    )) return false;
-
-    return true;
-  });
-
-  const sortedJobs = [...filteredJobs].sort((a, b) => {
+  // Simple sorting logic for display (API handles main filtering)
+  const sortedJobs = [...jobs].sort((a, b) => {
     switch (sortBy) {
       case 'date':
         return new Date(b.postedDate) - new Date(a.postedDate);
-      case 'salary-high':
-        return (b.salary.max || 0) - (a.salary.max || 0);
-      case 'salary-low':
-        return (a.salary.min || 0) - (b.salary.min || 0);
-      case 'match':
-        return b.matchPercentage - a.matchPercentage;
+      case 'relevance':
+        return (b.matchPercentage || 0) - (a.matchPercentage || 0);
       case 'company':
         return a.company.name.localeCompare(b.company.name);
-      default: // relevance
-        return b.matchPercentage - a.matchPercentage;
+      default:
+        return new Date(b.postedDate) - new Date(a.postedDate);
     }
   });
+
+  // Display stats
+  const displayStats = stats || { total_jobs: jobs.length };
+
+  // Real-time mode toggle
+  const handleRealTimeModeToggle = useCallback(async () => {
+    if (!userProfile) {
+      // Mock user profile for demo
+      const mockProfile = {
+        skills: ['React', 'JavaScript', 'Node.js', 'Python', 'TypeScript'],
+        experience_level: 'senior',
+        preferred_locations: ['San Francisco', 'Remote', 'New York'],
+        salary_expectations: { min: 120000, max: 180000 }
+      };
+      setUserProfile(mockProfile);
+    }
+
+    if (realTimeMode) {
+      // Stop real-time matching
+      await stopMatching();
+      setRealTimeMode(false);
+      console.log('🛑 Real-time job matching disabled');
+    } else {
+      // Start real-time matching
+      setRealTimeMode(true);
+      console.log('🚀 Real-time job matching enabled');
+    }
+  }, [realTimeMode, userProfile, stopMatching]);
+
+  // Real-time job matching updates
+  useEffect(() => {
+    if (matches.length > 0 && realTimeMode) {
+      console.log('📈 Received real-time job matches:', matches);
+
+      // Update job scores with real-time data
+      const updatedScores = {};
+      matches.forEach(match => {
+        updatedScores[match.job_id] = {
+          score: match.match_score,
+          percentage: Math.round((match.match_score || 0) * 100),
+          lastUpdate: new Date().toISOString(),
+          isRealTime: true
+        };
+      });
+
+      setJobScores(updatedScores);
+
+      // Update live job updates feed
+      const newUpdates = matches.map(match => ({
+        id: `match-${match.job_id}-${Date.now()}`,
+        type: 'match',
+        jobId: match.job_id,
+        message: `New ${Math.round((match.match_score || 0) * 100)}% match found`,
+        timestamp: new Date().toISOString()
+      }));
+
+      setLiveJobUpdates(prev => [...newUpdates, ...prev].slice(0, 10));
+
+      // Update real-time stats
+      setRealTimeStats(prev => ({
+        ...prev,
+        matchingJobs: matches.length,
+        newJobs: prev.newJobs + newUpdates.length
+      }));
+    }
+  }, [matches, realTimeMode]);
+
+  // Real-time insights and analytics
+  useEffect(() => {
+    if (realTimeMode && jobs.length > 0) {
+      const insights = {
+        topSkills: jobs.reduce((acc, job) => {
+          if (job.skills) {
+            job.skills.forEach(skill => {
+              acc[skill] = (acc[skill] || 0) + 1;
+            });
+          }
+          return acc;
+        }, {}),
+        salaryTrends: {
+          average: jobs.reduce((sum, job) => {
+            const salary = job.salary?.min || 0;
+            return sum + salary;
+          }, 0) / jobs.length,
+          range: {
+            min: Math.min(...jobs.map(job => job.salary?.min || 0)),
+            max: Math.max(...jobs.map(job => job.salary?.max || 0))
+          }
+        },
+        locationDistribution: jobs.reduce((acc, job) => {
+          const location = job.location || 'Unknown';
+          acc[location] = (acc[location] || 0) + 1;
+          return acc;
+        }, {}),
+        companyTypes: jobs.reduce((acc, job) => {
+          const type = job.company?.size || 'Unknown';
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        }, {})
+      };
+
+      setDynamicInsights(insights);
+    }
+  }, [realTimeMode, jobs]);
+
+  // Initialize user profile on mount
+  useEffect(() => {
+    // Clear any invalid tokens first
+    clearInvalidTokens();
+    
+    const mockProfile = {
+      id: 1,
+      skills: ['React', 'JavaScript', 'Node.js', 'Python', 'TypeScript'],
+      experience_level: 'senior',
+      preferred_locations: ['San Francisco', 'Remote', 'New York'],
+      salary_expectations: { min: 120000, max: 180000 },
+      job_preferences: {
+        employment_types: ['Full-time'],
+        remote_work: true,
+        company_size: ['startup', 'medium']
+      }
+    };
+    setUserProfile(mockProfile);
+  }, []);
 
   return (
     <MainLayout
@@ -407,6 +453,42 @@ const JobSearchApplicationHub = () => {
                 </button>
               </div>
 
+              {/* Real-time controls and insights */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="text-sm font-medium">
+                    {isConnected ? 'Connected' : 'Disconnected'}
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleRealTimeModeToggle}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${realTimeMode
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                  {realTimeMode ? '⚡ Live Matching' : '🔄 Enable Live Matching'}
+                </button>
+
+                {realTimeMode && (
+                  <div className="flex items-center space-x-4 text-sm">
+                    {matches.length > 0 && (
+                      <div className="text-green-600 font-medium">
+                        {matches.length} live matches
+                      </div>
+                    )}
+                    <div className="text-blue-600">
+                      {realTimeStats.newJobs} new jobs
+                    </div>
+                    <div className="text-purple-600">
+                      {realTimeStats.matchingJobs} matches
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {currentView === 'search' && (
                 <div className="flex items-center space-x-3">
                   <Button
@@ -427,6 +509,69 @@ const JobSearchApplicationHub = () => {
               )}
             </div>
 
+            {/* Real-time insights panel */}
+            {realTimeMode && dynamicInsights && (
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <h3 className="text-lg font-semibold text-green-700">Live Market Insights</h3>
+                  </div>
+                  <span className="text-sm text-green-600">
+                    Updated {new Date().toLocaleTimeString()}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-white/60 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Average Salary</h4>
+                    <p className="text-2xl font-bold text-green-600">
+                      ${Math.round(dynamicInsights.salaryTrends.average).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/60 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Top Skill</h4>
+                    <p className="text-lg font-semibold text-blue-600">
+                      {Object.keys(dynamicInsights.topSkills).sort((a, b) =>
+                        dynamicInsights.topSkills[b] - dynamicInsights.topSkills[a]
+                      )[0] || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/60 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Active Jobs</h4>
+                    <p className="text-2xl font-bold text-purple-600">{jobs.length}</p>
+                  </div>
+
+                  <div className="bg-white/60 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Match Rate</h4>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {Math.round((realTimeStats.matchingJobs / Math.max(jobs.length, 1)) * 100)}%
+                    </p>
+                  </div>
+                </div>
+
+                {/* Live updates feed */}
+                {liveJobUpdates.length > 0 && (
+                  <div className="mt-4 bg-white/60 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Live Updates</h4>
+                    <div className="space-y-2 max-h-24 overflow-y-auto">
+                      {liveJobUpdates.slice(0, 3).map(update => (
+                        <div key={update.id} className="text-sm text-gray-600 flex items-center space-x-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                          <span>{update.message}</span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(update.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Active Filters */}
             {currentView === 'search' && Object.keys(filters).length > 0 && (
               <div className="mb-6">
@@ -445,7 +590,7 @@ const JobSearchApplicationHub = () => {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-2">
                     <h2 className="text-xl font-semibold text-foreground">
-                      {sortedJobs.length} Job{sortedJobs.length !== 1 ? 's' : ''} Found
+                      {totalCount} Job{totalCount !== 1 ? 's' : ''} Found in India
                     </h2>
                     {searchQuery && (
                       <span className="text-muted-foreground">
@@ -453,6 +598,24 @@ const JobSearchApplicationHub = () => {
                       </span>
                     )}
                   </div>
+                  
+                  {error && (
+                    <div className="flex items-center space-x-2">
+                      {error.includes('Authentication') ? (
+                        <div className="bg-warning/10 border border-warning/20 rounded-lg px-3 py-2">
+                          <span className="text-warning text-sm">
+                            ⚠️ {error}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="bg-error/10 border border-error/20 rounded-lg px-3 py-2">
+                          <span className="text-error text-sm">
+                            ❌ Error: {error}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Job Grid */}
@@ -477,15 +640,47 @@ const JobSearchApplicationHub = () => {
                   </div>
                 ) : sortedJobs.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {sortedJobs.map((job) => (
-                      <JobCard
-                        key={job.id}
-                        job={job}
-                        onSave={handleJobSave}
-                        onApply={handleJobApply}
-                        onViewDetails={handleViewJobDetails}
-                      />
-                    ))}
+                    {sortedJobs.map((job) => {
+                      const jobScore = jobScores[job.id];
+                      const enhancedJob = {
+                        ...job,
+                        applicationStatus: appliedJobs.has(job.id) ? 'applied' : 'not-applied',
+                        isRealTime: realTimeMode && jobScore?.isRealTime,
+                        matchPercentage: jobScore?.percentage || job.matchPercentage || Math.floor(Math.random() * 40) + 60,
+                        lastRealTimeUpdate: jobScore?.lastUpdate,
+                        // Add comprehensive job data if missing
+                        description: job.description || 'Join our team and make an impact in a dynamic environment with opportunities for growth and development.',
+                        skills: job.skills || ['Communication', 'Problem Solving', 'Teamwork'],
+                        requirements: job.requirements || [
+                          'Bachelor\'s degree or equivalent experience',
+                          '2+ years of relevant experience',
+                          'Strong analytical skills'
+                        ],
+                        benefits: job.benefits || ['Health Insurance', 'PTO', '401k'],
+                        workEnvironment: job.workEnvironment || 'Collaborative team environment with flexible work arrangements',
+                        applicationDeadline: job.applicationDeadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        company: {
+                          ...job.company,
+                          size: job.company?.size || 'Medium',
+                          logo: job.company?.logo || '/placeholder-logo.png'
+                        },
+                        salary: {
+                          ...job.salary,
+                          type: job.salary?.type || 'annual'
+                        }
+                      };
+
+                      return (
+                        <JobCard
+                          key={job.id}
+                          job={enhancedJob}
+                          onSave={handleJobSave}
+                          onApply={handleJobApply}
+                          onQuickApply={handleQuickApply}
+                          onViewDetails={handleViewJobDetails}
+                        />
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="bg-muted p-12 rounded-xl shadow text-center">
@@ -510,13 +705,7 @@ const JobSearchApplicationHub = () => {
                   <div className="text-center mt-8">
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        setLoading(true);
-                        setTimeout(() => {
-                          setLoading(false);
-                          setHasMore(false);
-                        }, 1000);
-                      }}
+                      onClick={loadMore}
                       iconName="ChevronDown"
                       iconPosition="right"
                     >
@@ -544,9 +733,23 @@ const JobSearchApplicationHub = () => {
           isOpen={isJobDetailOpen}
           onClose={handleCloseJobDetail}
           onApply={handleJobApply}
+          onQuickApply={handleQuickApply}
           onSave={handleJobSave}
         />
       </SidebarLayout>
+      {/* Quick Apply Modal */}
+      <QuickApplyModal
+        isOpen={quickApplyOpen}
+        job={quickApplyJob}
+        onClose={() => setQuickApplyOpen(false)}
+        onSuccess={() => {
+          const msg = document.createElement('div');
+          msg.className = 'fixed top-20 right-4 bg-green-600 text-white px-4 py-2 rounded-lg z-50';
+          msg.textContent = 'Application submitted';
+          document.body.appendChild(msg);
+          setTimeout(() => document.body.removeChild(msg), 3000);
+        }}
+      />
     </MainLayout>
   );
 };

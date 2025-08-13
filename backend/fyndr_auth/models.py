@@ -1,5 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
+from django.utils import timezone
+from .utils.crypto import encrypt_text, decrypt_text
 
 class User(AbstractUser):
     ROLE_CHOICES = [
@@ -245,3 +248,107 @@ class CompanyRecruiterRelationship(models.Model):
         
     def __str__(self):
         return f"Company: {self.company.company_name} - Recruiter: {self.recruiter.full_name} ({self.role})"
+
+
+class PortalCredentials(models.Model):
+    """Encrypted credentials for ATS/company portals per user/company."""
+    PROVIDER_CHOICES = [
+        ('greenhouse', 'Greenhouse'),
+        ('lever', 'Lever'),
+        ('workday', 'Workday'),
+        ('site', 'Company Site'),
+    ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='portal_credentials')
+    provider = models.CharField(max_length=50, choices=PROVIDER_CHOICES)
+    company_domain = models.CharField(max_length=255, blank=True)
+    username_encrypted = models.BinaryField()
+    password_encrypted = models.BinaryField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'provider', 'company_domain')
+
+    @property
+    def username(self) -> str:
+        from .utils.crypto import decrypt_text
+        try:
+            return decrypt_text(self.username_encrypted)
+        except Exception:
+            return ''
+
+    @property
+    def password(self) -> str:
+        from .utils.crypto import decrypt_text
+        try:
+            return decrypt_text(self.password_encrypted)
+        except Exception:
+            return ''
+
+    @classmethod
+    def upsert(cls, user, provider: str, username: str, password: str, company_domain: str = ''):
+        from .utils.crypto import encrypt_text
+        obj, _ = cls.objects.update_or_create(
+            user=user,
+            provider=provider,
+            company_domain=company_domain,
+            defaults={
+                'username_encrypted': encrypt_text(username),
+                'password_encrypted': encrypt_text(password),
+            }
+        )
+        return obj
+
+
+class OAuthToken(models.Model):
+    """Stores OAuth tokens for providers like Google (Gmail).
+
+    Tokens are stored encrypted at rest. Access tokens are optional; refresh tokens are
+    sufficient for future API access. Scopes and expiry are tracked for UX.
+    """
+    PROVIDER_CHOICES = [
+        ('google', 'Google'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='oauth_tokens')
+    provider = models.CharField(max_length=50, choices=PROVIDER_CHOICES)
+    sub = models.CharField(max_length=255, blank=True)  # Provider-specific subject/user id
+    scope = models.TextField(blank=True)
+    access_token_encrypted = models.BinaryField(blank=True, null=True)
+    refresh_token_encrypted = models.BinaryField(blank=True, null=True)
+    token_type = models.CharField(max_length=50, blank=True)
+    expires_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'provider')
+
+    @property
+    def access_token(self) -> str:
+        if not self.access_token_encrypted:
+            return ''
+        try:
+            return decrypt_text(self.access_token_encrypted)
+        except Exception:
+            return ''
+
+    @access_token.setter
+    def access_token(self, value: str):
+        self.access_token_encrypted = encrypt_text(value) if value else None
+
+    @property
+    def refresh_token(self) -> str:
+        if not self.refresh_token_encrypted:
+            return ''
+        try:
+            return decrypt_text(self.refresh_token_encrypted)
+        except Exception:
+            return ''
+
+    @refresh_token.setter
+    def refresh_token(self, value: str):
+        self.refresh_token_encrypted = encrypt_text(value) if value else None
+
+    def is_expired(self) -> bool:
+        return bool(self.expires_at and timezone.now() >= self.expires_at)

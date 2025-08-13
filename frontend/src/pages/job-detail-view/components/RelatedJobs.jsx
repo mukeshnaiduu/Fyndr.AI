@@ -44,7 +44,7 @@ const RelatedJobs = ({ jobs }) => {
         </div>
       </div>
 
-      <div 
+      <div
         ref={scrollRef}
         className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -65,16 +65,15 @@ const RelatedJobs = ({ jobs }) => {
                     {job.title}
                   </h4>
                   <p className="text-xs text-muted-foreground truncate">
-                    {job.company}
+                    {typeof job.company === 'string' ? job.company : job.company?.name || 'Company name not available'}
                   </p>
                 </div>
               </div>
-              <div className={`text-xs font-medium px-2 py-1 rounded ${
-                job.matchPercentage >= 80 
-                  ? 'bg-success/10 text-success' 
-                  : job.matchPercentage >= 60 
-                  ? 'bg-warning/10 text-warning' :'bg-error/10 text-error'
-              }`}>
+              <div className={`text-xs font-medium px-2 py-1 rounded ${job.matchPercentage >= 80
+                  ? 'bg-success/10 text-success'
+                  : job.matchPercentage >= 60
+                    ? 'bg-warning/10 text-warning' : 'bg-error/10 text-error'
+                }`}>
                 {job.matchPercentage}%
               </div>
             </div>

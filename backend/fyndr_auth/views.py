@@ -1,5 +1,5 @@
 
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -148,6 +148,14 @@ from django.utils.decorators import method_decorator
 from django.views import View
 import os
 import base64
+from datetime import timedelta
+from urllib.parse import urlencode
+from django.conf import settings
+from django.shortcuts import redirect
+import json as pyjson
+import time
+import requests
+from .models import OAuthToken
 
 
 class FileServeView(APIView):
@@ -383,6 +391,156 @@ class FileUploadView(APIView):
             
         except Exception as e:
             return Response({'error': f'Upload failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ==========================
+# Google OAuth 2.0 Endpoints
+# ==========================
+
+GOOGLE_AUTH_BASE = 'https://accounts.google.com/o/oauth2/v2/auth'
+GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
+GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
+GOOGLE_SCOPES = ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/gmail.readonly']
+
+
+def _google_client_config():
+    client_id = os.getenv('GOOGLE_OAUTH_CLIENT_ID', '')
+    client_secret = os.getenv('GOOGLE_OAUTH_CLIENT_SECRET', '')
+    redirect_uri = os.getenv('GOOGLE_OAUTH_REDIRECT_URI', '') or settings.ALLOWED_HOSTS[0].rstrip('/') if getattr(settings, 'ALLOWED_HOSTS', []) else ''
+    # Ensure fully-qualified redirect and prefer frontend callback path
+    if redirect_uri and not redirect_uri.startswith('http'):
+        redirect_uri = f"https://{redirect_uri}/oauth/google/callback"
+    elif not redirect_uri:
+        # Local dev default to Vite dev server callback route
+        redirect_uri = "http://localhost:5173/oauth/google/callback"
+    return client_id, client_secret, redirect_uri
+
+
+class GoogleAuthInitView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        client_id, _, redirect_uri = _google_client_config()
+        state = base64.urlsafe_b64encode(os.urandom(24)).decode('utf-8')
+        request.session['google_oauth_state'] = state
+        # Optional: remember where to return to
+        next_url = request.GET.get('next', '/job-applications')
+        request.session['google_oauth_next'] = next_url
+        params = {
+            'client_id': client_id,
+            'redirect_uri': redirect_uri,
+            'response_type': 'code',
+            'scope': ' '.join(GOOGLE_SCOPES),
+            'access_type': 'offline',
+            'include_granted_scopes': 'true',
+            'state': state,
+            'prompt': 'consent',  # force refresh_token on subsequent connects
+        }
+        url = f"{GOOGLE_AUTH_BASE}?{urlencode(params)}"
+        return Response({'authorize_url': url})
+
+
+class GoogleAuthCallbackView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        # This endpoint can be hit by the browser without auth; retrieve the user via a short-lived JWT optional
+        code = request.GET.get('code')
+        state = request.GET.get('state')
+        if not code:
+            return Response({'error': 'Missing code'}, status=400)
+        # Validate state if present in session
+        try:
+            if 'google_oauth_state' in request.session and state != request.session.get('google_oauth_state'):
+                return Response({'error': 'Invalid state parameter'}, status=400)
+        except Exception:
+            pass
+
+        client_id, client_secret, redirect_uri = _google_client_config()
+        data = {
+            'code': code,
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'redirect_uri': redirect_uri,
+            'grant_type': 'authorization_code',
+        }
+        try:
+            token_res = requests.post(GOOGLE_TOKEN_URL, data=data, timeout=15)
+            token_res.raise_for_status()
+            tokens = token_res.json()
+        except Exception as e:
+            return Response({'error': f'Google token exchange failed: {str(e)}'}, status=400)
+
+        id_token = tokens.get('id_token')
+        access_token = tokens.get('access_token')
+        refresh_token = tokens.get('refresh_token')
+        expires_in = tokens.get('expires_in') or 0
+
+        # Fetch userinfo for email/sub
+        try:
+            ui = requests.get(GOOGLE_USERINFO_URL, headers={'Authorization': f'Bearer {access_token}'}, timeout=10)
+            ui.raise_for_status()
+            userinfo = ui.json()
+        except Exception:
+            userinfo = {}
+
+        email = userinfo.get('email')
+        sub = userinfo.get('sub')
+        scope = tokens.get('scope', ' '.join(GOOGLE_SCOPES))
+        token_type = tokens.get('token_type', 'Bearer')
+        expires_at = timezone.now() + timedelta(seconds=int(expires_in)) if expires_in else None
+
+        # Determine the authenticated user: if session has user, use it; else reject for now
+        if not request.user.is_authenticated:
+            return Response({'error': 'User not authenticated in session'}, status=401)
+
+        # Upsert OAuthToken
+        oauth, _ = OAuthToken.objects.get_or_create(user=request.user, provider='google')
+        oauth.sub = sub or oauth.sub
+        oauth.scope = scope
+        oauth.token_type = token_type
+        oauth.expires_at = expires_at
+        if access_token:
+            oauth.access_token = access_token
+        if refresh_token:
+            oauth.refresh_token = refresh_token
+        oauth.save()
+
+        # Optional: mark email_confirmed on latest application if we want immediate UX feedback is separate flow
+        return Response({
+            'success': True,
+            'email': email,
+            'scopes': scope.split(),
+            'has_refresh_token': bool(refresh_token),
+        })
+
+
+class GoogleDisconnectView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        OAuthToken.objects.filter(user=request.user, provider='google').delete()
+        return Response({'success': True})
+
+
+class GoogleAuthStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            token = OAuthToken.objects.filter(user=request.user, provider='google').first()
+            if not token:
+                return Response({
+                    'connected': False,
+                })
+            return Response({
+                'connected': True,
+                'scopes': token.scope.split() if token.scope else [],
+                'expires_at': token.expires_at.isoformat() if token.expires_at else None,
+                'has_refresh_token': bool(token.refresh_token_encrypted),
+            })
+        except Exception as e:
+            return Response({'connected': False, 'error': str(e)}, status=200)
 
 
 class RegisterView(generics.CreateAPIView):

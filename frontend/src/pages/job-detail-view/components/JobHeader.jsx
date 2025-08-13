@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 
-const JobHeader = ({ jobData, onBookmark, onShare, onApply, jobHeaderTop }) => {
+const JobHeader = ({ jobData, onBookmark, onShare, onApply, onQuickApply, quickApplying = false, jobHeaderTop }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
 
@@ -33,7 +33,9 @@ const JobHeader = ({ jobData, onBookmark, onShare, onApply, jobHeaderTop }) => {
               <h1 className="font-heading font-semibold text-lg text-foreground truncate">
                 {jobData.title}
               </h1>
-              <p className="text-sm text-muted-foreground">{jobData.company}</p>
+              <p className="text-sm text-muted-foreground">
+                {typeof jobData.company === 'string' ? jobData.company : jobData.company?.name || 'Company name not available'}
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -48,6 +50,18 @@ const JobHeader = ({ jobData, onBookmark, onShare, onApply, jobHeaderTop }) => {
               <Icon name="Send" size={16} />
               <span>Apply Now</span>
             </Button>
+            {onQuickApply && (
+              <Button
+                variant="outline"
+                className="ml-2 border-dashed"
+                onClick={onQuickApply}
+                disabled={quickApplying}
+                title="Quick Apply (Beta): may auto-fill and attempt automation on external forms"
+              >
+                <Icon name="Zap" size={16} />
+                <span>Quick Apply (Beta)</span>
+              </Button>
+            )}
             <Button variant="ghost" className="ml-2">
               <Icon name="MessageSquare" size={16} /> Ask questions
             </Button>
@@ -67,7 +81,9 @@ const JobHeader = ({ jobData, onBookmark, onShare, onApply, jobHeaderTop }) => {
               <h1 className="font-heading font-bold text-2xl text-foreground mb-1">
                 {jobData.title}
               </h1>
-              <p className="text-lg text-muted-foreground mb-2">{jobData.company}</p>
+              <p className="text-lg text-muted-foreground mb-2">
+                {typeof jobData.company === 'string' ? jobData.company : jobData.company?.name || 'Company name not available'}
+              </p>
               <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                 <div className="flex items-center space-x-1">
                   <Icon name="MapPin" size={16} />
@@ -79,7 +95,12 @@ const JobHeader = ({ jobData, onBookmark, onShare, onApply, jobHeaderTop }) => {
                 </div>
                 <div className="flex items-center space-x-1">
                   <Icon name="DollarSign" size={16} />
-                  <span>{jobData.salary}</span>
+                  <span>
+                    {jobData.salary?.min && jobData.salary?.max
+                      ? `$${jobData.salary.min.toLocaleString()} - $${jobData.salary.max.toLocaleString()}`
+                      : jobData.salary?.text || (typeof jobData.salary === 'string' ? jobData.salary : 'Salary not disclosed')
+                    }
+                  </span>
                 </div>
               </div>
             </div>
@@ -97,6 +118,18 @@ const JobHeader = ({ jobData, onBookmark, onShare, onApply, jobHeaderTop }) => {
               <Icon name="Send" size={16} />
               <span>Apply Now</span>
             </Button>
+            {onQuickApply && (
+              <Button
+                variant="outline"
+                className="ml-2 border-dashed"
+                onClick={onQuickApply}
+                disabled={quickApplying}
+                title="Quick Apply (Beta): may auto-fill and attempt automation on external forms"
+              >
+                <Icon name="Zap" size={16} />
+                <span>Quick Apply (Beta)</span>
+              </Button>
+            )}
             <Button variant="ghost" className="ml-2">
               <Icon name="MessageSquare" size={16} /> Ask questions
             </Button>

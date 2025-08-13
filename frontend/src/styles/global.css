@@ -63,6 +63,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -77,6 +78,7 @@
     transform: translateX(20px);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -92,6 +94,7 @@
     transform: translateX(-20px);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -107,6 +110,7 @@
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -115,7 +119,8 @@
 
 /* Layout helpers */
 .page-container {
-  padding-top: 4rem; /* Account for navbar */
+  padding-top: 4rem;
+  /* Account for navbar */
   min-height: calc(100vh - 4rem);
 }
 
@@ -138,8 +143,8 @@
 }
 
 /* Fix for different button styles across repos */
-button[class*="btn-"], 
-.btn, 
+button[class*="btn-"],
+.btn,
 .button {
   display: inline-flex;
   align-items: center;
@@ -152,16 +157,16 @@ button[class*="btn-"],
   transition-duration: 150ms;
 }
 
-button[class*="btn-"]:focus-visible, 
-.btn:focus-visible, 
+button[class*="btn-"]:focus-visible,
+.btn:focus-visible,
 .button:focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
   box-shadow: 0 0 0 2px var(--color-ring);
 }
 
-button[class*="btn-"]:disabled, 
-.btn:disabled, 
+button[class*="btn-"]:disabled,
+.btn:disabled,
 .button:disabled {
   opacity: 0.5;
 }
@@ -299,4 +304,116 @@ button[class*="btn-"]:disabled,
 
 .dark .glow-primary-light {
   box-shadow: 0 0 20px rgba(177, 151, 252, 0.4);
+}
+
+/* Button Styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary);
+  opacity: 0.9;
+  box-shadow: var(--glow-primary);
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 0 4px rgba(167, 139, 250, 0.2);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-secondary);
+  color: var(--color-secondary-foreground);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-secondary);
+  opacity: 0.8;
+  box-shadow: var(--glassmorphic-shadow);
+}
+
+.btn-secondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 0 4px rgba(167, 139, 250, 0.2);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  color: var(--color-foreground);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-outline:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  box-shadow: var(--glassmorphic-shadow);
+}
+
+.btn-outline:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 0 4px rgba(167, 139, 250, 0.2);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  color: var(--color-muted-foreground);
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-ghost:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+  color: var(--color-foreground);
+}
+
+.btn-ghost:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 0 4px rgba(167, 139, 250, 0.2);
+}
+
+/* Utility classes for text truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

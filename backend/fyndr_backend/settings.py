@@ -18,7 +18,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_filters',  # For filtering support
+    'channels',  # WebSocket support
+    'cloudinary',  # Image management
+    'cloudinary_storage',  # Cloudinary storage backend
     'fyndr_auth',
+    'jobscraper',  # Job scraping engine
+    'jobapplier',  # Job application automation
+    'jobmatcher',  # AI-powered job matching and preparation
+    'jobtracker',  # Application status tracking and analytics
     'corsheaders',
 ]
 
@@ -27,6 +35,7 @@ AUTH_USER_MODEL = 'fyndr_auth.User'
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -34,7 +43,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'fyndr_backend.urls'
@@ -56,17 +64,59 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'fyndr_backend.wsgi.application'
+ASGI_APPLICATION = 'fyndr_backend.asgi.application'
 
-DATABASES = {
+# Channel layers for WebSocket support
+CHANNEL_LAYERS = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('SUPABASE_DB_NAME', ''),
-        'USER': os.getenv('SUPABASE_DB_USER', ''),
-        'PASSWORD': os.getenv('SUPABASE_DB_PASSWORD', ''),
-        'HOST': os.getenv('SUPABASE_DB_HOST', ''),
-        'PORT': os.getenv('SUPABASE_DB_PORT', '5432'),
-    }
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
 }
+
+# Optional Redis configuration (uncomment and configure Redis if needed)
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }
+
+# Database: Prefer Postgres if env vars are provided, otherwise fall back to SQLite for local dev
+SUPABASE_DB_NAME = os.getenv('SUPABASE_DB_NAME', '').strip()
+SUPABASE_DB_USER = os.getenv('SUPABASE_DB_USER', '').strip()
+SUPABASE_DB_PASSWORD = os.getenv('SUPABASE_DB_PASSWORD', '').strip()
+SUPABASE_DB_HOST = os.getenv('SUPABASE_DB_HOST', '').strip()
+SUPABASE_DB_PORT = os.getenv('SUPABASE_DB_PORT', '5432').strip()
+
+if SUPABASE_DB_NAME and SUPABASE_DB_USER and SUPABASE_DB_HOST:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': SUPABASE_DB_NAME,
+            'USER': SUPABASE_DB_USER,
+            'PASSWORD': SUPABASE_DB_PASSWORD,
+            'HOST': SUPABASE_DB_HOST,
+            'PORT': SUPABASE_DB_PORT,
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'dev_db.sqlite3'),
+        }
+    }
+
+# When running tests with pytest, isolate DB and avoid external automation
+if os.environ.get('PYTEST_CURRENT_TEST'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'test_db.sqlite3'),
+    }
+    # Prevent real browser automation during tests
+    DISABLE_BROWSER_AUTOMATION_DURING_TESTS = True
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -95,6 +145,27 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Cloudinary Configuration
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME', ''),
+    api_key=os.getenv('CLOUDINARY_API_KEY', ''),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET', ''),
+    secure=True
+)
+
+# Use Cloudinary for media storage in production
+if not DEBUG:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', ''),
+        'API_KEY': os.getenv('CLOUDINARY_API_KEY', ''),
+        'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', ''),
+    }
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
@@ -105,6 +176,16 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Allow public access to job listings
+    ],
 }
 
 # JWT Settings
@@ -115,4 +196,84 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
 }
 
+# ATS API Configuration
+GREENHOUSE_API_KEY = os.getenv('GREENHOUSE_API_KEY', None)
+LEVER_API_KEY = os.getenv('LEVER_API_KEY', None)
+WORKDAY_TENANT_URL = os.getenv('WORKDAY_TENANT_URL', None)
+WORKDAY_CLIENT_ID = os.getenv('WORKDAY_CLIENT_ID', None)
+WORKDAY_CLIENT_SECRET = os.getenv('WORKDAY_CLIENT_SECRET', None)
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'application.log'),
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'jobapplier': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'jobscraper': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
 CORS_ALLOW_ALL_ORIGINS = True
+
+# ========================================
+# JOB APPLICATION AUTOMATION SETTINGS
+# ========================================
+
+# ATS API Keys (load from environment variables)
+GREENHOUSE_API_KEY = os.getenv('GREENHOUSE_API_KEY', None)
+LEVER_API_KEY = os.getenv('LEVER_API_KEY', None)
+WORKDAY_CLIENT_ID = os.getenv('WORKDAY_CLIENT_ID', None)
+WORKDAY_CLIENT_SECRET = os.getenv('WORKDAY_CLIENT_SECRET', None)
+WORKDAY_TENANT_URL = os.getenv('WORKDAY_TENANT_URL', None)
+
+# Browser Automation Settings
+BROWSER_AUTOMATION_HEADLESS = os.getenv('BROWSER_AUTOMATION_HEADLESS', 'True').lower() == 'true'
+BROWSER_AUTOMATION_TIMEOUT = int(os.getenv('BROWSER_AUTOMATION_TIMEOUT', '30000'))  # 30 seconds
+
+# Application Limits and Rate Limiting
+MAX_APPLICATIONS_PER_DAY = int(os.getenv('MAX_APPLICATIONS_PER_DAY', '50'))
+MAX_APPLICATIONS_PER_HOUR = int(os.getenv('MAX_APPLICATIONS_PER_HOUR', '10'))
+APPLICATION_RETRY_ATTEMPTS = int(os.getenv('APPLICATION_RETRY_ATTEMPTS', '3'))
+
+# Logging for Job Application
+LOGGING['loggers']['jobapplier'] = {
+    'handlers': ['file', 'console'],
+    'level': 'INFO',
+    'propagate': True,
+}
+
+# Google OAuth (set via environment)
+# GOOGLE_OAUTH_CLIENT_ID
+# GOOGLE_OAUTH_CLIENT_SECRET
+# GOOGLE_OAUTH_REDIRECT_URI  # e.g., https://yourdomain.com/api/auth/oauth/google/callback/

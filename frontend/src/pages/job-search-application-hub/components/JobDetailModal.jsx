@@ -3,8 +3,9 @@ import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 import Image from 'components/AppImage';
 
-const JobDetailModal = ({ job, isOpen, onClose, onApply, onSave }) => {
+const JobDetailModal = ({ job, isOpen, onClose, onApply, onQuickApply, onSave }) => {
   const [isApplying, setIsApplying] = useState(false);
+  const [isQuickApplying, setIsQuickApplying] = useState(false);
   const [isSaved, setIsSaved] = useState(job?.isSaved || false);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -14,6 +15,12 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onSave }) => {
     setIsApplying(true);
     await onApply(job.id);
     setIsApplying(false);
+  };
+
+  const handleQuickApply = async () => {
+    if (!onQuickApply) return;
+    setIsQuickApplying(true);
+    try { await onQuickApply(job.id); } finally { setIsQuickApplying(false); }
   };
 
   const handleSave = () => {
@@ -51,85 +58,57 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onSave }) => {
         {/* Header */}
         <div className="p-6 border-b border-white/10">
           <div className="flex items-start justify-between">
+            {/* Left: Company & Title */}
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 rounded-lg overflow-hidden bg-white/10 flex-shrink-0">
-                <Image
-                  src={job.company.logo}
-                  alt={`${job.company.name} logo`}
-                  className="w-full h-full object-cover"
-                />
+                <Image src={job.company.logo} alt={`${job.company.name} logo`} className="w-full h-full object-cover" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">{job.title}</h1>
                 <p className="text-lg text-muted-foreground">{job.company.name}</p>
                 <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Icon name="MapPin" size={14} />
-                    <span>{job.location}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Icon name="Clock" size={14} />
-                    <span>{job.type}</span>
-                  </div>
-                  <div className={`font-medium ${getMatchColor(job.matchPercentage)}`}>
-                    {job.matchPercentage}% match
-                  </div>
+                  <div className="flex items-center space-x-1"><Icon name="MapPin" size={14} /><span>{job.location}</span></div>
+                  <div className="flex items-center space-x-1"><Icon name="Clock" size={14} /><span>{job.type}</span></div>
+                  <div className={`font-medium ${getMatchColor(job.matchPercentage)}`}>{job.matchPercentage}% match</div>
                 </div>
               </div>
             </div>
-            
+
+            {/* Right: Actions */}
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleSave}
-                className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
-                  isSaved 
-                    ? 'text-error bg-error/20' :'text-muted-foreground hover:text-error hover:bg-error/10'
-                }`}
+                className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${isSaved ? 'text-error bg-error/20' : 'text-muted-foreground hover:text-error hover:bg-error/10'}`}
               >
-                <Icon name="Heart" size={20} fill={isSaved ? "currentColor" : "none"} />
+                <Icon name="Heart" size={20} fill={isSaved ? 'currentColor' : 'none'} />
               </button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="hover:bg-white/10"
-              >
+              <div className="flex items-center gap-2">
+                <Button variant="default" loading={isApplying} onClick={handleApply} iconName="Send" iconPosition="left">Apply Now</Button>
+                {onQuickApply && (
+                  <Button
+                    variant="outline"
+                    loading={isQuickApplying}
+                    onClick={handleQuickApply}
+                    iconName="Zap"
+                    iconPosition="left"
+                    title="Quick Apply (Beta): may auto-fill and attempt automation on external forms"
+                    className="border-dashed"
+                  >
+                    Quick Apply (Beta)
+                  </Button>
+                )}
+              </div>
+              <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-white/10">
                 <Icon name="X" size={20} />
               </Button>
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Sub-actions */}
           <div className="flex items-center space-x-3 mt-4">
-            {job.applicationStatus === 'not-applied' && (
-              <Button
-                variant="default"
-                loading={isApplying}
-                onClick={handleApply}
-                iconName="Send"
-                iconPosition="left"
-                className="px-8"
-              >
-                Apply Now
-              </Button>
-            )}
-            
-            <Button
-              variant="outline"
-              iconName="Share"
-              iconPosition="left"
-            >
-              Share Job
-            </Button>
-            
-            <Button
-              variant="outline"
-              iconName="Flag"
-              iconPosition="left"
-            >
-              Report
-            </Button>
+            <Button variant="outline" onClick={() => window.location.href = `/job-detail-view?id=${job.id}`} iconName="ExternalLink" iconPosition="left">View Full Details</Button>
+            <Button variant="outline" iconName="Share" iconPosition="left">Share Job</Button>
+            <Button variant="outline" iconName="Flag" iconPosition="left">Report</Button>
           </div>
         </div>
 
@@ -140,10 +119,9 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onSave }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'bg-primary/20 text-primary border border-primary/30' :'text-muted-foreground hover:bg-white/10'
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${activeTab === tab.id
+                    ? 'bg-primary/20 text-primary border border-primary/30' : 'text-muted-foreground hover:bg-white/10'
+                  }`}
               >
                 <Icon name={tab.icon} size={16} />
                 <span>{tab.label}</span>
@@ -171,7 +149,7 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onSave }) => {
                     </div>
                     <p className="text-muted-foreground">{formatSalary(job.salary.min, job.salary.max)}</p>
                   </div>
-                  
+
                   <div className="glassmorphic-surface p-4 rounded-lg">
                     <div className="flex items-center space-x-2 mb-2">
                       <Icon name="Users" size={16} className="text-primary" />
@@ -263,7 +241,7 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onSave }) => {
                   </div>
                   <p className="text-muted-foreground">{job.company.size || '500-1000 employees'}</p>
                 </div>
-                
+
                 <div className="glassmorphic-surface p-4 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
                     <Icon name="MapPin" size={16} className="text-primary" />
@@ -271,7 +249,7 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onSave }) => {
                   </div>
                   <p className="text-muted-foreground">{job.company.headquarters || 'San Francisco, CA'}</p>
                 </div>
-                
+
                 <div className="glassmorphic-surface p-4 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
                     <Icon name="Calendar" size={16} className="text-primary" />
@@ -279,7 +257,7 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onSave }) => {
                   </div>
                   <p className="text-muted-foreground">{job.company.founded || '2015'}</p>
                 </div>
-                
+
                 <div className="glassmorphic-surface p-4 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
                     <Icon name="TrendingUp" size={16} className="text-primary" />
