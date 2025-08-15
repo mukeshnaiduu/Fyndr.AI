@@ -17,6 +17,33 @@ function App() {
     localStorage.setItem('navbarVisible', JSON.stringify(isNavbarVisible));
   }, [isNavbarVisible]);
 
+  // React to external changes to navbar visibility (e.g., pages toggling it)
+  useEffect(() => {
+    const syncFromStorage = () => {
+      const saved = localStorage.getItem('navbarVisible');
+      if (saved === null) {
+        // default to true if not set
+        setIsNavbarVisible(true);
+      } else {
+        const next = JSON.parse(saved);
+        setIsNavbarVisible(!!next);
+      }
+    };
+
+    const onStorage = (e) => {
+      if (!e || e.key === 'navbarVisible' || e.key === null) {
+        syncFromStorage();
+      }
+    };
+
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('navbarVisibilityChanged', syncFromStorage);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('navbarVisibilityChanged', syncFromStorage);
+    };
+  }, []);
+
   const toggleNavbar = () => {
     setIsNavbarVisible(!isNavbarVisible);
   };

@@ -3,7 +3,7 @@ import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
-const DiversityTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
+const DiversityTab = ({ profile, onUpdate, isEditing, setIsEditing, registerSave }) => {
   const [form, setForm] = useState({
     dei_commitment: '',
     diversity_initiatives: [],
@@ -29,21 +29,19 @@ const DiversityTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
   const [newInitiative, setNewInitiative] = useState('');
   const [newGoal, setNewGoal] = useState('');
 
-  const handleSave = () => {
-    onUpdate({ ...form });
-    setIsEditing(false);
+  const handleSave = async () => {
+    await onUpdate({ ...form });
   };
+
+  useEffect(() => {
+    if (registerSave) registerSave(handleSave);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, registerSave]);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Diversity & Inclusion</h3>
-        <button
-          onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark transition-colors"
-        >
-          {isEditing ? 'Save Changes' : 'Edit'}
-        </button>
       </div>
 
       <div className="space-y-6">

@@ -5,6 +5,7 @@ import Input from 'components/ui/Input';
 import Select from 'components/ui/Select';
 import Button from 'components/ui/Button';
 import { getApiUrl } from 'utils/api';
+import { INDUSTRY_OPTIONS } from 'constants/industries';
 
 const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
   const fileInputRef = useRef(null);
@@ -14,6 +15,7 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
     companySize: data.companySize || '',
     website: data.website || '',
     description: data.description || '',
+    // logo holds the server URL for payload; logoPreview is for UI preview
     logo: data.logo || null,
     headquarters: data.headquarters || '',
     foundedYear: data.foundedYear || '',
@@ -22,21 +24,10 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
 
   const [errors, setErrors] = useState({});
   const [logoPreview, setLogoPreview] = useState(data.logo || null);
-  const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const industryOptions = [
-    { value: 'technology', label: 'Technology' },
-    { value: 'healthcare', label: 'Healthcare' },
-    { value: 'finance', label: 'Finance & Banking' },
-    { value: 'education', label: 'Education' },
-    { value: 'retail', label: 'Retail & E-commerce' },
-    { value: 'manufacturing', label: 'Manufacturing' },
-    { value: 'consulting', label: 'Consulting' },
-    { value: 'media', label: 'Media & Entertainment' },
-    { value: 'nonprofit', label: 'Non-profit' },
-    { value: 'other', label: 'Other' }
-  ];
+  // Use shared industries list for consistency across roles
+  const industryOptions = INDUSTRY_OPTIONS;
 
   const companySizeOptions = [
     { value: '1-10', label: '1-10 employees' },
@@ -53,6 +44,22 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
+
+  // When a persisted server URL exists in formData.logo, build a tokenized, cache-busted preview URL for display
+  React.useEffect(() => {
+    const rawUrl = formData.logo || '';
+    if (!rawUrl) return;
+    const isBlob = rawUrl.startsWith('blob:') || rawUrl.startsWith('data:');
+    if (isBlob) {
+      setLogoPreview(rawUrl);
+      return;
+    }
+    const tokenForFiles = localStorage.getItem('accessToken') || '';
+    const base = `${rawUrl}${rawUrl.includes('?') ? '&' : '?'}token=${tokenForFiles}`;
+    const displayUrl = `${base}&t=${Date.now()}`;
+    setLogoPreview(displayUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.logo]);
 
   const handleLogoUpload = async (file) => {
     if (!file || !file.type.startsWith('image/')) {
@@ -100,14 +107,19 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
 
       const uploadResult = await response.json();
 
-      // Create preview URL for immediate display
-      const previewUrl = URL.createObjectURL(file);
-      setLogoPreview(previewUrl);
+      // Prefer the persisted DB-served URL with a token for display, keep bare URL for saving
+      const tokenForFiles = localStorage.getItem('accessToken') || '';
+      const baseUrlWithToken = uploadResult.url
+        ? `${uploadResult.url}${uploadResult.url.includes('?') ? '&' : '?'}token=${tokenForFiles}`
+        : '';
+      const urlWithToken = baseUrlWithToken ? `${baseUrlWithToken}&t=${Date.now()}` : '';
 
-      // Store the uploaded file info
+      setLogoPreview(urlWithToken || URL.createObjectURL(file));
+
+      // Store server URL for payload
       setFormData(prev => ({
         ...prev,
-        logo: previewUrl,
+        logo: uploadResult.url || prev.logo,
         logoFile: {
           name: uploadResult.filename,
           url: uploadResult.url,
@@ -115,6 +127,23 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
           uploadedAt: uploadResult.uploaded_at
         }
       }));
+
+      // Update global avatar so Navbar refreshes (company may use logo as avatar)
+      try {
+        // Bump avatar version for cache-busting in navbar
+        localStorage.setItem('avatarVersion', Date.now().toString());
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          // For company, set both profile_image_url and avatar to the new logo URL
+          userObj.avatar = uploadResult.url;
+          userObj.profile_image_url = uploadResult.url;
+          localStorage.setItem('user', JSON.stringify(userObj));
+          // Notify navbar to refresh
+          window.dispatchEvent(new Event('avatar-updated'));
+          window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(userObj) }));
+        }
+      } catch { }
 
       setIsUploading(false);
 
@@ -128,24 +157,7 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
     }
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleLogoUpload(files[0]);
-    }
-  };
+  // Drag-and-drop removed in favor of avatar-style overlay control
 
   const validateForm = () => {
     const newErrors = {};
@@ -199,51 +211,30 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
       <div className="glass-card p-6 rounded-card">
         <h3 className="text-lg font-semibold text-foreground mb-4">Company Logo</h3>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Logo Preview */}
-          <div className="flex-shrink-0">
-            <div className="w-32 h-32 rounded-card border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden relative">
+        <div className="flex flex-col items-center">
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center overflow-hidden border-4 border-white shadow-lg">
               {logoPreview ? (
                 <Image
                   src={logoPreview}
-                  alt="Company logo preview"
+                  alt="Company logo"
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="text-center">
-                  <Icon name="Building" size={32} className="text-muted-foreground mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground">Logo Preview</p>
-                </div>
+                <Icon name="Building" size={32} color="white" />
               )}
 
               {isUploading && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-card">
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
                   <div className="animate-spin">
                     <Icon name="Loader2" size={20} color="white" />
                   </div>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Upload Area */}
-          <div className="flex-1">
-            <div
-              className={`border-2 border-dashed rounded-card p-6 text-center transition-all duration-300 ${isDragOver
-                ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
-                }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <Icon name="Upload" size={32} className="text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm font-medium text-foreground mb-1">
-                Drag and drop your logo here, or click to browse
-              </p>
-              <p className="text-xs text-muted-foreground mb-4">
-                PNG, JPG or SVG. Max file size 5MB. Recommended: 200x200px
-              </p>
-
+            <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-lg">
+              <Icon name="Camera" size={16} color="white" />
               <input
                 ref={fileInputRef}
                 type="file"
@@ -252,20 +243,15 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
                 className="hidden"
                 disabled={isUploading}
               />
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isUploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {isUploading ? 'Uploading...' : 'Choose File'}
-              </Button>
-            </div>
-
-            {errors.logo && (
-              <p className="text-error text-sm mt-2">{errors.logo}</p>
-            )}
+            </label>
           </div>
+
+          <p className="text-xs text-muted-foreground mt-4 text-center">
+            PNG, JPG or SVG. Max size 5MB. Recommended: 200x200px
+          </p>
+          {errors.logo && (
+            <p className="text-error text-sm mt-2">{errors.logo}</p>
+          )}
         </div>
       </div>
 
@@ -367,7 +353,7 @@ const CompanyProfileStep = ({ data, onUpdate, onNext, onPrev }) => {
           Previous
         </Button>
         <Button onClick={handleNext} iconName="ChevronRight" iconPosition="right">
-          Next: Team Setup
+          Next: DEI & Compliance
         </Button>
       </div>
     </div>

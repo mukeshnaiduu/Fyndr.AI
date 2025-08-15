@@ -12,7 +12,8 @@ const buildAvatarUrl = () => {
     const userStr = localStorage.getItem('user');
     if (!userStr) return '';
     const user = JSON.parse(userStr);
-    const raw = user?.profile_image_url || user?.avatar || '';
+    // Support multiple possible fields (company may use logo_url)
+    const raw = user?.profile_image_url || user?.avatar || user?.logo_url || user?.logo || '';
     if (!raw) return '';
     const token = localStorage.getItem('accessToken') || '';
     const ver = localStorage.getItem('avatarVersion') || '';
@@ -317,7 +318,7 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
                       />
                     ) : (
                       <span className="h-8 w-8 rounded-full border-2 border-white shadow-sm bg-muted flex items-center justify-center">
-                        <Icon name="User" size={16} className="text-muted-foreground" />
+                        <Icon name={effectiveRole === 'company' ? 'Building2' : 'User'} size={16} className="text-muted-foreground" />
                       </span>
                     )}
                     <div className="hidden md:block text-left">

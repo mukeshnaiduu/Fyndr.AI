@@ -35,26 +35,32 @@ const Checkbox = React.forwardRef(({
                     checked={checked}
                     disabled={disabled}
                     required={required}
-                    className="sr-only"
+                    className="sr-only peer"
                     {...props}
                 />
 
                 <label
                     htmlFor={checkboxId}
                     className={cn(
-                        "peer shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground cursor-pointer transition-colors",
+                        // base styles
+                        "flex items-center justify-center shrink-0 rounded-[4px] border bg-background text-transparent cursor-pointer transition-colors ring-offset-background",
+                        // sizes
                         sizeClasses[size],
+                        // states
                         checked && "bg-primary text-primary-foreground border-primary",
                         indeterminate && "bg-primary text-primary-foreground border-primary",
+                        !checked && !indeterminate && "border-border hover:border-primary/70",
                         error && "border-destructive",
-                        disabled && "cursor-not-allowed opacity-50"
+                        disabled && "cursor-not-allowed opacity-50",
+                        // focus via input peer
+                        "peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2"
                     )}
                 >
                     {checked && !indeterminate && (
-                        <Check className="h-3 w-3 text-current flex items-center justify-center" />
+                        <Check className="h-3 w-3 text-current" />
                     )}
                     {indeterminate && (
-                        <Minus className="h-3 w-3 text-current flex items-center justify-center" />
+                        <Minus className="h-3 w-3 text-current" />
                     )}
                 </label>
             </div>
@@ -65,7 +71,7 @@ const Checkbox = React.forwardRef(({
                         <label
                             htmlFor={checkboxId}
                             className={cn(
-                                "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer",
+                                "text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
                                 error ? "text-destructive" : "text-foreground"
                             )}
                         >

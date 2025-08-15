@@ -3,7 +3,7 @@ import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
-const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
+const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing, registerSave }) => {
   const [form, setForm] = useState({
     role_title: '',
     team_size: '',
@@ -33,16 +33,15 @@ const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
     setIsEditing(false);
   };
 
+  useEffect(() => {
+    if (registerSave) registerSave(handleSave);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, registerSave]);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Team & Hiring Information</h3>
-        <button
-          onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark transition-colors"
-        >
-          {isEditing ? 'Save Changes' : 'Edit'}
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -128,36 +127,7 @@ const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
           )}
         </div>
 
-        {/* Team Members */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Team Members
-          </label>
-          <div className="space-y-2">
-            {profile?.team_members?.map((member, index) => (
-              <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Icon name="User" size={16} className="text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{member.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{member.role}</p>
-                </div>
-                {isEditing && (
-                  <button className="text-red-500 hover:text-red-700">
-                    <Icon name="Trash2" size={16} />
-                  </button>
-                )}
-              </div>
-            )) || <p className="text-gray-500">No team members added</p>}
-          </div>
-          {isEditing && (
-            <button className="mt-3 px-4 py-2 text-sm border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="Plus" size={16} className="mr-2" />
-              Add Team Member
-            </button>
-          )}
-        </div>
+        {/* Team Members section removed as requested */}
       </div>
     </div>
   );

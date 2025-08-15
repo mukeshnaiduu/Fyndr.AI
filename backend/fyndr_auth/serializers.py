@@ -93,6 +93,22 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("A company with this name already exists.")
         return value
 
+    def validate_payment_methods(self, value):
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError("payment_methods must be a list")
+        for pm in value:
+            if not isinstance(pm, dict):
+                raise serializers.ValidationError("Each payment method must be an object")
+            # basic shape checks
+            pm.setdefault('brand', '')
+            pm.setdefault('last4', '')
+            pm.setdefault('expiry', '')
+            pm.setdefault('name', '')
+            pm.setdefault('default', False)
+        return value
+
 
 # Backward compatibility serializers (for gradual migration)
 class JobSeekerOnboardingSerializer(JobSeekerProfileSerializer):

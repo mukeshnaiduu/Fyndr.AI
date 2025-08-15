@@ -4,7 +4,6 @@ import MainLayout from 'components/layout/MainLayout';
 import ProgressIndicator from 'components/ui/ProgressIndicator';
 import ErrorBoundary from 'components/ErrorBoundary';
 import CompanyProfileStep from './components/CompanyProfileStep';
-import TeamSetupStep from './components/TeamSetupStep';
 import DEIComplianceStep from './components/DEIComplianceStep';
 import IntegrationsStep from './components/IntegrationsStep';
 import BillingStep from './components/BillingStep';
@@ -58,11 +57,10 @@ const defaultFormData = {
 
 const steps = [
     { id: 1, label: 'Company Profile', description: 'Basic company information' },
-    { id: 2, label: 'Team Setup', description: 'Configure team and roles' },
-    { id: 3, label: 'DEI & Compliance', description: 'Diversity and compliance settings' },
-    { id: 4, label: 'Integrations', description: 'Connect your tools' },
-    { id: 5, label: 'Billing', description: 'Choose your plan' },
-    { id: 6, label: 'Review', description: 'Review and complete setup' }
+    { id: 2, label: 'DEI & Compliance', description: 'Diversity and compliance settings' },
+    { id: 3, label: 'Integrations', description: 'Connect your tools' },
+    { id: 4, label: 'Billing', description: 'Choose your plan' },
+    { id: 5, label: 'Review', description: 'Review and complete setup' }
 ];
 
 const CompanyOnboardingWizard = () => {
@@ -138,15 +136,44 @@ const CompanyOnboardingWizard = () => {
         let backendData = {};
         if (token) {
             try {
-                const response = await apiRequest('/api/auth/company-profile/', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
+                const response = await apiRequest('/api/auth/company-profile/', 'GET', null, token);
                 if (response && Object.keys(response).length > 0) {
-                    backendData = response;
+                    // Normalize snake_case API response to wizard's camelCase
+                    backendData = {
+                        companyName: response.company_name || '',
+                        industry: response.industry || '',
+                        companySize: response.company_size || '',
+                        website: response.website || '',
+                        description: response.description || '',
+                        logo: response.logo_url || null,
+                        headquarters: response.headquarters || '',
+                        foundedYear: response.founded_year || '',
+                        teamMembers: response.team_members || [],
+                        inviteEmails: response.invite_emails || [],
+                        defaultRole: response.default_role || 'company',
+                        allowInvites: !!response.allow_invites,
+                        requireApproval: response.require_approval !== undefined ? !!response.require_approval : true,
+                        activityNotifications: !!response.activity_notifications,
+                        deiCommitment: response.dei_commitment || '',
+                        diversityGoals: response.diversity_goals || [],
+                        inclusionPolicies: response.inclusion_policies || [],
+                        complianceRequirements: response.compliance_requirements || [],
+                        reportingFrequency: response.reporting_frequency || '',
+                        diversityMetrics: !!response.diversity_metrics,
+                        anonymousData: !!response.anonymous_data,
+                        biasAlerts: !!response.bias_alerts,
+                        selectedIntegrations: response.selected_integrations || [],
+                        hrisSystem: response.hris_system || null,
+                        atsSystem: response.ats_system || null,
+                        selectedPlan: response.selected_plan || 'professional',
+                        billingCycle: response.billing_cycle || 'monthly',
+                        paymentMethod: response.payment_method || '',
+                        billingAddress: response.billing_address || {},
+                        agreeToTerms: !!response.agree_to_terms,
+                        marketingEmails: !!response.marketing_emails,
+                        slaAcknowledged: !!response.sla_acknowledged,
+                        finalConfirmation: !!response.final_confirmation,
+                    };
                     console.log('Found existing company onboarding data:', backendData);
                 }
             } catch (error) {
@@ -178,8 +205,8 @@ const CompanyOnboardingWizard = () => {
 
     // Validate loaded data
     const validateFormData = (data) => {
-        // Basic validation: check for required keys
-        return typeof data === 'object' && data !== null && 'companyName' in data && 'teamMembers' in data;
+        // Basic validation: ensure we got an object; team setup no longer required here
+        return typeof data === 'object' && data !== null;
     };
 
     useEffect(() => {
@@ -218,7 +245,7 @@ const CompanyOnboardingWizard = () => {
                 company_size: formData.companySize || '',
                 website: formData.website || '',
                 description: formData.description || '',
-                logo: formData.logo || '',
+                logo_url: formData.logo || '',
                 headquarters: formData.headquarters || '',
                 founded_year: formData.foundedYear || '',
                 team_members: formData.teamMembers || [],
@@ -316,7 +343,7 @@ const CompanyOnboardingWizard = () => {
                 );
             case 2:
                 return (
-                    <TeamSetupStep
+                    <DEIComplianceStep
                         data={getStepData()}
                         onUpdate={handleStepUpdate}
                         onNext={handleNext}
@@ -325,7 +352,7 @@ const CompanyOnboardingWizard = () => {
                 );
             case 3:
                 return (
-                    <DEIComplianceStep
+                    <IntegrationsStep
                         data={getStepData()}
                         onUpdate={handleStepUpdate}
                         onNext={handleNext}
@@ -334,15 +361,6 @@ const CompanyOnboardingWizard = () => {
                 );
             case 4:
                 return (
-                    <IntegrationsStep
-                        data={getStepData()}
-                        onUpdate={handleStepUpdate}
-                        onNext={handleNext}
-                        onPrev={handlePrev}
-                    />
-                );
-            case 5:
-                return (
                     <BillingStep
                         data={getStepData()}
                         onUpdate={handleStepUpdate}
@@ -350,7 +368,7 @@ const CompanyOnboardingWizard = () => {
                         onPrev={handlePrev}
                     />
                 );
-            case 6:
+            case 5:
                 return (
                     <ReviewStep
                         data={getStepData()}

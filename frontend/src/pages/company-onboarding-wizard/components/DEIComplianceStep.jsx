@@ -140,14 +140,12 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {diversityGoalOptions.map((goal) => (
-            <div key={goal.value} className="flex items-center space-x-3">
+            <div key={goal.value}>
               <Checkbox
+                label={goal.label}
                 checked={formData.diversityGoals.includes(goal.value)}
                 onChange={() => handleMultiSelectChange('diversityGoals', goal.value)}
               />
-              <label className="text-sm text-foreground cursor-pointer">
-                {goal.label}
-              </label>
             </div>
           ))}
         </div>
@@ -166,14 +164,12 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {inclusionPolicyOptions.map((policy) => (
-            <div key={policy.value} className="flex items-center space-x-3">
+            <div key={policy.value}>
               <Checkbox
+                label={policy.label}
                 checked={formData.inclusionPolicies.includes(policy.value)}
                 onChange={() => handleMultiSelectChange('inclusionPolicies', policy.value)}
               />
-              <label className="text-sm text-foreground cursor-pointer">
-                {policy.label}
-              </label>
             </div>
           ))}
         </div>
@@ -192,14 +188,12 @@ const DEIComplianceStep = ({ data, onUpdate, onNext, onPrev }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {complianceOptions.map((requirement) => (
-            <div key={requirement.value} className="flex items-center space-x-3">
+            <div key={requirement.value}>
               <Checkbox
+                label={requirement.label}
                 checked={formData.complianceRequirements.includes(requirement.value)}
                 onChange={() => handleMultiSelectChange('complianceRequirements', requirement.value)}
               />
-              <label className="text-sm text-foreground cursor-pointer">
-                {requirement.label}
-              </label>
             </div>
           ))}
         </div>

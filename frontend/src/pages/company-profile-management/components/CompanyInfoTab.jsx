@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Icon from '../../../components/AppIcon';
+import React, { useState, useEffect } from 'react';
 import Input from '../../../components/ui/Input';
-import Button from '../../../components/ui/Button';
-import { getApiUrl } from '../../../utils/api';
+import Select from '../../../components/ui/Select';
+import { INDUSTRY_OPTIONS } from 'constants/industries';
 
-const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
+const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing, registerSave }) => {
   const [form, setForm] = useState({
     company_name: '',
     industry: '',
@@ -12,9 +11,6 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
     website: '',
     description: ''
   });
-  const [logoUrl, setLogoUrl] = useState('');
-  const [logoError, setLogoError] = useState('');
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     setForm({
@@ -24,73 +20,23 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
       website: profile?.website || profile?.company_website || '',
       description: profile?.description || profile?.company_description || ''
     });
-    // Tokenize secured logo URL for direct <img> access
-    const token = localStorage.getItem('accessToken') || '';
-    const withToken = (url) => (url ? `${url}${url.includes('?') ? '&' : '?'}token=${token}` : '');
-    setLogoUrl(withToken(profile?.logo_url || ''));
   }, [profile]);
 
-  const handleSave = () => {
-    onUpdate(form);
-    setIsEditing(false);
+  const handleSave = async () => {
+    await onUpdate(form);
   };
 
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLogoError('');
+  useEffect(() => {
+    if (registerSave) registerSave(handleSave);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, registerSave]);
 
-    if (file.size > 5 * 1024 * 1024) {
-      setLogoError('Logo must be under 5MB');
-      return;
-    }
-    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowed.includes(file.type)) {
-      setLogoError('Allowed types: JPG, PNG, GIF, WEBP');
-      return;
-    }
-
-    try {
-      // Optimistic local preview
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        const preview = evt.target?.result;
-        if (preview) setLogoUrl(preview);
-      };
-      reader.readAsDataURL(file);
-
-      const token = localStorage.getItem('accessToken');
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('type', 'logo');
-      const res = await fetch(getApiUrl('/auth/upload/'), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success) throw new Error(data?.error || 'Upload failed');
-      const urlToken = localStorage.getItem('accessToken') || '';
-      const finalUrl = data.url ? `${data.url}${data.url.includes('?') ? '&' : '?'}token=${urlToken}` : '';
-      if (finalUrl) {
-        setLogoUrl(finalUrl);
-      }
-      setLogoError('');
-    } catch (err) {
-      setLogoError('Logo upload failed. Try again.');
-    }
-  };
+  // Logo upload UI was removed as requested
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Company Information</h3>
-        <button
-          onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          className="px-4 py-2 text-sm font-medium text-primary hover:text-primary-dark transition-colors"
-        >
-          {isEditing ? 'Save Changes' : 'Edit'}
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -109,22 +55,32 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Industry
           </label>
-          <Input
+          <Select
+            placeholder="Select industry"
+            options={INDUSTRY_OPTIONS}
             value={form.industry}
-            placeholder="e.g., Technology, Healthcare"
-            readOnly={!isEditing}
-            onChange={(e) => setForm({ ...form, industry: e.target.value })}
+            onChange={(value) => setForm({ ...form, industry: value })}
+            disabled={!isEditing}
+            searchable
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Company Size
           </label>
-          <Input
+          <Select
+            placeholder="Select company size"
+            options={[
+              { value: '1-10', label: '1-10 employees' },
+              { value: '11-50', label: '11-50 employees' },
+              { value: '51-200', label: '51-200 employees' },
+              { value: '201-500', label: '201-500 employees' },
+              { value: '501-1000', label: '501-1000 employees' },
+              { value: '1000+', label: '1000+ employees' }
+            ]}
             value={form.company_size}
-            placeholder="e.g., 10-50 employees"
-            readOnly={!isEditing}
-            onChange={(e) => setForm({ ...form, company_size: e.target.value })}
+            onChange={(value) => setForm({ ...form, company_size: value })}
+            disabled={!isEditing}
           />
         </div>
         <div>
@@ -152,46 +108,7 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
           />
         </div>
 
-        {/* Company Logo */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Company Logo
-          </label>
-          <div className="flex items-center space-x-4">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt="Company Logo"
-                className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200 dark:border-gray-600"
-              />
-            ) : (
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center border-2 border-gray-200 dark:border-gray-600">
-                <Icon name="Building" size={24} className="text-gray-400" />
-              </div>
-            )}
-            {isEditing && (
-              <>
-                <button
-                  className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                  type="button"
-                >
-                  Upload Logo
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
-              </>
-            )}
-          </div>
-          {logoError && (
-            <p className="text-sm text-red-500 mt-2">{logoError}</p>
-          )}
-        </div>
+        {/* Company Logo section removed as requested */}
       </div>
     </div>
   );

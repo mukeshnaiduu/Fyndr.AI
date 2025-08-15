@@ -16,7 +16,6 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
 
   const steps = [
     { key: 'company', label: 'Company Profile', icon: 'Building' },
-    { key: 'team', label: 'Team Setup', icon: 'Users' },
     { key: 'dei', label: 'DEI & Compliance', icon: 'Shield' },
     { key: 'integrations', label: 'Integrations', icon: 'Link' },
     { key: 'billing', label: 'Billing', icon: 'CreditCard' }
@@ -39,12 +38,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
         logo: formData.logo || '',
         headquarters: formData.headquarters || '',
         founded_year: formData.foundedYear || '',
-        team_members: formData.teamMembers || [],
-        invite_emails: formData.inviteEmails || [],
-        default_role: formData.defaultRole || '',
-        allow_invites: formData.allowInvites || false,
-        require_approval: formData.requireApproval || true,
-        activity_notifications: formData.activityNotifications || true,
+        // Team setup fields removed from onboarding; managed in Team Management page
         dei_commitment: formData.deiCommitment || '',
         diversity_goals: formData.diversityGoals || [],
         inclusion_policies: formData.inclusionPolicies || [],
@@ -137,11 +131,21 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
       <div className="flex items-start space-x-4">
         {data.logo && (
           <div className="w-16 h-16 rounded-card overflow-hidden bg-muted">
-            <Image
-              src={data.logo}
-              alt="Company logo"
-              className="w-full h-full object-cover"
-            />
+            {(() => {
+              const raw = data.logo;
+              let src = raw;
+              if (raw && typeof raw === 'string' && !raw.startsWith('blob:') && !raw.startsWith('data:')) {
+                const token = localStorage.getItem('accessToken') || '';
+                src = `${raw}${raw.includes('?') ? '&' : '?'}token=${token}&t=${Date.now()}`;
+              }
+              return (
+                <Image
+                  src={src}
+                  alt="Company logo"
+                  className="w-full h-full object-cover"
+                />
+              );
+            })()}
           </div>
         )}
 
@@ -175,52 +179,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
     </div>
   );
 
-  const TeamSection = () => (
-    <div className="glass-card p-6 rounded-card">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">Team Setup</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onStepChange(1)}
-          iconName="Edit"
-          iconPosition="left"
-        >
-          Edit
-        </Button>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <h4 className="font-medium text-foreground mb-2">Invited Members</h4>
-          <div className="space-y-2">
-            {data.inviteEmails?.filter(email => email.trim()).map((email, index) => (
-              <div key={index} className="flex items-center space-x-2 text-sm">
-                <Icon name="Mail" size={14} className="text-muted-foreground" />
-                <span className="text-foreground">{email}</span>
-                <span className="text-muted-foreground">({data.defaultRole})</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-muted-foreground">Allow invites:</span>
-            <span className="text-foreground ml-2">
-              {data.allowInvites ? 'Yes' : 'No'}
-            </span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Require approval:</span>
-            <span className="text-foreground ml-2">
-              {data.requireApproval ? 'Yes' : 'No'}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  // Team section removed; team management is handled separately now
 
   const DEISection = () => (
     <div className="glass-card p-6 rounded-card">
@@ -229,7 +188,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onStepChange(2)}
+          onClick={() => onStepChange(1)}
           iconName="Edit"
           iconPosition="left"
         >
@@ -281,7 +240,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onStepChange(3)}
+          onClick={() => onStepChange(2)}
           iconName="Edit"
           iconPosition="left"
         >
@@ -315,7 +274,7 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onStepChange(4)}
+          onClick={() => onStepChange(3)}
           iconName="Edit"
           iconPosition="left"
         >
@@ -387,7 +346,6 @@ const ReviewStep = ({ data, onUpdate, onComplete, onPrev, onStepChange }) => {
       {/* Configuration Review */}
       <div className="space-y-6">
         <CompanySection />
-        <TeamSection />
         <DEISection />
         <IntegrationsSection />
         <BillingSection />

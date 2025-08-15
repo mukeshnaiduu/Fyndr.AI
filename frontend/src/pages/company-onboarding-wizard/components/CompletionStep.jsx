@@ -9,10 +9,8 @@ const CompletionStep = ({ data }) => {
 
   const setupSteps = [
     { label: 'Creating your workspace', icon: 'Building', status: 'completed' },
-    { label: 'Setting up team permissions', icon: 'Users', status: 'completed' },
     { label: 'Configuring integrations', icon: 'Link', status: 'completed' },
-    { label: 'Activating your subscription', icon: 'CreditCard', status: 'completed' },
-    { label: 'Sending team invitations', icon: 'Mail', status: 'completed' }
+    { label: 'Activating your subscription', icon: 'CreditCard', status: 'completed' }
   ];
 
   const nextSteps = [
@@ -22,13 +20,6 @@ const CompletionStep = ({ data }) => {
       icon: 'Briefcase',
       link: '/job-detail-view',
       color: 'bg-primary'
-    },
-    {
-      title: 'Invite Team Members',
-      description: 'Add your colleagues and configure their roles',
-      icon: 'UserPlus',
-      link: '/team-management-dashboard',
-      color: 'bg-secondary'
     },
     {
       title: 'Explore AI Features',
@@ -146,12 +137,7 @@ const CompletionStep = ({ data }) => {
           </div>
 
           <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Team Members:</span>
-              <span className="text-foreground font-medium">
-                {data.inviteEmails?.filter(email => email.trim()).length || 0} invited
-              </span>
-            </div>
+            {/* Team summary removed; managed separately in Team Management */}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Integrations:</span>
               <span className="text-foreground font-medium">

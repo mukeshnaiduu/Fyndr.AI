@@ -267,6 +267,13 @@ class CompanyProfile(BaseProfile):
     selected_plan = models.CharField(max_length=50, blank=True)
     billing_cycle = models.CharField(max_length=50, blank=True)
     payment_method = models.CharField(max_length=50, blank=True)
+    # New: store multiple payment methods (brand, last4, expiry, name, default flag)
+    payment_methods = models.JSONField(default=list, blank=True)
+    # Back-compat single card fields (derived from default payment method)
+    card_last_four = models.CharField(max_length=4, blank=True)
+    card_brand = models.CharField(max_length=20, blank=True)
+    card_expiry = models.CharField(max_length=7, blank=True)  # MM/YY
+    card_name = models.CharField(max_length=100, blank=True)
     billing_address = models.JSONField(default=dict, blank=True)
     agree_to_terms = models.BooleanField(default=False)
     marketing_emails = models.BooleanField(default=False)
