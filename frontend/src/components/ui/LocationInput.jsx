@@ -5,7 +5,7 @@ import { fetchLocations } from 'services/locationsService';
 
 // onChange now always receives the plain string value. Optionally, onSelect is
 // called with the chosen suggestion when a suggestion is clicked.
-export default function LocationInput({ label = 'Location', name = 'location', value, onChange, onSelect, clearOnSelect = false, placeholder = 'City, State (e.g., Bengaluru, Karnataka)', description, error, className }) {
+export default function LocationInput({ label = 'Location', name = 'location', value, onChange, onSelect, clearOnSelect = false, placeholder = 'City, State (e.g., Bengaluru, Karnataka)', description, error, className, required = false }) {
     const [suggestions, setSuggestions] = useState([]);
     const [open, setOpen] = useState(false);
     const containerRef = useRef(null);
@@ -81,6 +81,7 @@ export default function LocationInput({ label = 'Location', name = 'location', v
                 error={error}
                 placeholder={placeholder}
                 description={description}
+                required={required}
             />
             {open && suggestions.length > 0 && (
                 <div className="absolute z-50 left-0 right-0 mt-1 bg-background backdrop-blur-sm border border-border rounded-lg max-h-60 overflow-y-auto shadow-lg ring-1 ring-black/5">

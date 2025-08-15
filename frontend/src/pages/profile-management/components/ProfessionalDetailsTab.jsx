@@ -5,6 +5,7 @@ import Button from 'components/ui/Button';
 import Select from 'components/ui/Select';
 import IndustryInput from 'components/ui/IndustryInput';
 import RoleInput from 'components/ui/RoleInput';
+import LocationInput from 'components/ui/LocationInput';
 import { getApiUrl } from 'utils/api';
 import { INDUSTRY_OPTIONS } from 'constants/industries';
 import { Checkbox } from 'components/ui/Checkbox';
@@ -27,7 +28,10 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
     availability: userProfile.availability || '',
     resume: userProfile.resume || null,
     portfolio: userProfile.portfolio || '',
-    certifications: userProfile.certifications || []
+    certifications: userProfile.certifications || [],
+    // New: resume-like sections
+    experiences: Array.isArray(userProfile.experiences) ? userProfile.experiences : [],
+    education: Array.isArray(userProfile.education) ? userProfile.education : []
   });
 
   const [errors, setErrors] = useState({});
@@ -35,6 +39,9 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
   const [newSkillProficiency, setNewSkillProficiency] = useState('intermediate');
   const [newCertification, setNewCertification] = useState('');
   const [industryInput, setIndustryInput] = useState('');
+  // Experience/Education temp states not required; we edit inline
+  const [experienceErrors, setExperienceErrors] = useState({}); // { [idx]: { title, company, location, start_date, end_date, description } }
+  const [educationErrors, setEducationErrors] = useState({}); // { [idx]: { start_year, end_year } }
 
   const experienceOptions = [
     { value: 'entry', label: 'Entry Level (0-2 years)' },
@@ -43,6 +50,39 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
     { value: 'lead', label: 'Lead/Principal (10+ years)' },
     { value: 'executive', label: 'Executive/C-Level' }
   ];
+
+  // Compute total experience and level from experiences tiles
+  const computeExperienceStats = (exps) => {
+    if (!Array.isArray(exps) || exps.length === 0) return { months: 0, years: 0, level: 'entry' };
+    const today = new Date();
+    let months = 0;
+    exps.forEach((exp) => {
+      // Support YYYY-MM or YYYY-MM-DD inputs gracefully
+      const normalizeToDate = (val) => {
+        if (!val) return null;
+        // If only year-month, append first day
+        if (/^\d{4}-\d{2}$/.test(val)) return new Date(val + '-01');
+        // If full date, use as-is
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return new Date(val);
+        // Fallback: attempt Date parse
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? null : d;
+      };
+      const start = normalizeToDate(exp?.start_date);
+      const end = exp?.current ? today : normalizeToDate(exp?.end_date);
+      if (!start) return;
+      const endUse = end || today;
+      const diffMonths = (endUse.getFullYear() - start.getFullYear()) * 12 + (endUse.getMonth() - start.getMonth() + 1);
+      if (diffMonths > 0) months += diffMonths;
+    });
+    const years = Math.floor(months / 12);
+    let level = 'entry';
+    if (years >= 10) level = 'lead';
+    else if (years >= 5) level = 'senior';
+    else if (years >= 2) level = 'mid';
+    else level = 'entry';
+    return { months, years, level };
+  };
 
   // Industry options now come from DB-backed IndustryInput
 
@@ -220,39 +260,214 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
 
   const validateForm = () => {
     const newErrors = {};
+    let isValid = true;
 
     if (userProfile.role === 'jobseeker') {
       // Desired roles take precedence over a single jobTitle now
       if (!formData.desiredRoles || formData.desiredRoles.length === 0) {
         newErrors.desiredRoles = 'Add at least one desired job title';
-      }
-      if (!formData.experience) {
-        newErrors.experience = 'Experience level is required';
+        isValid = false;
       }
       if (formData.skills.length === 0) {
         newErrors.skills = 'Please add at least one skill';
+        isValid = false;
       }
     }
 
-    if (userProfile.role === 'recruiter' || userProfile.role === 'employer') {
-      if (!formData.company.trim()) {
-        newErrors.company = 'Company name is required';
-      }
-      if (!formData.industry) {
-        newErrors.industry = 'Industry is required';
-      }
+    // For recruiter/employer, Professional Information no longer requires company/industry inputs.
+
+    // Education required fields validation (Year-only)
+    if (Array.isArray(formData.education)) {
+      const eduErrs = {};
+      formData.education.forEach((ed, idx) => {
+        const errs = { ...(educationErrors[idx] || {}) };
+        if (!ed.institution || !ed.institution.trim()) errs.institution = 'Institution is required';
+        if (!ed.degree || !ed.degree.trim()) errs.degree = 'Degree is required';
+        if (!ed.field_of_study || !ed.field_of_study.trim()) errs.field_of_study = 'Field of Study is required';
+        if (!ed.location || !ed.location.trim()) errs.location = 'Location is required';
+        const startYear = ed.start_year || (ed.start_date ? String(ed.start_date).slice(0, 4) : '');
+        const endYear = ed.end_year || (ed.end_date ? String(ed.end_date).slice(0, 4) : '');
+        if (!startYear) errs.start_year = 'Start year is required';
+        if (!ed.current && !endYear) errs.end_year = 'End year is required';
+        if (!ed.description || !ed.description.trim()) errs.description = 'Description is required';
+        if (Object.values(errs).some(Boolean)) {
+          eduErrs[idx] = errs;
+          isValid = false;
+        }
+      });
+      if (Object.keys(eduErrs).length > 0) setEducationErrors(prev => ({ ...prev, ...eduErrs }));
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return isValid && Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Ensure recruiter industry maps to primary_industry via parent mapper
-      onUpdateProfile({ ...formData });
+    if (!validateForm()) return;
+
+    // For jobseekers, compute experience level from experiences tiles
+    const payload = { ...formData };
+    if (['jobseeker', 'recruiter', 'employer'].includes(userProfile.role)) {
+      const stats = computeExperienceStats(formData.experiences);
+      payload.experience = stats.level;
     }
+    onUpdateProfile(payload);
+  };
+
+  // Month/Year picker with max cap (defaults to current month/year)
+  const MonthYearPicker = ({ label, value, onChange, disabled = false, maxYM, required = false, error }) => {
+    const months = [
+      { value: '01', label: 'Jan' },
+      { value: '02', label: 'Feb' },
+      { value: '03', label: 'Mar' },
+      { value: '04', label: 'Apr' },
+      { value: '05', label: 'May' },
+      { value: '06', label: 'Jun' },
+      { value: '07', label: 'Jul' },
+      { value: '08', label: 'Aug' },
+      { value: '09', label: 'Sep' },
+      { value: '10', label: 'Oct' },
+      { value: '11', label: 'Nov' },
+      { value: '12', label: 'Dec' }
+    ];
+    const now = new Date();
+    const maxYear = maxYM && /^\d{4}-\d{2}$/.test(maxYM) ? parseInt(maxYM.slice(0, 4), 10) : now.getFullYear();
+    const maxMonth = maxYM && /^\d{4}-\d{2}$/.test(maxYM) ? parseInt(maxYM.slice(5, 7), 10) : (now.getMonth() + 1);
+    const years = Array.from({ length: 60 }, (_, i) => maxYear - i).map(y => ({ value: String(y), label: String(y) }));
+
+    const year = value && /^\d{4}-\d{2}$/.test(value) ? value.slice(0, 4) : '';
+    const month = value && /^\d{4}-\d{2}$/.test(value) ? value.slice(5, 7) : '';
+
+    const apply = (y, m) => {
+      if (y && m) {
+        let yi = parseInt(y, 10);
+        let mi = parseInt(m, 10);
+        if (yi === maxYear && mi > maxMonth) mi = maxMonth;
+        const mm = String(mi).padStart(2, '0');
+        return onChange(`${y}-${mm}`);
+      }
+      onChange('');
+    };
+
+    return (
+      <div className="space-y-2">
+        <div className="text-sm font-medium text-foreground">{label}{required && <span className="text-destructive ml-1">*</span>}</div>
+        <div className="grid grid-cols-2 gap-2">
+          <Select
+            placeholder="Month"
+            options={(year && parseInt(year, 10) === maxYear) ? months.filter(m => parseInt(m.value, 10) <= maxMonth) : months}
+            value={month}
+            onChange={(m) => apply(year, m)}
+            disabled={disabled}
+          />
+          <Select placeholder="Year" options={years} value={year} onChange={(y) => apply(y, month)} disabled={disabled} />
+        </div>
+        {error && (
+          <p className="text-sm text-destructive mt-1">{error}</p>
+        )}
+      </div>
+    );
+  };
+
+  // ========= Experience helpers =========
+  const addExperience = () => {
+    setFormData(prev => {
+      const next = [
+        ...(prev.experiences || []),
+        {
+          title: '',
+          company: '',
+          location: '',
+          start_date: '',
+          end_date: '',
+          current: false,
+          description: ''
+        }
+      ];
+      if (onDraftChange) onDraftChange({ experiences: next });
+      return { ...prev, experiences: next };
+    });
+  };
+
+  const removeExperience = (idx) => {
+    setFormData(prev => {
+      const next = (prev.experiences || []).filter((_, i) => i !== idx);
+      if (onDraftChange) onDraftChange({ experiences: next });
+      return { ...prev, experiences: next };
+    });
+  };
+
+  const setExperienceField = (idx, key, value) => {
+    setFormData(prev => {
+      const next = (prev.experiences || []).map((exp, i) => (i === idx ? { ...exp, [key]: value } : exp));
+      // Clear field-level error for this experience field
+      setExperienceErrors(prev => {
+        const curr = prev[idx] || {};
+        return { ...prev, [idx]: { ...curr, [key]: '' } };
+      });
+      if (onDraftChange) onDraftChange({ experiences: next });
+      return { ...prev, experiences: next };
+    });
+  };
+
+  // ========= Education helpers =========
+  const addEducation = () => {
+    setFormData(prev => {
+      const next = [
+        ...(prev.education || []),
+        {
+          institution: '',
+          degree: '',
+          field_of_study: '',
+          location: '',
+          start_year: '',
+          end_year: '',
+          current: false,
+          description: ''
+        }
+      ];
+      if (onDraftChange) onDraftChange({ education: next });
+      return { ...prev, education: next };
+    });
+  };
+
+  const removeEducation = (idx) => {
+    setFormData(prev => {
+      const next = (prev.education || []).filter((_, i) => i !== idx);
+      if (onDraftChange) onDraftChange({ education: next });
+      return { ...prev, education: next };
+    });
+  };
+
+  const setEducationField = (idx, key, value) => {
+    setFormData(prev => {
+      const next = (prev.education || []).map((ed, i) => (i === idx ? { ...ed, [key]: value } : ed));
+      if (onDraftChange) onDraftChange({ education: next });
+      // Clear field-level error for this education field (non-date fields)
+      setEducationErrors(prevErrs => {
+        const curr = prevErrs[idx] || {};
+        return { ...prevErrs, [idx]: { ...curr, [key]: '' } };
+      });
+      // Live validate after updating
+      const ed = next[idx] || {};
+      const errs = { start_year: '', end_year: '' };
+      const currentYear = new Date().getFullYear();
+      const toInt = (v) => { const n = parseInt(v, 10); return isNaN(n) ? null : n; };
+      const sy = toInt(ed.start_year);
+      const ey = toInt(ed.end_year);
+      if (ed.start_year && (sy === null || sy < 1950 || sy > currentYear + 5)) {
+        errs.start_year = `Enter a valid year between 1950 and ${currentYear + 5}`;
+      }
+      if (!ed.current && ed.end_year && (ey === null || ey < 1950 || ey > currentYear + 5)) {
+        errs.end_year = `Enter a valid year between 1950 and ${currentYear + 5}`;
+      }
+      if (!ed.current && sy !== null && ey !== null && sy > ey) {
+        errs.end_year = 'End year must be greater than or equal to start year';
+      }
+      setEducationErrors(prevErrs => ({ ...prevErrs, [idx]: errs }));
+      return { ...prev, education: next };
+    });
   };
 
   const renderJobSeekerFields = () => (
@@ -331,24 +546,18 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
           </div>
         </div>
 
-        <Input
-          label="Current/Previous Company"
-          name="company"
-          type="text"
-          value={formData.company}
-          onChange={handleInputChange}
-          placeholder="e.g., TechCorp Inc."
-        />
-
-        <Select
-          label="Experience Level"
-          options={experienceOptions}
-          value={formData.experience}
-          onChange={(value) => handleSelectChange('experience', value)}
-          error={errors.experience}
-          required
-          placeholder="Select your experience level"
-        />
+        {/* Removed company and manual experience level for jobseekers; computed from experiences */}
+        {/* Show computed experience summary (read-only) */}
+        <div className="rounded-card border border-border p-3">
+          <div className="text-xs text-muted-foreground mb-1">Experience level (auto-calculated)</div>
+          <div className="text-sm font-medium text-foreground">
+            {(() => {
+              const { years, level } = computeExperienceStats(formData.experiences);
+              const labelMap = { entry: 'Entry (0-2 yrs)', mid: 'Mid (2-5 yrs)', senior: 'Senior (5-10 yrs)', lead: 'Lead (10+ yrs)', executive: 'Executive' };
+              return `${labelMap[level] || level} • ~${years} yrs`;
+            })()}
+          </div>
+        </div>
 
         {/* Expected Salary (like onboarding): min/max in INR */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -403,41 +612,15 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
 
   const renderRecruiterFields = () => (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          label="Company Name"
-          name="company"
-          type="text"
-          value={formData.company}
-          onChange={handleInputChange}
-          error={errors.company}
-          required
-          placeholder="e.g., TechCorp Inc."
-        />
-
-        <Input
-          label="Job Title"
-          name="jobTitle"
-          type="text"
-          value={formData.jobTitle}
-          onChange={handleInputChange}
-          placeholder="e.g., Senior Recruiter"
-        />
-
-        <IndustryInput
-          label="Primary Industry"
-          value={formData.industry}
-          onChange={(v) => handleSelectChange('industry', v)}
-          placeholder="Start typing industry"
-        />
-
-        <Select
-          label="Experience Level"
-          options={experienceOptions}
-          value={formData.experience}
-          onChange={(value) => handleSelectChange('experience', value)}
-          placeholder="Your recruiting experience"
-        />
+      <div className="rounded-card border border-border p-3">
+        <div className="text-xs text-muted-foreground mb-1">Experience level (auto-calculated)</div>
+        <div className="text-sm font-medium text-foreground">
+          {(() => {
+            const { years, level } = computeExperienceStats(formData.experiences);
+            const labelMap = { entry: 'Entry (0-2 yrs)', mid: 'Mid (2-5 yrs)', senior: 'Senior (5-10 yrs)', lead: 'Lead (10+ yrs)', executive: 'Executive' };
+            return `${labelMap[level] || level} • ~${years} yrs`;
+          })()}
+        </div>
       </div>
     </>
   );
@@ -454,6 +637,196 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
 
           {userProfile.role === 'jobseeker' && renderJobSeekerFields()}
           {(userProfile.role === 'recruiter' || userProfile.role === 'employer') && renderRecruiterFields()}
+        </div>
+
+        {/* Experience (Both roles) */}
+        <div className="glassmorphic p-6 rounded-squircle">
+          <h3 className="font-heading font-heading-semibold text-foreground mb-4 flex items-center">
+            <Icon name="Calendar" size={20} className="mr-2" />
+            Experience
+          </h3>
+
+          <div className="space-y-4">
+            {(!formData.experiences || formData.experiences.length === 0) && (
+              <p className="text-sm text-muted-foreground">No experience added yet.</p>
+            )}
+
+            {formData.experiences.map((exp, idx) => (
+              <div key={idx} className="p-4 rounded-card border border-border">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-sm font-medium text-foreground">Experience #{idx + 1}</div>
+                  <button type="button" className="text-muted-foreground hover:text-error" onClick={() => removeExperience(idx)}>
+                    <Icon name="Trash2" size={16} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <RoleInput
+                    label="Job Title"
+                    value={exp.title || ''}
+                    onChange={(val) => setExperienceField(idx, 'title', val)}
+                    audience={userProfile.role === 'jobseeker' ? 'jobseeker' : 'recruiter'}
+                    placeholder={userProfile.role === 'jobseeker' ? 'e.g., Software Engineer' : 'e.g., Senior Recruiter'}
+                    required
+                    error={experienceErrors[idx]?.title}
+                  />
+                  <Input label="Company" value={exp.company || ''} onChange={(e) => setExperienceField(idx, 'company', e.target.value)} placeholder="e.g., TechCorp Inc." required error={experienceErrors[idx]?.company} />
+                  <LocationInput label="Location" value={exp.location || ''} onChange={(val) => setExperienceField(idx, 'location', val)} placeholder="City, State (e.g., Bengaluru, Karnataka)" required error={experienceErrors[idx]?.location} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <MonthYearPicker
+                      label="Start Month"
+                      value={exp.start_date || ''}
+                      onChange={(val) => setExperienceField(idx, 'start_date', val)}
+                      required
+                      error={experienceErrors[idx]?.start_date}
+                    />
+                    <MonthYearPicker
+                      label="End Month"
+                      value={exp.end_date || ''}
+                      onChange={(val) => setExperienceField(idx, 'end_date', val)}
+                      disabled={!!exp.current}
+                      required={!exp.current}
+                      error={experienceErrors[idx]?.end_date}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!exp.current}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        // Single functional update to avoid batched state race
+                        setFormData(prev => {
+                          const next = (prev.experiences || []).map((item, i) => {
+                            if (i !== idx) return item;
+                            return {
+                              ...item,
+                              current: checked,
+                              end_date: checked ? '' : item.end_date
+                            };
+                          });
+                          if (onDraftChange) onDraftChange({ experiences: next });
+                          return { ...prev, experiences: next };
+                        });
+                      }}
+                      label="I currently work here"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-body font-body-medium text-foreground mb-1">Description</label>
+                    <textarea
+                      rows={3}
+                      value={exp.description || ''}
+                      onChange={(e) => setExperienceField(idx, 'description', e.target.value)}
+                      className="w-full px-3 py-2 bg-input border border-border rounded-squircle text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent spring-transition resize-none"
+                      placeholder="Describe your responsibilities and achievements"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <Button type="button" variant="outline" iconName="Plus" iconSize={16} onClick={addExperience}>
+              Add Experience
+            </Button>
+          </div>
+        </div>
+
+        {/* Education (Both roles) */}
+        <div className="glassmorphic p-6 rounded-squircle">
+          <h3 className="font-heading font-heading-semibold text-foreground mb-4 flex items-center">
+            <Icon name="BookOpen" size={20} className="mr-2" />
+            Education
+          </h3>
+
+          <div className="space-y-4">
+            {(!formData.education || formData.education.length === 0) && (
+              <p className="text-sm text-muted-foreground">No education added yet.</p>
+            )}
+
+            {formData.education.map((ed, idx) => (
+              <div key={idx} className="p-4 rounded-card border border-border">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-sm font-medium text-foreground">Education #{idx + 1}</div>
+                  <button type="button" className="text-muted-foreground hover:text-error" onClick={() => removeEducation(idx)}>
+                    <Icon name="Trash2" size={16} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Input label="Institution" value={ed.institution || ''} onChange={(e) => setEducationField(idx, 'institution', e.target.value)} placeholder="e.g., Stanford University" required error={educationErrors[idx]?.institution} />
+                  <Input label="Degree" value={ed.degree || ''} onChange={(e) => setEducationField(idx, 'degree', e.target.value)} placeholder="e.g., B.Sc, M.Sc, MBA" required error={educationErrors[idx]?.degree} />
+                  <Input label="Field of Study" value={ed.field_of_study || ''} onChange={(e) => setEducationField(idx, 'field_of_study', e.target.value)} placeholder="e.g., Computer Science" required error={educationErrors[idx]?.field_of_study} />
+                  <LocationInput label="Location" value={ed.location || ''} onChange={(val) => setEducationField(idx, 'location', val)} placeholder="City, State (e.g., Bengaluru, Karnataka)" required error={educationErrors[idx]?.location} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Select
+                      label="Start Year"
+                      options={Array.from({ length: 60 }, (_, i) => {
+                        const y = new Date().getFullYear() - i;
+                        return { value: String(y), label: String(y) };
+                      })}
+                      value={ed.start_year || (ed.start_date ? String(ed.start_date).slice(0, 4) : '')}
+                      onChange={(y) => setEducationField(idx, 'start_year', y)}
+                      required
+                      error={educationErrors[idx]?.start_year}
+                      placeholder="Year"
+                    />
+                    <Select
+                      label="End Year"
+                      options={Array.from({ length: 60 }, (_, i) => {
+                        const y = new Date().getFullYear() - i;
+                        return { value: String(y), label: String(y) };
+                      })}
+                      value={ed.end_year || (ed.end_date ? String(ed.end_date).slice(0, 4) : '')}
+                      onChange={(y) => setEducationField(idx, 'end_year', y)}
+                      disabled={!!ed.current}
+                      required={!ed.current}
+                      error={educationErrors[idx]?.end_year}
+                      placeholder="Year"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={!!ed.current}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData(prev => {
+                          const next = (prev.education || []).map((item, i) => {
+                            if (i !== idx) return item;
+                            return {
+                              ...item,
+                              current: checked,
+                              end_date: checked ? '' : item.end_date,
+                              end_year: checked ? '' : item.end_year
+                            };
+                          });
+                          if (onDraftChange) onDraftChange({ education: next });
+                          // clear end errors if set to current
+                          if (checked) setEducationErrors(prev => ({ ...prev, [idx]: { ...(prev[idx] || {}), end_date: '', end_year: '' } }));
+                          return { ...prev, education: next };
+                        });
+                      }}
+                      label="Currently studying"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-body font-body-medium text-foreground mb-1">Description <span className="text-destructive">*</span></label>
+                    <textarea
+                      rows={3}
+                      value={ed.description || ''}
+                      onChange={(e) => setEducationField(idx, 'description', e.target.value)}
+                      className="w-full px-3 py-2 bg-input border border-border rounded-squircle text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent spring-transition resize-none"
+                      placeholder="Coursework, honors, or relevant details"
+                    />
+                    {educationErrors[idx]?.description && (
+                      <p className="text-sm text-destructive mt-1">{educationErrors[idx]?.description}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <Button type="button" variant="outline" iconName="Plus" iconSize={16} onClick={addEducation}>
+              Add Education
+            </Button>
+          </div>
         </div>
 
         {/* Skills Section */}

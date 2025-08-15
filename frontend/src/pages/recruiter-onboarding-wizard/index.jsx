@@ -5,7 +5,6 @@ import WizardLayout from './components/WizardLayout';
 import WizardProgress from './components/WizardProgress';
 import PersonalInfoStep from './components/PersonalInfoStep';
 import ResumeUploadStep from './components/ResumeUploadStep';
-import ProfessionalExperienceStep from './components/ProfessionalExperienceStep';
 import RecruiterPreferencesStep from './components/RecruiterPreferencesStep';
 import ProfileReviewStep from './components/ProfileReviewStep';
 import { getApiUrl } from 'utils/api';
@@ -34,20 +33,13 @@ const RecruiterOnboardingWizard = () => {
         },
         {
             id: 3,
-            title: 'Professional Experience',
-            description: 'Add your work experience and expertise',
-            icon: 'Briefcase',
-            component: ProfessionalExperienceStep
-        },
-        {
-            id: 4,
             title: 'Recruiter Preferences',
             description: 'Tell us about your recruiting focus',
             icon: 'Target',
             component: RecruiterPreferencesStep
         },
         {
-            id: 5,
+            id: 4,
             title: 'Review Profile',
             description: 'Review and complete your setup',
             icon: 'CheckCircle',
@@ -176,7 +168,9 @@ const RecruiterOnboardingWizard = () => {
         setFormData(finalData);
 
         if (savedStep) {
-            setCurrentStep(parseInt(savedStep));
+            const parsed = parseInt(savedStep);
+            const clamped = Math.max(1, Math.min(parsed, steps.length));
+            setCurrentStep(clamped);
         }
     };
 
@@ -245,32 +239,81 @@ const RecruiterOnboardingWizard = () => {
         }
         try {
             // Save onboarding data to backend API
+            // Map camelCase form keys to backend snake_case fields
+            const remoteWork = Array.isArray(formData.workArrangements) && formData.workArrangements.includes('remote');
+            // Clamp salaries to backend constraint (<= 8 digits before decimal)
+            const MAX_SALARY_ALLOWED = 9999999999;
+            const sMinRaw = formData.salaryMin === '' ? null : Number(formData.salaryMin);
+            const sMaxRaw = formData.salaryMax === '' ? null : Number(formData.salaryMax);
+            if (sMinRaw !== null && (Number.isNaN(sMinRaw) || sMinRaw < 0 || sMinRaw >= MAX_SALARY_ALLOWED)) {
+                throw new Error('Minimum salary must be a number less than 100,000,000');
+            }
+            if (sMaxRaw !== null && (Number.isNaN(sMaxRaw) || sMaxRaw < 0 || sMaxRaw >= MAX_SALARY_ALLOWED)) {
+                throw new Error('Maximum salary must be a number less than 100,000,000');
+            }
+            if (sMinRaw !== null && sMaxRaw !== null && sMaxRaw <= sMinRaw) {
+                throw new Error('Maximum salary must be greater than minimum salary');
+            }
+            // Send salary as strings for DecimalField compatibility
+            const salaryFrom = sMinRaw !== null ? String(sMinRaw) : null;
+            const salaryTo = sMaxRaw !== null ? String(sMaxRaw) : null;
+            const skillsFromATSTools = Array.isArray(formData.atsTools) ? formData.atsTools : undefined;
             const payload = {
-                ...formData,
-                // flatten nested objects if needed
-                ...(formData.recruiter_preferences || {}),
-                // Remove nested preferences to avoid duplication
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                phone: formData.phone,
+                location: formData.location,
+                // If we've uploaded an image, send its raw URL; backend will move it to profile_image_url
+                profile_image: (formData.profileImageFile && formData.profileImageFile.url) || formData.profileImage || undefined,
+                linkedin_url: formData.linkedinUrl || undefined,
+                job_title: formData.jobTitle,
+                industries: Array.isArray(formData.industries) ? formData.industries : undefined,
+                // Preferences mapping
+                recruitment_type: formData.recruiterType || undefined,
+                remote_work: !!remoteWork,
+                // position_types omitted
+                salary_currency: (salaryFrom || salaryTo) ? 'INR' : undefined,
+                salary_range_from: salaryFrom,
+                salary_range_to: salaryTo,
+                recruiting_areas: Array.isArray(formData.focusRoles) ? formData.focusRoles : undefined,
+                bio: formData.notes || undefined,
+                // Attach ATS/Tools to skills so backend can normalize
+                skills: skillsFromATSTools,
+                communication_preferences: {
+                    ...(formData.companySize ? { company_size: formData.companySize } : {}),
+                    ...(formData.hiringVolume ? { hiring_volume: formData.hiringVolume } : {}),
+                },
             };
-            delete payload.recruiter_preferences;
+            // Remove undefined keys
+            Object.keys(payload).forEach(k => {
+                if (payload[k] === undefined || payload[k] === '') delete payload[k];
+            });
             const profile = await apiRequest(
                 '/api/auth/recruiter-profile/',
                 'POST',
                 payload,
                 token
             );
-            // Optionally update user in localStorage with onboarding complete/profile info
+            // Ensure role and onboarding flags are set before redirect
             if (profile && profile.id) {
-                localStorage.setItem('user', JSON.stringify(profile));
+                const existing = JSON.parse(localStorage.getItem('user') || '{}');
+                const merged = { ...existing, ...profile };
+                if (!merged.role) merged.role = 'recruiter';
+                localStorage.setItem('user', JSON.stringify(merged));
+                localStorage.setItem('userRole', merged.role);
+            } else {
+                // Fallback: set role explicitly
+                localStorage.setItem('userRole', 'recruiter');
             }
+            localStorage.setItem('recruiterOnboardingComplete', 'true');
             // Clear saved progress
             localStorage.removeItem('recruiterOnboardingData');
             localStorage.removeItem('recruiterOnboardingStep');
             localStorage.removeItem('recruiterOnboardingUserId');
             // Set onboarding complete flag and redirect to recruiter dashboard
-            localStorage.setItem('recruiterOnboardingComplete', 'true');
             window.location.href = '/recruiter-dashboard-pipeline-management';
         } catch (err) {
-            alert('Failed to save onboarding data. Please try again.');
+            alert(`Failed to save onboarding data: ${err.message || 'Please try again.'}`);
             console.error('Onboarding save error:', err);
         } finally {
             setIsLoading(false);

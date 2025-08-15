@@ -4,7 +4,7 @@ import Icon from 'components/AppIcon';
 import { fetchRoles } from 'services/rolesService';
 
 // onChange receives plain string; onSelect is called when a suggestion is chosen.
-export default function RoleInput({ label = 'Desired Job Title', name = 'role', value, onChange, onSelect, clearOnSelect = false, placeholder = 'e.g., Frontend Developer, Data Scientist', description, error, className, audience }) {
+export default function RoleInput({ label = 'Desired Job Title', name = 'role', value, onChange, onSelect, clearOnSelect = false, placeholder = 'e.g., Frontend Developer, Data Scientist', description, error, className, audience, required = false }) {
     const [suggestions, setSuggestions] = useState([]);
     const [open, setOpen] = useState(false);
     const containerRef = useRef(null);
@@ -72,6 +72,7 @@ export default function RoleInput({ label = 'Desired Job Title', name = 'role', 
                 error={error}
                 placeholder={placeholder}
                 description={description}
+                required={required}
             />
             {open && suggestions.length > 0 && (
                 <div className="absolute z-50 left-0 right-0 mt-1 bg-background backdrop-blur-sm border border-border rounded-lg max-h-60 overflow-y-auto shadow-lg ring-1 ring-black/5">

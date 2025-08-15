@@ -61,6 +61,14 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
       return;
     }
 
+    // If localStorage says onboarding is complete, trust it and skip API check
+    const localComplete = onboardingKey ? localStorage.getItem(onboardingKey) === 'true' : true;
+    if (localComplete) {
+      setIsOnboarded(true);
+      setIsCheckingOnboarding(false);
+      return;
+    }
+
     // Fetch onboarding status from backend for robustness
     const fetchOnboardingStatus = async () => {
       try {
@@ -102,8 +110,10 @@ const ProtectedRoute = ({ children, role, requireOnboarding = false }) => {
           setIsOnboarded(isComplete);
           console.log('ProtectedRoute - Updated isOnboarded to:', isComplete);
         } else {
-          setIsOnboarded(false);
-          console.log('ProtectedRoute - No onboarding_complete field, setting to false');
+          // If API does not include onboarding flag, trust localStorage value instead of forcing false
+          const localValue = onboardingKey ? localStorage.getItem(onboardingKey) === 'true' : true;
+          setIsOnboarded(localValue);
+          console.log('ProtectedRoute - No onboarding_complete field, using localStorage fallback:', localValue);
         }
       } catch (error) {
         console.error('ProtectedRoute - API error:', error.message);

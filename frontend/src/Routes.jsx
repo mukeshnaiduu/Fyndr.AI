@@ -11,6 +11,7 @@ import AboutContactPage from "pages/about-contact-page";
 import NotificationsCenter from "pages/notifications-center";
 import ProfileManagement from "pages/profile-management";
 import CompanyProfileManagement from "pages/company-profile-management";
+import RecruiterProfileManagement from "pages/recruiter-profile-management";
 import EmployerProfileManagement from "pages/employer-profile-management";
 import AdminProfileManagement from "pages/admin-profile-management";
 import VideoInterviewInterface from "pages/video-interview-interface";
@@ -62,8 +63,14 @@ const Routes = () => {
         <Route path="/notifications-center" element={<ProtectedRoute requireOnboarding={true}><NotificationsCenter /></ProtectedRoute>} />
         <Route path="/profile-management" element={<ProtectedRoute requireOnboarding={true}><ProfileManagement /></ProtectedRoute>} />
         <Route path="/company-profile-management" element={<ProtectedRoute requireOnboarding={true}><CompanyProfileManagement /></ProtectedRoute>} />
-        {/* Keep the old route for backward compatibility */}
-        <Route path="/recruiter-profile-management" element={<ProtectedRoute requireOnboarding={true}><CompanyProfileManagement /></ProtectedRoute>} />
+        {/* Recruiter profile management routes */}
+        <Route path="/recruiter-profile-management" element={<ProtectedRoute><RecruiterProfileManagement /></ProtectedRoute>} />
+        {/* Allow trailing paths and common typo to avoid 404s */}
+        <Route path="/recruiter-profile-management/*" element={<ProtectedRoute><RecruiterProfileManagement /></ProtectedRoute>} />
+        <Route path="/recruite-profile-management" element={<ProtectedRoute><RecruiterProfileManagement /></ProtectedRoute>} />
+        {/* Additional aliases */}
+        <Route path="/recruiter/profile-management" element={<ProtectedRoute><RecruiterProfileManagement /></ProtectedRoute>} />
+        <Route path="/recruiter/profile" element={<ProtectedRoute><RecruiterProfileManagement /></ProtectedRoute>} />
         <Route path="/employer-profile-management" element={<ProtectedRoute requireOnboarding={true}><EmployerProfileManagement /></ProtectedRoute>} />
         <Route path="/admin-profile-management" element={<ProtectedRoute requireOnboarding={true}><AdminProfileManagement /></ProtectedRoute>} />
         <Route path="/video-interview-interface" element={<ProtectedRoute requireOnboarding={true}><VideoInterviewInterface /></ProtectedRoute>} />

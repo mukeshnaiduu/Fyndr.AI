@@ -110,6 +110,9 @@ const ProfileManagement = () => {
           salary_currency: profile.salary_currency || 'INR',
           availability: profile.availability_date || profile.availability_start_date || '',
           certifications: profile.certifications || [],
+          // Resume-like sections
+          experiences: Array.isArray(profile.experiences) ? profile.experiences : [],
+          education: Array.isArray(profile.education) ? profile.education : [],
           onboarding_complete: data.onboarding_complete,
           // normalize role for UI checks
           role: roleRaw === 'job_seeker' ? 'jobseeker' : roleRaw
@@ -215,6 +218,9 @@ const ProfileManagement = () => {
         ...(updatedData.skills !== undefined && { skills: Array.isArray(updatedData.skills) ? updatedData.skills : [] }),
         ...(updatedData.certifications !== undefined && { certifications: Array.isArray(updatedData.certifications) ? updatedData.certifications : [] }),
         ...(updatedData.industries !== undefined && { industries: Array.isArray(updatedData.industries) ? updatedData.industries : [] }),
+        // New: Resume-like sections
+        ...(updatedData.experiences !== undefined && { experiences: Array.isArray(updatedData.experiences) ? updatedData.experiences : [] }),
+        ...(updatedData.education !== undefined && { education: Array.isArray(updatedData.education) ? updatedData.education : [] }),
         ...(updatedData.salary_min !== undefined && { salary_min: updatedData.salary_min || null }),
         ...(updatedData.salary_max !== undefined && { salary_max: updatedData.salary_max || null }),
         ...(updatedData.salary_currency !== undefined && { salary_currency: updatedData.salary_currency || 'INR' }),
@@ -311,6 +317,8 @@ const ProfileManagement = () => {
         salary_currency: profile.salary_currency || 'INR',
         availability: profile.availability_date || profile.availability_start_date || '',
         certifications: profile.certifications || [],
+        experiences: Array.isArray(profile.experiences) ? profile.experiences : [],
+        education: Array.isArray(profile.education) ? profile.education : [],
         onboarding_complete: data.onboarding_complete,
         role: data.role === 'job_seeker' ? 'jobseeker' : data.role,
       };
@@ -369,7 +377,7 @@ const ProfileManagement = () => {
       description="Manage your personal information, preferences, and security settings"
     >
       {/* Removed SidebarLayout and sidebar, main content only */}
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
           <button

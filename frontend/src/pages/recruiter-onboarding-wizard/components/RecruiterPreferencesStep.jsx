@@ -1,362 +1,338 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import Input from 'components/ui/Input';
+import { Checkbox, CheckboxGroup } from 'components/ui/Checkbox';
+import Button from 'components/ui/Button';
+import RoleInput from 'components/ui/RoleInput';
+import { INDUSTRY_OPTIONS } from 'constants/industries';
+import Select from 'components/ui/Select';
 
 const RecruiterPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
-    const [formData, setFormData] = useState({
-        recruitmentType: data.recruitmentType || 'fullTime',
-        remoteWork: data.remoteWork || false,
-        positionTypes: data.positionTypes || [],
-        salaryCurrency: data.salaryCurrency || 'INR',
-        salaryRangeFrom: data.salaryRangeFrom || '',
-        salaryRangeTo: data.salaryRangeTo || '',
-        communication: data.communication || {
-            email: true,
-            phone: false,
-            inApp: true
-        },
-        availabilityStartDate: data.availabilityStartDate || '',
-        notes: data.notes || ''
+    const [prefs, setPrefs] = useState({
+        focusRoles: data.focusRoles || [],
+        candidateTypes: data.candidateTypes || [],
+        workArrangements: data.workArrangements || [],
+        salaryMin: data.salaryMin || '',
+        salaryMax: data.salaryMax || '',
+        industries: Array.isArray(data.industries) ? data.industries : [],
+        notes: data.notes || '',
+        recruiterType: data.recruiterType || '', // 'in-house' | 'agency'
+        companySize: data.companySize || '', // '1-10','11-50','51-200','201-500','501-1000','1000+'
+        hiringVolume: data.hiringVolume || '', // '<5/mo','5-20/mo','20+/mo'
+        atsTools: Array.isArray(data.atsTools) ? data.atsTools : [], // e.g., 'Greenhouse','Lever','Ashby','Workday','BambooHR','Zoho','Other'
+        ...data
     });
 
-    const positionOptions = [
-        'Entry Level',
-        'Mid-Level',
-        'Senior Level',
-        'Management',
-        'Executive',
-        'C-Level',
-        'Intern',
-        'Contract',
-        'Freelance'
+    const [roleInput, setRoleInput] = useState('');
+    const [errors, setErrors] = useState({});
+    const MAX_SALARY_ALLOWED = 99999999; // 8 digits before decimal
+
+    const candidateTypeOptions = [
+        { value: 'entry', label: 'Entry' },
+        { value: 'mid', label: 'Mid' },
+        { value: 'senior', label: 'Senior' },
+        { value: 'management', label: 'Management' },
+        { value: 'executive', label: 'Executive/CxO' },
+        { value: 'contract', label: 'Contract/Freelance' },
+        { value: 'intern', label: 'Intern' },
     ];
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
+    const workArrangementOptions = [
+        { value: 'remote', label: 'Remote' },
+        { value: 'hybrid', label: 'Hybrid' },
+        { value: 'on-site', label: 'On-site' },
+        { value: 'flexible', label: 'Flexible' }
+    ];
+
+    const recruiterTypeOptions = [
+        { value: 'in-house', label: 'In-house' },
+        { value: 'agency', label: 'Agency/Consultant' }
+    ];
+
+    const companySizeOptions = [
+        { value: '1-10', label: '1-10' },
+        { value: '11-50', label: '11-50' },
+        { value: '51-200', label: '51-200' },
+        { value: '201-500', label: '201-500' },
+        { value: '501-1000', label: '501-1000' },
+        { value: '1000+', label: '1000+' }
+    ];
+
+    const hiringVolumeOptions = [
+        { value: '<5/mo', label: '< 5 per month' },
+        { value: '5-20/mo', label: '5 - 20 per month' },
+        { value: '20+/mo', label: '20+ per month' }
+    ];
+
+    const atsToolOptions = [
+        'Greenhouse', 'Lever', 'Ashby', 'Workday', 'BambooHR', 'Zoho Recruit', 'SAP SuccessFactors', 'Oracle Taleo', 'JazzHR', 'Freshteam', 'Other'
+    ].map(v => ({ value: v, label: v }));
+
+    const handleToggle = (field, value) => {
+        setPrefs(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value,
+            [field]: prev[field].includes(value)
+                ? prev[field].filter(v => v !== value)
+                : [...prev[field], value]
         }));
+        if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
     };
 
-    const handleCommunicationChange = (channel) => {
-        setFormData((prev) => ({
-            ...prev,
-            communication: {
-                ...prev.communication,
-                [channel]: !prev.communication[channel]
-            }
-        }));
-    };
-
-    const handlePositionTypeToggle = (position) => {
-        setFormData((prev) => {
-            if (prev.positionTypes.includes(position)) {
-                return {
-                    ...prev,
-                    positionTypes: prev.positionTypes.filter(pos => pos !== position)
-                };
+    const validateSalaryLive = (field, val, otherFieldVal) => {
+        const nextErrors = { ...errors };
+        const n = val === '' ? null : Number(val);
+        if (n !== null) {
+            if (Number.isNaN(n) || n < 0) {
+                nextErrors[field] = 'Enter a valid non-negative number';
+            } else if (n >= MAX_SALARY_ALLOWED) {
+                nextErrors[field] = 'Must be less than 100,000,000 (8 digits)';
             } else {
-                return {
-                    ...prev,
-                    positionTypes: [...prev.positionTypes, position]
-                };
+                delete nextErrors[field];
             }
-        });
+        } else {
+            delete nextErrors[field];
+        }
+        // Cross-field check: max > min
+        if (field === 'salaryMin' && otherFieldVal) {
+            const maxN = Number(otherFieldVal);
+            if (!Number.isNaN(maxN) && n !== null && maxN <= n) {
+                nextErrors.salaryMax = 'Max must be greater than Min';
+            } else {
+                if (nextErrors.salaryMax === 'Max must be greater than Min') delete nextErrors.salaryMax;
+            }
+        } else if (field === 'salaryMax' && otherFieldVal) {
+            const minN = Number(otherFieldVal);
+            if (!Number.isNaN(minN) && n !== null && n <= minN) {
+                nextErrors.salaryMax = 'Max must be greater than Min';
+            } else {
+                if (nextErrors.salaryMax === 'Max must be greater than Min') delete nextErrors.salaryMax;
+            }
+        }
+        setErrors(nextErrors);
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const validate = () => {
+        const e = {};
+        if (prefs.focusRoles.length === 0) e.focusRoles = 'Add at least one target role';
+        if (!prefs.industries || prefs.industries.length === 0) e.industries = 'Select at least one industry';
+        const minN = prefs.salaryMin === '' ? null : Number(prefs.salaryMin);
+        const maxN = prefs.salaryMax === '' ? null : Number(prefs.salaryMax);
+        if (minN !== null && (Number.isNaN(minN) || minN < 0 || minN >= MAX_SALARY_ALLOWED)) {
+            e.salaryMin = 'Must be less than 100,000,000 (8 digits)';
+        }
+        if (maxN !== null && (Number.isNaN(maxN) || maxN < 0 || maxN >= MAX_SALARY_ALLOWED)) {
+            e.salaryMax = 'Must be less than 100,000,000 (8 digits)';
+        }
+        if (minN !== null && maxN !== null && maxN <= minN) {
+            e.salaryMax = 'Max must be greater than Min';
+        }
+        if (!prefs.recruiterType) e.recruiterType = 'Select recruiter type';
+        setErrors(e);
+        return Object.keys(e).length === 0;
+    };
 
-        onUpdate({
-            recruitment_type: formData.recruitmentType,
-            remote_work: formData.remoteWork,
-            position_types: formData.positionTypes,
-            salary_currency: formData.salaryCurrency,
-            salary_range_from: formData.salaryRangeFrom ? parseFloat(formData.salaryRangeFrom) : null,
-            salary_range_to: formData.salaryRangeTo ? parseFloat(formData.salaryRangeTo) : null,
-            communication_preferences: formData.communication,
-            availability_start_date: formData.availabilityStartDate || null,
-            additional_notes: formData.notes
-        });
-
+    const handleNext = () => {
+        if (!validate()) return;
+        onUpdate({ ...prefs });
         onNext();
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
+            className="space-y-8"
         >
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <h3 className="text-lg font-medium text-foreground dark:text-white">Recruiter Preferences</h3>
-                <p className="text-sm text-muted-foreground dark:text-gray-400">
-                    Let us know your preferences as a recruiter to help optimize your experience.
-                </p>
+            <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Your recruiting focus</h2>
+                <p className="text-muted-foreground">Tell us which roles and industries you typically recruit for</p>
+            </div>
 
-                <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-6">
-                    <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-foreground dark:text-white mb-1">
-                            Recruitment Type
-                        </label>
-                        <div className="flex flex-wrap gap-3">
-                            <label className={`
-                flex items-center px-4 py-2 rounded-md cursor-pointer border
-                ${formData.recruitmentType === 'fullTime'
-                                    ? 'bg-primary/10 border-primary dark:bg-blue-900/30 dark:border-blue-600'
-                                    : 'bg-background border-input dark:bg-gray-800 dark:border-gray-700'}
-              `}>
-                                <input
-                                    type="radio"
-                                    name="recruitmentType"
-                                    value="fullTime"
-                                    checked={formData.recruitmentType === 'fullTime'}
-                                    onChange={handleChange}
-                                    className="sr-only"
-                                />
-                                <span className={`text-sm font-medium ${formData.recruitmentType === 'fullTime' ? 'text-primary dark:text-blue-400' : 'text-foreground dark:text-white'}`}>
-                                    Full-time
-                                </span>
-                            </label>
+            {/* Focus Roles */}
+            <div className="max-w-2xl mx-auto space-y-3">
+                <RoleInput
+                    label="Target Roles"
+                    value={roleInput}
+                    onChange={setRoleInput}
+                    audience="jobseeker"
+                    required
+                    onSelect={(val) => {
+                        if (!val) return;
+                        setPrefs(prev => ({
+                            ...prev,
+                            focusRoles: prev.focusRoles.includes(val) ? prev.focusRoles : [...prev.focusRoles, val]
+                        }));
+                        setRoleInput('');
+                        if (errors.focusRoles) setErrors(prev => ({ ...prev, focusRoles: '' }));
+                    }}
+                    clearOnSelect
+                    placeholder="e.g., Frontend Developer, Data Scientist"
+                />
+                <div className="flex flex-wrap gap-2">
+                    {prefs.focusRoles.map((role) => (
+                        <span key={role} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full flex items-center gap-1">
+                            {role}
+                            <button type="button" className="ml-1 text-primary hover:text-primary/80" onClick={() => setPrefs(prev => ({
+                                ...prev,
+                                focusRoles: prev.focusRoles.filter(r => r !== role)
+                            }))}>×</button>
+                        </span>
+                    ))}
+                    {errors.focusRoles && <p className="text-xs text-error">{errors.focusRoles}</p>}
+                </div>
+            </div>
 
-                            <label className={`
-                flex items-center px-4 py-2 rounded-md cursor-pointer border
-                ${formData.recruitmentType === 'contract'
-                                    ? 'bg-primary/10 border-primary dark:bg-blue-900/30 dark:border-blue-600'
-                                    : 'bg-background border-input dark:bg-gray-800 dark:border-gray-700'}
-              `}>
-                                <input
-                                    type="radio"
-                                    name="recruitmentType"
-                                    value="contract"
-                                    checked={formData.recruitmentType === 'contract'}
-                                    onChange={handleChange}
-                                    className="sr-only"
-                                />
-                                <span className={`text-sm font-medium ${formData.recruitmentType === 'contract' ? 'text-primary dark:text-blue-400' : 'text-foreground dark:text-white'}`}>
-                                    Contract
-                                </span>
-                            </label>
-
-                            <label className={`
-                flex items-center px-4 py-2 rounded-md cursor-pointer border
-                ${formData.recruitmentType === 'both'
-                                    ? 'bg-primary/10 border-primary dark:bg-blue-900/30 dark:border-blue-600'
-                                    : 'bg-background border-input dark:bg-gray-800 dark:border-gray-700'}
-              `}>
-                                <input
-                                    type="radio"
-                                    name="recruitmentType"
-                                    value="both"
-                                    checked={formData.recruitmentType === 'both'}
-                                    onChange={handleChange}
-                                    className="sr-only"
-                                />
-                                <span className={`text-sm font-medium ${formData.recruitmentType === 'both' ? 'text-primary dark:text-blue-400' : 'text-foreground dark:text-white'}`}>
-                                    Both
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-foreground dark:text-white mb-1">
-                            Remote Work Positions
-                        </label>
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                name="remoteWork"
-                                checked={formData.remoteWork}
-                                onChange={handleChange}
-                                className="rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700"
+            {/* Candidate Types */}
+            <div className="max-w-2xl mx-auto">
+                <label className="block text-sm font-medium text-foreground mb-2">Candidate Levels</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {candidateTypeOptions.map(opt => (
+                        <label key={opt.value} className={`flex items-center space-x-2 p-3 rounded-card border cursor-pointer transition-all duration-200 ${prefs.candidateTypes.includes(opt.value) ? 'border-primary bg-primary/5 text-primary' : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                            }`}>
+                            <Checkbox
+                                checked={prefs.candidateTypes.includes(opt.value)}
+                                onChange={() => handleToggle('candidateTypes', opt.value)}
                             />
-                            <span className="text-sm text-foreground dark:text-gray-200">I recruit for remote positions</span>
+                            <span className="text-sm font-medium">{opt.label}</span>
                         </label>
-                    </div>
+                    ))}
+                </div>
+            </div>
 
-                    <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-foreground dark:text-white mb-1">
-                            Position Types
+            {/* Work Arrangements */}
+            <div className="max-w-2xl mx-auto">
+                <label className="block text-sm font-medium text-foreground mb-2">Type</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {workArrangementOptions.map(opt => (
+                        <label key={opt.value} className={`flex items-center space-x-2 p-3 rounded-card border cursor-pointer transition-all duration-200 ${prefs.workArrangements.includes(opt.value) ? 'border-primary bg-primary/5 text-primary' : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                            }`}>
+                            <Checkbox
+                                checked={prefs.workArrangements.includes(opt.value)}
+                                onChange={() => handleToggle('workArrangements', opt.value)}
+                            />
+                            <span className="text-sm font-medium">{opt.label}</span>
                         </label>
-                        <div className="flex flex-wrap gap-2">
-                            {positionOptions.map(position => (
-                                <button
-                                    key={position}
-                                    type="button"
-                                    onClick={() => handlePositionTypeToggle(position)}
-                                    className={`
-                    px-3 py-1 rounded-full text-sm
-                    ${formData.positionTypes.includes(position)
-                                            ? 'bg-primary text-white dark:bg-blue-600 dark:text-white'
-                                            : 'bg-muted text-muted-foreground dark:bg-gray-700 dark:text-gray-300 hover:bg-muted/80 dark:hover:bg-gray-600'}
-                  `}
-                                >
-                                    {position}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    ))}
+                </div>
+            </div>
 
-                    <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-foreground dark:text-white mb-1">
-                            Salary Range
-                        </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
-                            <div className="sm:col-span-1">
-                                <select
-                                    name="salaryCurrency"
-                                    value={formData.salaryCurrency}
-                                    onChange={handleChange}
-                                    className="block w-full rounded-md border border-input dark:border-gray-700 bg-background dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                >
-                                    <option value="INR">INR</option>
-                                    <option value="USD">USD</option>
-                                    <option value="EUR">EUR</option>
-                                    <option value="GBP">GBP</option>
-                                    <option value="CAD">CAD</option>
-                                    <option value="AUD">AUD</option>
-                                    <option value="JPY">JPY</option>
-                                </select>
-                            </div>
-                            <div className="sm:col-span-2">
-                                <label htmlFor="salaryRangeFrom" className="sr-only">From</label>
-                                <input
-                                    type="number"
-                                    id="salaryRangeFrom"
-                                    name="salaryRangeFrom"
-                                    placeholder="Min"
-                                    value={formData.salaryRangeFrom}
-                                    onChange={handleChange}
-                                    className="block w-full rounded-md border border-input dark:border-gray-700 bg-background dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                />
-                            </div>
-                            <div className="text-center sm:col-span-1">
-                                <span className="text-sm text-muted-foreground dark:text-gray-400">to</span>
-                            </div>
-                            <div className="sm:col-span-2">
-                                <label htmlFor="salaryRangeTo" className="sr-only">To</label>
-                                <input
-                                    type="number"
-                                    id="salaryRangeTo"
-                                    name="salaryRangeTo"
-                                    placeholder="Max"
-                                    value={formData.salaryRangeTo}
-                                    onChange={handleChange}
-                                    className="block w-full rounded-md border border-input dark:border-gray-700 bg-background dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-foreground dark:text-white mb-1">
-                            Communication Preferences
-                        </label>
-                        <div className="flex space-x-4">
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.communication.email}
-                                    onChange={() => handleCommunicationChange('email')}
-                                    className="rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700"
-                                />
-                                <span className="text-sm text-foreground dark:text-gray-200">Email</span>
-                            </label>
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.communication.phone}
-                                    onChange={() => handleCommunicationChange('phone')}
-                                    className="rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700"
-                                />
-                                <span className="text-sm text-foreground dark:text-gray-200">Phone</span>
-                            </label>
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.communication.inApp}
-                                    onChange={() => handleCommunicationChange('inApp')}
-                                    className="rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700"
-                                />
-                                <span className="text-sm text-foreground dark:text-gray-200">In-App</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="sm:col-span-2">
-                        <label htmlFor="availabilityStartDate" className="block text-sm font-medium text-foreground dark:text-white">
-                            Available to Start
-                        </label>
-                        <input
-                            type="date"
-                            id="availabilityStartDate"
-                            name="availabilityStartDate"
-                            value={formData.availabilityStartDate}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border border-input dark:border-gray-700 bg-background dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            {/* Salary Range */}
+            <div className="max-w-2xl mx-auto">
+                <div className="space-y-3">
+                    <label className="block text-sm font-medium text-foreground">Typical Salary Range You Hire For (INR)</label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="Minimum"
+                            type="number"
+                            placeholder="300000"
+                            value={prefs.salaryMin}
+                            onChange={(e) => {
+                                const v = e.target.value;
+                                setPrefs(prev => ({ ...prev, salaryMin: v }));
+                                validateSalaryLive('salaryMin', v, prefs.salaryMax);
+                            }}
+                            min="0"
+                            max="99999999"
+                            error={errors.salaryMin}
+                        />
+                        <Input
+                            label="Maximum"
+                            type="number"
+                            placeholder="5000000"
+                            value={prefs.salaryMax}
+                            onChange={(e) => {
+                                const v = e.target.value;
+                                setPrefs(prev => ({ ...prev, salaryMax: v }));
+                                validateSalaryLive('salaryMax', v, prefs.salaryMin);
+                            }}
+                            error={errors.salaryMax}
+                            min="0"
+                            max="99999999"
                         />
                     </div>
+                </div>
+            </div>
 
-                    <div className="sm:col-span-2">
-                        <label htmlFor="notes" className="block text-sm font-medium text-foreground dark:text-white">
-                            Additional Notes
-                        </label>
-                        <textarea
-                            id="notes"
-                            name="notes"
-                            rows="3"
-                            value={formData.notes}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border border-input dark:border-gray-700 bg-background dark:bg-gray-800 px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                            placeholder="Any other information you'd like companies to know about your recruitment services..."
-                        ></textarea>
+            {/* Recruiter Type and Company Size */}
+            <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Select
+                    label="Recruiter Type"
+                    required
+                    options={recruiterTypeOptions}
+                    value={prefs.recruiterType}
+                    onChange={(val) => setPrefs(prev => ({ ...prev, recruiterType: val }))}
+                    error={errors.recruiterType}
+                    placeholder="Select type"
+                />
+                <Select
+                    label="Company Size"
+                    options={companySizeOptions}
+                    value={prefs.companySize}
+                    onChange={(val) => setPrefs(prev => ({ ...prev, companySize: val }))}
+                    placeholder="Optional"
+                />
+            </div>
+
+            {/* Hiring Volume and ATS Tools */}
+            <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Select
+                    label="Typical Hiring Volume"
+                    options={hiringVolumeOptions}
+                    value={prefs.hiringVolume}
+                    onChange={(val) => setPrefs(prev => ({ ...prev, hiringVolume: val }))}
+                    placeholder="Optional"
+                />
+                <Select
+                    label="ATS / Tools Used"
+                    options={atsToolOptions}
+                    multiple
+                    searchable
+                    value={prefs.atsTools}
+                    onChange={(val) => setPrefs(prev => ({ ...prev, atsTools: val }))}
+                    placeholder="Select one or more"
+                    clearable
+                />
+            </div>
+
+            {/* Industries (multi-select) */}
+            <div className="max-w-2xl mx-auto">
+                <CheckboxGroup label="Industries" required error={errors.industries}>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {INDUSTRY_OPTIONS.map(opt => (
+                            <label key={opt.value} className={`flex items-center space-x-2 p-3 rounded-card border cursor-pointer transition-all duration-200 ${prefs.industries.includes(opt.value) ? 'border-primary bg-primary/5 text-primary' : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                                }`}>
+                                <Checkbox
+                                    checked={prefs.industries.includes(opt.value)}
+                                    onChange={() => setPrefs(prev => ({
+                                        ...prev,
+                                        industries: prev.industries.includes(opt.value)
+                                            ? prev.industries.filter(v => v !== opt.value)
+                                            : [...prev.industries, opt.value]
+                                    }))}
+                                />
+                                <span className="text-sm font-medium">{opt.label}</span>
+                            </label>
+                        ))}
                     </div>
-                </div>
+                </CheckboxGroup>
+            </div>
 
-                <div className="flex justify-between pt-5">
-                    <button
-                        type="button"
-                        onClick={onPrev}
-                        className="inline-flex items-center justify-center rounded-md border border-input dark:border-gray-700 bg-background dark:bg-transparent px-4 py-2 text-sm font-medium text-foreground dark:text-white hover:bg-accent dark:hover:bg-gray-800"
-                    >
-                        <svg
-                            className="mr-2 h-4 w-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                        >
-                            <path
-                                fillRule="evenodd"
-                                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                        Back
-                    </button>
-                    <button
-                        type="submit"
-                        className="inline-flex items-center justify-center rounded-md bg-primary dark:bg-blue-600 px-4 py-2 text-sm font-medium text-primary-foreground dark:text-white hover:bg-primary/90 dark:hover:bg-blue-500"
-                    >
-                        Continue
-                        <svg
-                            className="ml-2 h-4 w-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                        >
-                            <path
-                                fillRule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                    </button>
-                </div>
-            </form>
+            <div className="max-w-2xl mx-auto">
+                <Input
+                    label="Notes"
+                    type="text"
+                    placeholder="Briefly describe your niche or preferences"
+                    value={prefs.notes}
+                    onChange={(e) => setPrefs(prev => ({ ...prev, notes: e.target.value }))}
+                />
+            </div>
+
+            <div className="flex justify-between pt-6">
+                <Button variant="outline" onClick={onPrev} iconName="ArrowLeft" iconPosition="left">Previous</Button>
+                <Button onClick={handleNext} iconName="ArrowRight" iconPosition="right" size="lg" className="font-semibold">Next Step</Button>
+            </div>
         </motion.div>
     );
 };

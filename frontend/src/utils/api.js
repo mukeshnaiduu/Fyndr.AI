@@ -106,7 +106,18 @@ export async function apiRequest(endpoint, method = 'GET', data = null, customTo
         }
       }
 
-      throw new Error(result.detail || result.message || `HTTP error! status: ${response.status}`);
+      // Build a more helpful error message if API returned field errors
+      let message = result && (result.detail || result.message);
+      if (!message && result && typeof result === 'object') {
+        try {
+          const entries = Object.entries(result);
+          if (entries.length > 0) {
+            const sample = entries.slice(0, 3).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : (typeof v === 'object' ? JSON.stringify(v) : String(v))}`);
+            message = sample.join(' | ');
+          }
+        } catch { /* noop */ }
+      }
+      throw new Error(message || `HTTP error! status: ${response.status}`);
     }
 
     return result;

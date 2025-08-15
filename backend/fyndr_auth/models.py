@@ -76,6 +76,8 @@ class JobSeekerProfile(BaseProfile):
     skills = models.JSONField(default=list, blank=True)
     experience_level = models.CharField(max_length=50, blank=True)
     years_of_experience = models.IntegerField(null=True, blank=True)
+    # Resume-like sections
+    experiences = models.JSONField(default=list, blank=True)
     education = models.JSONField(default=list, blank=True)
     certifications = models.JSONField(default=list, blank=True)
     
@@ -163,6 +165,9 @@ class RecruiterProfile(BaseProfile):
     bio = models.TextField(blank=True)
     timezone = models.CharField(max_length=50, blank=True)
     skills = models.JSONField(default=list, blank=True)
+    # Resume-like sections
+    experiences = models.JSONField(default=list, blank=True)
+    education = models.JSONField(default=list, blank=True)
     certifications = models.JSONField(default=list, blank=True)
     # Preferences and availability
     recruitment_type = models.CharField(max_length=50, blank=True)
