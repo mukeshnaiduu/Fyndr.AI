@@ -1,10 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
 const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
+  const [form, setForm] = useState({
+    role_title: '',
+    team_size: '',
+    department: '',
+    current_openings: '',
+    hiring_focus: [],
+  });
+
+  useEffect(() => {
+    setForm({
+      role_title: profile?.role_title || '',
+      team_size: profile?.team_size || '',
+      department: profile?.department || '',
+      current_openings: profile?.current_openings ?? '',
+      hiring_focus: Array.isArray(profile?.hiring_focus) ? profile.hiring_focus : [],
+    });
+  }, [profile]);
+
+  const [newFocus, setNewFocus] = useState('');
+
   const handleSave = () => {
+    const payload = {
+      ...form,
+      current_openings: form.current_openings === '' ? null : Number(form.current_openings),
+    };
+    onUpdate(payload);
     setIsEditing(false);
   };
 
@@ -26,9 +51,10 @@ const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Your Role
           </label>
           <Input
-            value={profile?.role_title || ''}
+            value={form.role_title}
             placeholder="e.g., HR Manager, Recruiter"
             readOnly={!isEditing}
+            onChange={(e) => setForm({ ...form, role_title: e.target.value })}
           />
         </div>
         <div>
@@ -36,9 +62,10 @@ const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Team Size
           </label>
           <Input
-            value={profile?.team_size || ''}
+            value={form.team_size}
             placeholder="e.g., 5-10 people"
             readOnly={!isEditing}
+            onChange={(e) => setForm({ ...form, team_size: e.target.value })}
           />
         </div>
         <div>
@@ -46,9 +73,10 @@ const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Department
           </label>
           <Input
-            value={profile?.department || ''}
+            value={form.department}
             placeholder="e.g., Human Resources, Talent Acquisition"
             readOnly={!isEditing}
+            onChange={(e) => setForm({ ...form, department: e.target.value })}
           />
         </div>
         <div>
@@ -56,9 +84,10 @@ const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Current Openings
           </label>
           <Input
-            value={profile?.current_openings || ''}
+            value={form.current_openings}
             placeholder="Number of current job openings"
             readOnly={!isEditing}
+            onChange={(e) => setForm({ ...form, current_openings: e.target.value })}
           />
         </div>
 
@@ -67,25 +96,35 @@ const TeamHiringTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Hiring Focus
           </label>
           <div className="flex flex-wrap gap-2 mb-2">
-            {profile?.hiring_focus?.map((focus, index) => (
+            {form.hiring_focus.map((focus, index) => (
               <span
                 key={index}
                 className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm flex items-center"
               >
                 {focus}
                 {isEditing && (
-                  <button className="ml-2 text-blue-600 hover:text-blue-800">
+                  <button className="ml-2 text-blue-600 hover:text-blue-800" onClick={() => setForm({ ...form, hiring_focus: form.hiring_focus.filter((_, i) => i !== index) })}>
                     <Icon name="X" size={14} />
                   </button>
                 )}
               </span>
-            )) || <span className="text-gray-500">No hiring focus specified</span>}
+            ))}
+            {!form.hiring_focus.length && <span className="text-gray-500">No hiring focus specified</span>}
           </div>
           {isEditing && (
-            <Input
-              placeholder="Add hiring focus (e.g., Software Engineering, Sales)"
-              className="mt-2"
-            />
+            <div className="flex gap-2 mt-2">
+              <Input
+                value={newFocus}
+                placeholder="Add hiring focus (e.g., Software Engineering, Sales)"
+                onChange={(e) => setNewFocus(e.target.value)}
+              />
+              <button className="px-3 py-2 text-sm border rounded-md" onClick={() => {
+                if (newFocus.trim()) {
+                  setForm({ ...form, hiring_focus: [...form.hiring_focus, newFocus.trim()] });
+                  setNewFocus('');
+                }
+              }}>Add</button>
+            </div>
           )}
         </div>
 

@@ -35,6 +35,7 @@ const BillingTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
   };
 
   const currentPlan = profile?.subscription_plan?.toLowerCase() || 'professional';
+  const toINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
   return (
     <div className="space-y-6">
@@ -59,7 +60,7 @@ const BillingTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-blue-900 dark:text-blue-200">
-              ${profile?.monthly_cost || '99'}/month
+              {toINR(profile?.monthly_cost || 99)}/month
             </p>
             <p className="text-sm text-blue-700 dark:text-blue-300">
               {profile?.billing_cycle || 'Monthly'} billing
@@ -121,9 +122,9 @@ const BillingTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
         <h4 className="text-md font-medium text-gray-900 dark:text-gray-100 mb-3">Recent Billing History</h4>
         <div className="space-y-3">
           {[
-            { date: 'Feb 15, 2024', amount: '$99.00', status: 'Paid', invoice: 'INV-001' },
-            { date: 'Jan 15, 2024', amount: '$99.00', status: 'Paid', invoice: 'INV-002' },
-            { date: 'Dec 15, 2023', amount: '$99.00', status: 'Paid', invoice: 'INV-003' }
+            { date: 'Feb 15, 2024', amount: toINR(99), status: 'Paid', invoice: 'INV-001' },
+            { date: 'Jan 15, 2024', amount: toINR(99), status: 'Paid', invoice: 'INV-002' },
+            { date: 'Dec 15, 2023', amount: toINR(99), status: 'Paid', invoice: 'INV-003' }
           ].map((bill, index) => (
             <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="flex items-center space-x-3">

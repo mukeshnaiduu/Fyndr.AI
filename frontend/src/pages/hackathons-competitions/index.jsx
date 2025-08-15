@@ -72,7 +72,7 @@ const HackathonsCompetitions = () => {
         status: "upcoming",
         difficulty: "Intermediate",
         category: "ai-ml",
-        prizePool: "$25,000",
+        prizePool: "₹20,00,000",
         participants: 1250,
         teamsRegistered: 312,
         registrationDeadline: "2025-07-12T23:59:59Z",
@@ -92,7 +92,7 @@ const HackathonsCompetitions = () => {
         status: "registration-open",
         difficulty: "Advanced",
         category: "blockchain",
-        prizePool: "$30,000",
+        prizePool: "₹24,00,000",
         participants: 980,
         teamsRegistered: 245,
         registrationDeadline: "2025-07-18T23:59:59Z",
@@ -112,7 +112,7 @@ const HackathonsCompetitions = () => {
         status: "upcoming",
         difficulty: "Beginner",
         category: "sustainability",
-        prizePool: "$15,000",
+        prizePool: "₹12,00,000",
         participants: 1500,
         teamsRegistered: 375,
         registrationDeadline: "2025-07-22T23:59:59Z",
@@ -132,7 +132,7 @@ const HackathonsCompetitions = () => {
         status: "registration-open",
         difficulty: "Intermediate",
         category: "mobile",
-        prizePool: "$12,000",
+        prizePool: "₹10,00,000",
         participants: 800,
         teamsRegistered: 200,
         registrationDeadline: "2025-07-30T23:59:59Z",
@@ -152,7 +152,7 @@ const HackathonsCompetitions = () => {
         status: "upcoming",
         difficulty: "Advanced",
         category: "web",
-        prizePool: "$40,000",
+        prizePool: "₹32,00,000",
         participants: 1100,
         teamsRegistered: 275,
         registrationDeadline: "2025-08-07T23:59:59Z",
@@ -172,7 +172,7 @@ const HackathonsCompetitions = () => {
         status: "upcoming",
         difficulty: "Intermediate",
         category: "fintech",
-        prizePool: "$18,000",
+        prizePool: "₹15,00,000",
         participants: 650,
         teamsRegistered: 162,
         registrationDeadline: "2025-08-12T23:59:59Z",
@@ -189,9 +189,9 @@ const HackathonsCompetitions = () => {
 
   const filteredHackathons = hackathons.filter(hackathon => {
     const matchesSearch = hackathon.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         hackathon.theme.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         hackathon.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+      hackathon.theme.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      hackathon.description.toLowerCase().includes(searchQuery.toLowerCase());
+
     const matchesCategory = selectedCategory === 'all' || hackathon.category === selectedCategory;
     const matchesDifficulty = selectedDifficulty === 'all' || hackathon.difficulty.toLowerCase() === selectedDifficulty;
     const matchesStatus = selectedStatus === 'all' || hackathon.status === selectedStatus;
@@ -200,7 +200,7 @@ const HackathonsCompetitions = () => {
   });
 
   const handleRegister = (hackathonId) => {
-    setHackathons(prev => prev.map(h => 
+    setHackathons(prev => prev.map(h =>
       h.id === hackathonId ? { ...h, isRegistered: true, teamsRegistered: h.teamsRegistered + 1 } : h
     ));
   };
@@ -392,11 +392,10 @@ const HackathonsCompetitions = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium transition-spring min-h-touch ${
-                  activeTab === tab.id
+                className={`flex items-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium transition-spring min-h-touch ${activeTab === tab.id
                     ? 'bg-primary text-primary-foreground shadow-elevation-1'
                     : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
-                }`}
+                  }`}
               >
                 <Icon name={tab.icon} size={18} />
                 <div className="text-left">

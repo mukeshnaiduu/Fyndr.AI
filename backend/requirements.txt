@@ -47,6 +47,7 @@ anthropic>=0.7.0
 
 # Image Management
 cloudinary>=1.36.0
+django-cloudinary-storage>=0.3.0
 
 # WebSocket Support
 channels>=4.0.0

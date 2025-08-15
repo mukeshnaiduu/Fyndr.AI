@@ -17,7 +17,7 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
     {
       id: 1,
       device: 'Chrome on Windows',
-      location: 'New York, NY',
+      location: 'Mumbai, Maharashtra',
       lastActive: '2 minutes ago',
       current: true,
       ip: '192.168.1.100'
@@ -25,7 +25,7 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
     {
       id: 2,
       device: 'Safari on iPhone',
-      location: 'New York, NY',
+      location: 'Pune, Maharashtra',
       lastActive: '1 hour ago',
       current: false,
       ip: '192.168.1.101'
@@ -33,7 +33,7 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
     {
       id: 3,
       device: 'Firefox on MacOS',
-      location: 'San Francisco, CA',
+      location: 'Hyderabad, Telangana',
       lastActive: '2 days ago',
       current: false,
       ip: '10.0.0.50'
@@ -67,13 +67,13 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
 
   const calculatePasswordStrength = (password) => {
     let strength = 0;
-    
+
     if (password.length >= 8) strength += 1;
     if (password.match(/[a-z]/)) strength += 1;
     if (password.match(/[A-Z]/)) strength += 1;
     if (password.match(/[0-9]/)) strength += 1;
     if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
-    
+
     setPasswordStrength(strength);
   };
 
@@ -134,7 +134,7 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
     e.preventDefault();
     if (validatePasswordForm()) {
       setIsChangingPassword(true);
-      
+
       // Simulate API call
       setTimeout(() => {
         setIsChangingPassword(false);
@@ -186,7 +186,7 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
           <Icon name="Lock" size={20} className="mr-2" />
           Change Password
         </h3>
-        
+
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           <Input
             label="Current Password"
@@ -210,14 +210,13 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
               required
               placeholder="Enter your new password"
             />
-            
+
             {passwordData.newPassword && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Password strength:</span>
-                  <span className={`font-body font-body-medium ${
-                    passwordStrength < 3 ? 'text-error' : 'text-success'
-                  }`}>
+                  <span className={`font-body font-body-medium ${passwordStrength < 3 ? 'text-error' : 'text-success'
+                    }`}>
                     {getPasswordStrengthText()}
                   </span>
                 </div>
@@ -281,7 +280,7 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
           <Icon name="Shield" size={20} className="mr-2" />
           Two-Factor Authentication
         </h3>
-        
+
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-muted/50 rounded-squircle">
             <div>
@@ -294,14 +293,12 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
             </div>
             <button
               onClick={handleTwoFactorToggle}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full spring-transition ${
-                twoFactorEnabled ? 'bg-success' : 'bg-muted'
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full spring-transition ${twoFactorEnabled ? 'bg-success' : 'bg-muted'
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white spring-transition ${
-                  twoFactorEnabled ? 'translate-x-6' : 'translate-x-1'
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white spring-transition ${twoFactorEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
               />
             </button>
           </div>
@@ -374,7 +371,7 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
             Terminate All
           </Button>
         </div>
-        
+
         <div className="space-y-3">
           {activeSessions.map((session) => (
             <div
@@ -383,10 +380,10 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
             >
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-primary/10 rounded-squircle flex items-center justify-center">
-                  <Icon 
-                    name={session.device.includes('iPhone') ? 'Smartphone' : 'Monitor'} 
-                    size={20} 
-                    className="text-primary" 
+                  <Icon
+                    name={session.device.includes('iPhone') ? 'Smartphone' : 'Monitor'}
+                    size={20}
+                    className="text-primary"
                   />
                 </div>
                 <div>
@@ -408,7 +405,7 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
                   </p>
                 </div>
               </div>
-              
+
               {!session.current && (
                 <Button
                   variant="ghost"
@@ -432,7 +429,7 @@ const SecurityTab = ({ userProfile, onUpdateProfile }) => {
           <Icon name="AlertTriangle" size={20} className="mr-2" />
           Security Recommendations
         </h3>
-        
+
         <div className="space-y-3">
           <div className="flex items-start space-x-3 p-3 bg-warning/10 rounded-squircle">
             <Icon name="AlertCircle" size={16} className="text-warning mt-0.5" />

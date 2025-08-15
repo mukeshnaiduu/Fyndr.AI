@@ -157,6 +157,10 @@ cloudinary.config(
     secure=True
 )
 
+# Ensure the logs directory exists for file-based logging
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOGS_DIR, exist_ok=True)
+
 # Use Cloudinary for media storage in production
 if not DEBUG:
     CLOUDINARY_STORAGE = {
@@ -221,7 +225,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'application.log'),
+            'filename': os.path.join(LOGS_DIR, 'application.log'),
             'formatter': 'verbose',
         },
         'console': {

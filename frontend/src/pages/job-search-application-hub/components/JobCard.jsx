@@ -129,12 +129,9 @@ const JobCard = ({ job, onSave, onApply, onQuickApply, onViewDetails }) => {
   };
 
   const formatSalary = (min, max) => {
-    if (min && max) {
-      return `$${min}K - $${max}K`;
-    }
-    if (min) {
-      return `$${min}K+`;
-    }
+    const toINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+    if (min && max) return `${toINR(min * 100000)} - ${toINR(max * 100000)} per year`;
+    if (min) return `${toINR(min * 100000)}+ per year`;
     return 'Salary not disclosed';
   };
 
@@ -194,7 +191,7 @@ const JobCard = ({ job, onSave, onApply, onQuickApply, onViewDetails }) => {
             handleSave();
           }}
           className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${isSaved
-              ? 'text-error bg-error/20' : 'text-muted-foreground hover:text-error hover:bg-error/10'
+            ? 'text-error bg-error/20' : 'text-muted-foreground hover:text-error hover:bg-error/10'
             }`}
         >
           <Icon name={isSaved ? "Heart" : "Heart"} size={20} fill={isSaved ? "currentColor" : "none"} />
@@ -233,9 +230,9 @@ const JobCard = ({ job, onSave, onApply, onQuickApply, onViewDetails }) => {
         <div className="flex items-center justify-between">
           <div className="text-sm font-medium text-foreground">
             {job.salary?.type === 'hourly'
-              ? `$${job.salary.min}-${job.salary.max}/hr`
+              ? `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format((job.salary.min || 0) * 1000)}-${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format((job.salary.max || 0) * 1000)}/hr`
               : job.salary?.min
-                ? `$${job.salary.min.toLocaleString()}-$${job.salary.max?.toLocaleString?.()}`
+                ? `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format((job.salary.min || 0) * 100000)}-${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format((job.salary.max || 0) * 100000)}`
                 : job.salary?.text
                 || (typeof job.salary === 'string' ? job.salary : '')
                 || job.salary_text
@@ -414,8 +411,8 @@ const JobCard = ({ job, onSave, onApply, onQuickApply, onViewDetails }) => {
               <Icon name="XCircle" size={16} className="text-error" />
             )}
             <span className={`text-sm ${applicationProgress.stage === 'success' ? 'text-success' :
-                applicationProgress.stage === 'error' ? 'text-error' :
-                  'text-foreground'
+              applicationProgress.stage === 'error' ? 'text-error' :
+                'text-foreground'
               }`}>
               {applicationProgress.message}
             </span>

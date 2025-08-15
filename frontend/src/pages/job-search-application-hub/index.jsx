@@ -203,7 +203,7 @@ const JobSearchApplicationHub = () => {
       }
 
       // Redirect-first for consistency
-  const job = jobs.find(j => j.id === jobId) || { id: jobId };
+      const job = jobs.find(j => j.id === jobId) || { id: jobId };
       const result = await jobApplicationService.redirectAndRecord(job, { notes: 'User redirected from job hub' });
 
       showToast(result.already_applied
@@ -211,7 +211,7 @@ const JobSearchApplicationHub = () => {
         : 'Opened careers site and recorded your application.', 'success');
 
       // Update local state to track applied jobs
-  const updatedAppliedJobs = new Set(appliedJobs);
+      const updatedAppliedJobs = new Set(appliedJobs);
       updatedAppliedJobs.add(jobId);
       setAppliedJobs(updatedAppliedJobs);
 
@@ -224,7 +224,7 @@ const JobSearchApplicationHub = () => {
     } catch (error) {
       console.error('Error applying to job:', error);
 
-  showToast(error.message || 'Failed to apply for job', 'error');
+      showToast(error.message || 'Failed to apply for job', 'error');
     }
   };
 
@@ -282,8 +282,8 @@ const JobSearchApplicationHub = () => {
       const mockProfile = {
         skills: ['React', 'JavaScript', 'Node.js', 'Python', 'TypeScript'],
         experience_level: 'senior',
-        preferred_locations: ['San Francisco', 'Remote', 'New York'],
-        salary_expectations: { min: 120000, max: 180000 }
+        preferred_locations: ['Bengaluru', 'Remote', 'Mumbai'],
+        salary_expectations: { min: 2000000, max: 3000000 }
       };
       setUserProfile(mockProfile);
     }
@@ -380,13 +380,13 @@ const JobSearchApplicationHub = () => {
   useEffect(() => {
     // Clear any invalid tokens first
     clearInvalidTokens();
-    
+
     const mockProfile = {
       id: 1,
       skills: ['React', 'JavaScript', 'Node.js', 'Python', 'TypeScript'],
       experience_level: 'senior',
-      preferred_locations: ['San Francisco', 'Remote', 'New York'],
-      salary_expectations: { min: 120000, max: 180000 },
+      preferred_locations: ['Bengaluru', 'Remote', 'Mumbai'],
+      salary_expectations: { min: 2000000, max: 3000000 },
       job_preferences: {
         employment_types: ['Full-time'],
         remote_work: true,
@@ -465,8 +465,8 @@ const JobSearchApplicationHub = () => {
                 <button
                   onClick={handleRealTimeModeToggle}
                   className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${realTimeMode
-                      ? 'bg-green-500 text-white hover:bg-green-600'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-green-500 text-white hover:bg-green-600'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                 >
                   {realTimeMode ? '⚡ Live Matching' : '🔄 Enable Live Matching'}
@@ -598,7 +598,7 @@ const JobSearchApplicationHub = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   {error && (
                     <div className="flex items-center space-x-2">
                       {error.includes('Authentication') ? (

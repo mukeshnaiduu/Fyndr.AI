@@ -41,8 +41,8 @@ const VirtualCareerFair = () => {
       nextSession: '2:30 PM',
       featuredRoles: [
         { title: 'Senior Software Engineer', location: 'Remote' },
-        { title: 'ML Engineer', location: 'San Francisco' },
-        { title: 'Product Manager', location: 'New York' }
+        { title: 'ML Engineer', location: 'Bengaluru' },
+        { title: 'Product Manager', location: 'Mumbai' }
       ],
       upcomingSessions: [
         { title: 'Company Overview', time: '2:30 PM' },
@@ -62,9 +62,9 @@ const VirtualCareerFair = () => {
       recruitersOnline: 2,
       nextSession: '3:00 PM',
       featuredRoles: [
-        { title: 'Data Scientist', location: 'Boston' },
+        { title: 'Data Scientist', location: 'Pune' },
         { title: 'Analytics Engineer', location: 'Remote' },
-        { title: 'Data Engineer', location: 'Chicago' }
+        { title: 'Data Engineer', location: 'Hyderabad' }
       ],
       upcomingSessions: [
         { title: 'Data Science Careers', time: '3:00 PM' },
@@ -84,9 +84,9 @@ const VirtualCareerFair = () => {
       recruitersOnline: 4,
       nextSession: '1:45 PM',
       featuredRoles: [
-        { title: 'DevOps Engineer', location: 'Seattle' },
+        { title: 'DevOps Engineer', location: 'Bengaluru' },
         { title: 'Cloud Architect', location: 'Remote' },
-        { title: 'Site Reliability Engineer', location: 'Austin' }
+        { title: 'Site Reliability Engineer', location: 'Pune' }
       ],
       upcomingSessions: [
         { title: 'Cloud Architecture Workshop', time: '1:45 PM' },
@@ -106,8 +106,8 @@ const VirtualCareerFair = () => {
       recruitersOnline: 1,
       nextSession: '4:15 PM',
       featuredRoles: [
-        { title: 'iOS Developer', location: 'San Francisco' },
-        { title: 'Android Developer', location: 'Los Angeles' },
+        { title: 'iOS Developer', location: 'Bengaluru' },
+        { title: 'Android Developer', location: 'Chennai' },
         { title: 'React Native Developer', location: 'Remote' }
       ],
       upcomingSessions: [
@@ -128,9 +128,9 @@ const VirtualCareerFair = () => {
       recruitersOnline: 2,
       nextSession: '2:00 PM',
       featuredRoles: [
-        { title: 'Security Engineer', location: 'Washington DC' },
+        { title: 'Security Engineer', location: 'New Delhi' },
         { title: 'Penetration Tester', location: 'Remote' },
-        { title: 'Security Analyst', location: 'New York' }
+        { title: 'Security Analyst', location: 'Mumbai' }
       ],
       upcomingSessions: [
         { title: 'Cybersecurity Careers', time: '2:00 PM' },
@@ -226,7 +226,7 @@ const VirtualCareerFair = () => {
     name: 'Alex Chen',
     role: 'Senior Frontend Developer',
     company: 'TechStart Inc',
-    location: 'San Francisco, CA',
+    location: 'Bengaluru, Karnataka',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     isOnline: true,
     isVerified: true,

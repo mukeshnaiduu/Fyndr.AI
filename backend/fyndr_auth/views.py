@@ -5,11 +5,11 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.http import HttpResponse
 from django.utils import timezone
-from .models import User, JobSeekerProfile, RecruiterProfile, CompanyProfile, CompanyRecruiterRelationship
+from .models import User, JobSeekerProfile, RecruiterProfile, CompanyProfile, CompanyRecruiterRelationship, Location, Skill, JobRole
 from .serializers import (
     RegisterSerializer, LoginSerializer, 
     JobSeekerProfileSerializer, RecruiterProfileSerializer, CompanyProfileSerializer,
-    JobSeekerOnboardingSerializer
+    JobSeekerOnboardingSerializer, LocationSerializer, SkillSerializer, JobRoleSerializer
 )
 
 # Profile view for authenticated user
@@ -155,17 +155,41 @@ from django.shortcuts import redirect
 import json as pyjson
 import time
 import requests
-from .models import OAuthToken
+from .models import OAuthToken, Industry, SalaryBand
 
 
 class FileServeView(APIView):
-    """Serve files stored in database as binary data"""
-    permission_classes = [IsAuthenticated]
-    
+    """Serve files stored in database as binary data with JWT in header or query param"""
+    permission_classes = [AllowAny]
+
+    def _get_user_from_request(self, request):
+        """Extract and validate JWT from Authorization header or ?token= query param."""
+        from rest_framework_simplejwt.tokens import AccessToken, TokenError
+        auth = request.META.get('HTTP_AUTHORIZATION', '')
+        token_str = None
+        if auth.startswith('Bearer '):
+            token_str = auth.split(' ', 1)[1].strip()
+        if not token_str:
+            token_str = request.GET.get('token')
+        if not token_str:
+            return None
+        try:
+            at = AccessToken(token_str)
+            user_id = at.get('user_id')
+            if not user_id:
+                return None
+            return User.objects.filter(id=user_id).first()
+        except TokenError:
+            return None
+
     def get(self, request, model_type, profile_id, file_type):
+        # Authenticate via header or query param
+        user = self._get_user_from_request(request)
+        if not user:
+            return Response({'error': 'Authentication required'}, status=401)
         try:
             if model_type == 'jobseeker':
-                profile = JobSeekerProfile.objects.get(id=profile_id, user=request.user)
+                profile = JobSeekerProfile.objects.get(id=profile_id, user=user)
                 
                 if file_type == 'profile_image':
                     file_data = profile.profile_image_data
@@ -187,7 +211,7 @@ class FileServeView(APIView):
                     return Response({'error': 'Invalid file type'}, status=404)
                     
             elif model_type == 'recruiter':
-                profile = RecruiterProfile.objects.get(id=profile_id, user=request.user)
+                profile = RecruiterProfile.objects.get(id=profile_id, user=user)
                 
                 if file_type == 'profile_image':
                     file_data = profile.profile_image_data
@@ -201,7 +225,7 @@ class FileServeView(APIView):
                     return Response({'error': 'Invalid file type'}, status=404)
                     
             elif model_type == 'company':
-                profile = CompanyProfile.objects.get(id=profile_id, user=request.user)
+                profile = CompanyProfile.objects.get(id=profile_id, user=user)
                 
                 if file_type == 'logo':
                     file_data = profile.logo_data
@@ -220,8 +244,11 @@ class FileServeView(APIView):
                 return Response({'error': 'File not found'}, status=404)
                 
             response = HttpResponse(file_data, content_type=content_type or 'application/octet-stream')
+            # honor ?download=1 or ?dl=1 to force attachment download
+            force_download = request.GET.get('download') in ('1', 'true', 'True') or request.GET.get('dl') in ('1', 'true', 'True')
             if filename:
-                response['Content-Disposition'] = f'inline; filename="{filename}"'
+                disposition = 'attachment' if force_download else 'inline'
+                response['Content-Disposition'] = f'{disposition}; filename="{filename}"'
             return response
             
         except (JobSeekerProfile.DoesNotExist, RecruiterProfile.DoesNotExist, CompanyProfile.DoesNotExist):
@@ -292,7 +319,10 @@ class FileUploadView(APIView):
             
             # Get or create the user's profile
             if request.user.role == 'job_seeker':
-                profile, created = JobSeekerProfile.objects.get_or_create(user=request.user)
+                # Be robust against accidental duplicates
+                profile = JobSeekerProfile.objects.filter(user=request.user).order_by('-id').first()
+                if not profile:
+                    profile = JobSeekerProfile.objects.create(user=request.user)
                 
                 # Save file data to appropriate field
                 if file_type == 'resume':
@@ -318,20 +348,32 @@ class FileUploadView(APIView):
                 
                 profile.save()
                 
-                # Generate file URL for serving from database
+                # Generate file URL for serving from database and persist URL field
                 if file_type == 'resume' and profile.resume_data:
                     file_url = request.build_absolute_uri(f'/api/auth/files/jobseeker/{profile.id}/resume/')
+                    profile.resume_url = file_url
                 elif file_type == 'cover_letter' and profile.cover_letter_data:
                     file_url = request.build_absolute_uri(f'/api/auth/files/jobseeker/{profile.id}/cover_letter/')
+                    profile.cover_letter_url = file_url
                 elif file_type == 'portfolio' and profile.portfolio_pdf_data:
                     file_url = request.build_absolute_uri(f'/api/auth/files/jobseeker/{profile.id}/portfolio/')
+                    profile.portfolio_pdf_url = file_url
                 elif file_type == 'profile_image' and profile.profile_image_data:
                     file_url = request.build_absolute_uri(f'/api/auth/files/jobseeker/{profile.id}/profile_image/')
+                    profile.profile_image_url = file_url
                 else:
                     file_url = None
+                if file_url:
+                    profile.save(update_fields=['updated_at',
+                                                'resume_url' if file_type == 'resume' else
+                                                'cover_letter_url' if file_type == 'cover_letter' else
+                                                'portfolio_pdf_url' if file_type == 'portfolio' else
+                                                'profile_image_url' if file_type == 'profile_image' else 'updated_at'])
                     
             elif request.user.role == 'recruiter':
-                profile, created = RecruiterProfile.objects.get_or_create(user=request.user)
+                profile = RecruiterProfile.objects.filter(user=request.user).order_by('-id').first()
+                if not profile:
+                    profile = RecruiterProfile.objects.create(user=request.user)
                 
                 if file_type == 'profile_image':
                     profile.profile_image_data = file_data
@@ -346,16 +388,24 @@ class FileUploadView(APIView):
                 
                 profile.save()
                 
-                # Generate file URL for serving from database
+                # Generate file URL for serving from database and persist URL field
                 if file_type == 'profile_image' and profile.profile_image_data:
                     file_url = request.build_absolute_uri(f'/api/auth/files/recruiter/{profile.id}/profile_image/')
+                    profile.profile_image_url = file_url
                 elif file_type == 'resume' and profile.resume_data:
                     file_url = request.build_absolute_uri(f'/api/auth/files/recruiter/{profile.id}/resume/')
+                    profile.resume_url = file_url
                 else:
                     file_url = None
+                if file_url:
+                    profile.save(update_fields=['updated_at',
+                                                'profile_image_url' if file_type == 'profile_image' else
+                                                'resume_url' if file_type == 'resume' else 'updated_at'])
                     
             elif request.user.role == 'company':
-                profile, created = CompanyProfile.objects.get_or_create(user=request.user)
+                profile = CompanyProfile.objects.filter(user=request.user).order_by('-id').first()
+                if not profile:
+                    profile = CompanyProfile.objects.create(user=request.user)
                 
                 if file_type == 'logo':
                     profile.logo_data = file_data
@@ -370,13 +420,19 @@ class FileUploadView(APIView):
                 
                 profile.save()
                 
-                # Generate file URL for serving from database
+                # Generate file URL for serving from database and persist URL field
                 if file_type == 'logo' and profile.logo_data:
                     file_url = request.build_absolute_uri(f'/api/auth/files/company/{profile.id}/logo/')
+                    profile.logo_url = file_url
                 elif file_type == 'brochure' and profile.company_brochure_data:
                     file_url = request.build_absolute_uri(f'/api/auth/files/company/{profile.id}/brochure/')
+                    profile.company_brochure_url = file_url
                 else:
                     file_url = None
+                if file_url:
+                    profile.save(update_fields=['updated_at',
+                                                'logo_url' if file_type == 'logo' else
+                                                'company_brochure_url' if file_type == 'brochure' else 'updated_at'])
             else:
                 return Response({'error': 'Invalid user role'}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -390,6 +446,9 @@ class FileUploadView(APIView):
             })
             
         except Exception as e:
+            import traceback
+            print('FILE UPLOAD ERROR:', str(e))
+            print(traceback.format_exc())
             return Response({'error': f'Upload failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -671,6 +730,11 @@ class JobSeekerProfileView(generics.RetrieveUpdateAPIView):
             if field in data and data[field] == '':
                 data[field] = None
                 print(f"Converted empty string to None for decimal field: {field}")
+
+        # Default salary currency to INR if not provided (frontend displays INR)
+        if not data.get('salary_currency'):
+            data['salary_currency'] = 'INR'
+            print("Set default salary_currency to INR")
         
         # Handle profile_image field - if it's a URL from file upload, store it in profile_image_url
         if 'profile_image' in data and data['profile_image']:
@@ -683,6 +747,143 @@ class JobSeekerProfileView(generics.RetrieveUpdateAPIView):
                 print(f"Ignoring blob URL: {data['profile_image']}")
             # Remove the profile_image field since it's not a model field
             del data['profile_image']
+        
+        # Normalize skills structure: accept ["JS", "React"] or [{name, proficiency, category}]
+        # Ensure stored items are objects with name + proficiency (beginner|intermediate|advanced|expert)
+        if 'skills' in data and data['skills'] is not None:
+            try:
+                import json
+                raw_skills = data['skills']
+                # Request data may arrive as JSON string; parse if needed
+                if isinstance(raw_skills, str):
+                    raw_skills = json.loads(raw_skills)
+                normalized_skills = []
+                allowed = {'beginner', 'intermediate', 'advanced', 'expert'}
+                if isinstance(raw_skills, list):
+                    for s in raw_skills:
+                        if isinstance(s, str):
+                            normalized_skills.append({'name': s, 'proficiency': 'intermediate'})
+                        elif isinstance(s, dict):
+                            name = s.get('name') or s.get('skill') or ''
+                            if not name:
+                                continue
+                            prof = (s.get('proficiency') or s.get('level') or 'intermediate').lower()
+                            if prof not in allowed:
+                                prof = 'intermediate'
+                            entry = {'name': name, 'proficiency': prof}
+                            if s.get('category'):
+                                entry['category'] = s['category']
+                            normalized_skills.append(entry)
+                data['skills'] = normalized_skills
+            except Exception as e:
+                # If normalization fails, keep original
+                print(f"Skills normalization skipped due to error: {e}")
+
+        # Map frontend alias fields to model fields and normalize list-like inputs
+        try:
+            import json
+            # company_size -> company_size_preference
+            if 'company_size' in data and data['company_size'] != '':
+                data['company_size_preference'] = data['company_size']
+                del data['company_size']
+                print("Mapped company_size to company_size_preference")
+
+            # benefits (array/string/JSON) -> benefits_preferences (array)
+            if 'benefits' in data:
+                raw_benefits = data['benefits']
+                benefits_list = []
+                if isinstance(raw_benefits, str):
+                    try:
+                        parsed = json.loads(raw_benefits)
+                        if isinstance(parsed, list):
+                            benefits_list = parsed
+                        elif isinstance(parsed, str):
+                            benefits_list = [parsed]
+                        else:
+                            benefits_list = []
+                    except Exception:
+                        benefits_list = [raw_benefits]
+                elif isinstance(raw_benefits, list):
+                    benefits_list = raw_benefits
+                if benefits_list is not None:
+                    data['benefits_preferences'] = benefits_list
+                del data['benefits']
+                print("Mapped benefits to benefits_preferences")
+
+            # preferred_locations might arrive as JSON string
+            if 'preferred_locations' in data and isinstance(data['preferred_locations'], str):
+                try:
+                    parsed_pref = json.loads(data['preferred_locations'])
+                    if isinstance(parsed_pref, list):
+                        data['preferred_locations'] = parsed_pref
+                        print("Parsed preferred_locations JSON string to list")
+                except Exception:
+                    pass
+
+            # job_types might arrive as JSON string
+            if 'job_types' in data and isinstance(data['job_types'], str):
+                try:
+                    parsed_types = json.loads(data['job_types'])
+                    if isinstance(parsed_types, list):
+                        data['job_types'] = parsed_types
+                        print("Parsed job_types JSON string to list")
+                except Exception:
+                    pass
+
+            # industries might arrive as JSON string
+            if 'industries' in data and isinstance(data['industries'], str):
+                try:
+                    parsed_ind = json.loads(data['industries'])
+                    if isinstance(parsed_ind, list):
+                        data['industries'] = parsed_ind
+                        print("Parsed industries JSON string to list")
+                except Exception:
+                    pass
+
+            # work_arrangements might arrive as JSON string; also support legacy single field
+            if 'work_arrangements' in data and isinstance(data['work_arrangements'], str):
+                try:
+                    parsed_wa = json.loads(data['work_arrangements'])
+                    if isinstance(parsed_wa, list):
+                        data['work_arrangements'] = parsed_wa
+                        print("Parsed work_arrangements JSON string to list")
+                except Exception:
+                    # if it's a plain string like 'remote', wrap in list
+                    if data['work_arrangements']:
+                        data['work_arrangements'] = [data['work_arrangements']]
+
+            # If only legacy work_arrangement provided and no list, derive list from it
+            if ('work_arrangements' not in data or not data['work_arrangements']) and data.get('work_arrangement'):
+                data['work_arrangements'] = [data['work_arrangement']]
+                print("Derived work_arrangements from legacy work_arrangement")
+
+            # desired roles / preferred roles mapping and parsing
+            if 'desired_roles' in data and data['desired_roles'] not in (None, ''):
+                raw = data['desired_roles']
+                if isinstance(raw, str):
+                    try:
+                        parsed = json.loads(raw)
+                        if isinstance(parsed, list):
+                            data['preferred_roles'] = parsed
+                        elif isinstance(parsed, str):
+                            data['preferred_roles'] = [parsed]
+                    except Exception:
+                        data['preferred_roles'] = [raw]
+                elif isinstance(raw, list):
+                    data['preferred_roles'] = raw
+                del data['desired_roles']
+                print("Mapped desired_roles to preferred_roles")
+
+            if 'preferred_roles' in data and isinstance(data['preferred_roles'], str):
+                try:
+                    parsed_roles = json.loads(data['preferred_roles'])
+                    if isinstance(parsed_roles, list):
+                        data['preferred_roles'] = parsed_roles
+                        print("Parsed preferred_roles JSON string to list")
+                except Exception:
+                    pass
+        except Exception as e:
+            print(f"Alias field normalization skipped due to error: {e}")
             
         print(f"Processed data: {data}")
             
@@ -804,7 +1005,7 @@ class RecruiterProfileView(generics.RetrieveUpdateAPIView):
             data['email'] = user.email
             
         # Handle empty string date fields - convert to None for Django DateField
-        date_fields = []  # Add any date fields if needed
+        date_fields = ['availability_start_date']
         for field in date_fields:
             if field in data and data[field] == '':
                 data[field] = None
@@ -816,6 +1017,13 @@ class RecruiterProfileView(generics.RetrieveUpdateAPIView):
             if field in data and (data[field] == '' or data[field] is None):
                 data[field] = None
                 print(f"Converted empty value to None for integer field: {field}")
+
+        # Handle decimal fields
+        decimal_fields = ['salary_range_from', 'salary_range_to']
+        for field in decimal_fields:
+            if field in data and data[field] == '':
+                data[field] = None
+                print(f"Converted empty string to None for decimal field: {field}")
         
         # Handle profile_image field - if it's a URL from file upload, store it in profile_image_url
         if 'profile_image' in data and data['profile_image']:
@@ -828,6 +1036,34 @@ class RecruiterProfileView(generics.RetrieveUpdateAPIView):
                 print(f"Ignoring blob URL: {data['profile_image']}")
             # Remove the profile_image field since it's not a model field
             del data['profile_image']
+        
+        # Normalize skills structure similar to JobSeeker
+        if 'skills' in data and data['skills'] is not None:
+            try:
+                import json
+                raw_skills = data['skills']
+                if isinstance(raw_skills, str):
+                    raw_skills = json.loads(raw_skills)
+                normalized_skills = []
+                allowed = {'beginner', 'intermediate', 'advanced', 'expert'}
+                if isinstance(raw_skills, list):
+                    for s in raw_skills:
+                        if isinstance(s, str):
+                            normalized_skills.append({'name': s, 'proficiency': 'intermediate'})
+                        elif isinstance(s, dict):
+                            name = s.get('name') or s.get('skill') or ''
+                            if not name:
+                                continue
+                            prof = (s.get('proficiency') or s.get('level') or 'intermediate').lower()
+                            if prof not in allowed:
+                                prof = 'intermediate'
+                            entry = {'name': name, 'proficiency': prof}
+                            if s.get('category'):
+                                entry['category'] = s['category']
+                            normalized_skills.append(entry)
+                data['skills'] = normalized_skills
+            except Exception as e:
+                print(f"Recruiter skills normalization skipped due to error: {e}")
             
         # Only one profile per user: update if exists, else create
         try:
@@ -876,7 +1112,36 @@ class CompanyProfileView(generics.RetrieveUpdateAPIView):
         try:
             profile = CompanyProfile.objects.get(user=user)
             serializer = self.get_serializer(profile)
-            return Response(serializer.data)
+            data = serializer.data
+            
+            # Add file URLs to the response for logo and brochure
+            if profile.logo_data:
+                data['logo'] = {
+                    'name': profile.logo_filename or 'logo',
+                    'url': request.build_absolute_uri(f'/api/auth/files/company/{profile.id}/logo/'),
+                    'size': profile.logo_size or 0,
+                    'uploaded_at': profile.updated_at.isoformat()
+                }
+            elif profile.logo_url:
+                data['logo'] = {
+                    'url': profile.logo_url,
+                    'uploaded_at': profile.updated_at.isoformat()
+                }
+            
+            if profile.company_brochure_data:
+                data['company_brochure'] = {
+                    'name': profile.company_brochure_filename or 'brochure',
+                    'url': request.build_absolute_uri(f'/api/auth/files/company/{profile.id}/brochure/'),
+                    'size': profile.company_brochure_size or 0,
+                    'uploaded_at': profile.updated_at.isoformat()
+                }
+            elif profile.company_brochure_url:
+                data['company_brochure'] = {
+                    'url': profile.company_brochure_url,
+                    'uploaded_at': profile.updated_at.isoformat()
+                }
+            
+            return Response(data)
         except CompanyProfile.DoesNotExist:
             # Return empty data for company profile
             return Response({})
@@ -909,6 +1174,17 @@ class CompanyProfileView(generics.RetrieveUpdateAPIView):
             if field in data and data[field] == '':
                 data[field] = None
                 print(f"Converted empty string to None for decimal field: {field}")
+        
+        # Handle logo field - if it's a URL from file upload, store it in logo_url
+        if 'logo' in data and data['logo']:
+            if isinstance(data['logo'], str) and data['logo'].startswith('http'):
+                data['logo_url'] = data['logo']
+                print(f"Set logo_url to: {data['logo_url']}")
+            elif isinstance(data['logo'], str) and data['logo'].startswith('blob:'):
+                # Blob preview from frontend, ignore
+                print(f"Ignoring blob URL for logo: {data['logo']}")
+            # Remove non-model field
+            del data['logo']
                 
         # Only one profile per user: update if exists, else create
         try:
@@ -1253,3 +1529,82 @@ class CompanyOnboardingView(generics.GenericAPIView):
         else:
             return Response({'error': 'Invalid user role. Only company users can access this endpoint'}, 
                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class LocationsListView(APIView):
+    """Public endpoint to list/search active locations from DB."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        q = request.GET.get('q', '').strip()
+        qs = Location.objects.filter(is_active=True)
+        if q:
+            qs = qs.filter(display_name__icontains=q)
+        qs = qs.order_by('-popularity', 'display_name')[:500]
+        serializer = LocationSerializer(qs, many=True)
+        return Response({'results': serializer.data, 'count': len(serializer.data)})
+
+
+class SkillsListView(APIView):
+    """Public endpoint to list/search active skills from DB."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        q = request.GET.get('q', '').strip()
+        qs = Skill.objects.filter(is_active=True)
+        if q:
+            qs = qs.filter(name__icontains=q)
+        qs = qs.order_by('-popularity', 'name')[:500]
+        serializer = SkillSerializer(qs, many=True)
+        return Response({'results': serializer.data, 'count': len(serializer.data)})
+
+
+class JobRolesListView(APIView):
+    """Public endpoint to list/search active job roles from DB."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        q = request.GET.get('q', '').strip()
+        audience = request.GET.get('audience', '').strip().lower()
+        qs = JobRole.objects.filter(is_active=True)
+        if q:
+            qs = qs.filter(title__icontains=q)
+        if audience == 'jobseeker':
+            qs = qs.filter(for_jobseekers=True)
+        elif audience == 'recruiter':
+            qs = qs.filter(for_recruiters=True)
+        elif request.user and getattr(request.user, 'is_authenticated', False):
+            # Default audience by authenticated user's role when not explicitly specified
+            user_role = getattr(request.user, 'role', None)
+            if user_role == 'job_seeker':
+                qs = qs.filter(for_jobseekers=True)
+            elif user_role == 'recruiter':
+                qs = qs.filter(for_recruiters=True)
+        qs = qs.order_by('-popularity', 'title')[:500]
+        serializer = JobRoleSerializer(qs, many=True)
+        return Response({'results': serializer.data, 'count': len(serializer.data)})
+
+
+class IndustriesListView(APIView):
+    """Public endpoint to list/search active industries from DB."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        q = request.GET.get('q', '').strip()
+        qs = Industry.objects.filter(is_active=True)
+        if q:
+            qs = qs.filter(name__icontains=q)
+        qs = qs.order_by('-popularity', 'name')[:500]
+        serializer = IndustrySerializer(qs, many=True)
+        return Response({'results': serializer.data, 'count': len(serializer.data)})
+
+
+class SalaryBandsListView(APIView):
+    """Public endpoint to list salary bands, default currency INR."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        currency = (request.GET.get('currency') or 'INR').upper()
+        qs = SalaryBand.objects.filter(is_active=True, currency=currency).order_by('-popularity', 'min_amount')
+        serializer = SalaryBandSerializer(qs, many=True)
+        return Response({'results': serializer.data, 'count': len(serializer.data)})

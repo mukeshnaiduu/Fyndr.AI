@@ -7,6 +7,7 @@ from .views import (
     FileUploadView, FileServeView,
     GoogleAuthInitView, GoogleAuthCallbackView, GoogleDisconnectView, GoogleAuthStatusView
 )
+from .views import LocationsListView, SkillsListView, JobRolesListView, IndustriesListView, SalaryBandsListView
 
 urlpatterns = [
     # Authentication
@@ -22,6 +23,11 @@ urlpatterns = [
     # File Upload and Serving
     path('upload/', FileUploadView.as_view(), name='file-upload'),
     path('files/<str:model_type>/<int:profile_id>/<str:file_type>/', FileServeView.as_view(), name='file-serve'),
+    path('locations/', LocationsListView.as_view(), name='locations-list'),
+    path('skills/', SkillsListView.as_view(), name='skills-list'),
+    path('roles/', JobRolesListView.as_view(), name='roles-list'),
+    path('industries/', IndustriesListView.as_view(), name='industries-list'),
+    path('salary-bands/', SalaryBandsListView.as_view(), name='salary-bands-list'),
     
     # Profile Endpoints
     path('jobseeker-profile/', JobSeekerProfileView.as_view(), name='jobseeker-profile'),

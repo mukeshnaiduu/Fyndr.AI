@@ -42,6 +42,7 @@ const ProfileManagement = () => {
 
   const [activeTab, setActiveTab] = useState('personal');
   const [userProfile, setUserProfile] = useState(null);
+  const [draftProfile, setDraftProfile] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
 
@@ -61,27 +62,66 @@ const ProfileManagement = () => {
           return res.json();
         });
 
-        // Merge user data with onboarding data for display
-        const mergedProfile = {
+        // Normalize response into camelCase fields the UI expects
+        const profile = data.profile || data.onboarding || {};
+        const roleRaw = data.role;
+        const tokenForFiles = localStorage.getItem('accessToken') || '';
+        const withToken = (url) => (url ? `${url}${url.includes('?') ? '&' : '?'}token=${tokenForFiles}` : '');
+        const normalized = {
+          // keep raw
           ...data,
-          // If onboarding data exists, merge it into the main profile
-          ...(data.onboarding || {}),
-          // Keep original user fields with priority
+          profile, // preserve original for reference
+          role_raw: roleRaw,
+          // camelCase duplicates for UI components
           id: data.id,
           username: data.username,
-          email: data.email,
+          email: data.email || profile.email || '',
           first_name: data.first_name,
           last_name: data.last_name,
-          role: data.role,
-          onboarding_complete: data.onboarding_complete
+          // UI reads these camelCase keys
+          firstName: profile.first_name || data.first_name || '',
+          lastName: profile.last_name || data.last_name || '',
+          phone: profile.phone || '',
+          location: profile.location || '',
+          bio: profile.bio || '',
+          // social/links
+          website: profile.website_url || profile.website || '',
+          linkedin: profile.linkedin_url || '',
+          // avatar/logo previews
+          avatar: withToken(profile.profile_image_url || profile.logo_url || ''),
+          profile_image_url: withToken(profile.profile_image_url || ''),
+          resume: withToken(profile.resume_url || ''),
+          resume_url: withToken(profile.resume_url || ''),
+          // professional
+          jobTitle: profile.job_title || '',
+          company: profile.company_name || '',
+          experience: profile.experience_level || '',
+          skills: profile.skills || [],
+          // desired roles from DB-backed profile
+          desiredRoles: Array.isArray(profile.desired_roles)
+            ? profile.desired_roles
+            : (Array.isArray(profile.preferred_roles) ? profile.preferred_roles : []),
+          // For jobseekers we store industries as an array in DB; take first for single-input UI
+          industry: (Array.isArray(profile.industries) && profile.industries[0]) || profile.industry || profile.primary_industry || '',
+          industries: Array.isArray(profile.industries) ? profile.industries : (profile.industry ? [profile.industry] : []),
+          salary: profile.salary || '',
+          salary_min: profile.salary_min || null,
+          salary_max: profile.salary_max || null,
+          salary_currency: profile.salary_currency || 'INR',
+          availability: profile.availability_date || profile.availability_start_date || '',
+          certifications: profile.certifications || [],
+          onboarding_complete: data.onboarding_complete,
+          // normalize role for UI checks
+          role: roleRaw === 'job_seeker' ? 'jobseeker' : roleRaw
         };
 
-        setUserProfile(mergedProfile);
+        setUserProfile(normalized);
+        setDraftProfile(normalized);
         // Set isAuthenticated to true if profile fetch is successful
         localStorage.setItem('isAuthenticated', 'true');
 
-        // Update localStorage user data with merged profile
-        localStorage.setItem('user', JSON.stringify(mergedProfile));
+        // Update localStorage user data with normalized profile
+        localStorage.setItem('user', JSON.stringify(normalized));
       } catch (err) {
         // If unauthorized, redirect to login
         localStorage.setItem('isAuthenticated', 'false');
@@ -114,7 +154,7 @@ const ProfileManagement = () => {
       icon: 'Briefcase',
       component: ProfessionalDetailsTab
     },
-    ...(userProfile?.role === 'jobseeker' ? [{
+    ...((userProfile?.role === 'jobseeker' || userProfile?.role === 'job_seeker') ? [{
       id: 'applications',
       label: 'Applications',
       icon: 'ClipboardCheck',
@@ -138,21 +178,146 @@ const ProfileManagement = () => {
     setActiveTab(tabId);
   };
 
+  // Update a draft profile snapshot as the user edits fields, so the meter updates live
+  const handleDraftChange = (partial) => {
+    setDraftProfile((prev) => ({ ...(prev || userProfile || {}), ...partial }));
+  };
+
   const handleUpdateProfile = async (updatedData) => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('accessToken');
+
+      // Map camelCase fields from tabs to backend snake_case profile schema
+      const roleRaw = userProfile?.role_raw || (userProfile?.role === 'jobseeker' ? 'job_seeker' : userProfile?.role);
+      const isJobSeeker = roleRaw === 'job_seeker';
+      const isRecruiter = roleRaw === 'recruiter';
+
+      const payload = {
+        // Personal
+        ...(updatedData.firstName !== undefined && { first_name: updatedData.firstName }),
+        ...(updatedData.lastName !== undefined && { last_name: updatedData.lastName }),
+        ...(updatedData.email !== undefined && { email: updatedData.email }),
+        ...(updatedData.phone !== undefined && { phone: updatedData.phone }),
+        ...(updatedData.location !== undefined && { location: updatedData.location }),
+        ...(updatedData.bio !== undefined && { bio: updatedData.bio }),
+        // Do NOT send avatar/profile_image_url via PUT; it's handled by the upload endpoint
+        // Links
+        ...(updatedData.website !== undefined && {
+          // jobseeker/recruiter use website_url
+          website_url: updatedData.website
+        }),
+        ...(updatedData.linkedin !== undefined && { linkedin_url: updatedData.linkedin }),
+        // Professional
+        ...(updatedData.jobTitle !== undefined && { job_title: updatedData.jobTitle }),
+        // Serializer expects preferred_roles; /auth/profile does not normalize aliases
+        ...(updatedData.desiredRoles !== undefined && { preferred_roles: Array.isArray(updatedData.desiredRoles) ? updatedData.desiredRoles : [] }),
+        ...(updatedData.skills !== undefined && { skills: Array.isArray(updatedData.skills) ? updatedData.skills : [] }),
+        ...(updatedData.certifications !== undefined && { certifications: Array.isArray(updatedData.certifications) ? updatedData.certifications : [] }),
+        ...(updatedData.industries !== undefined && { industries: Array.isArray(updatedData.industries) ? updatedData.industries : [] }),
+        ...(updatedData.salary_min !== undefined && { salary_min: updatedData.salary_min || null }),
+        ...(updatedData.salary_max !== undefined && { salary_max: updatedData.salary_max || null }),
+        ...(updatedData.salary_currency !== undefined && { salary_currency: updatedData.salary_currency || 'INR' }),
+        // Avoid sending resume_url via PUT; file URLs are persisted by upload endpoint
+        // Role-specific mappings
+        ...(
+          isJobSeeker && updatedData.experience !== undefined
+            ? { experience_level: updatedData.experience }
+            : {}
+        ),
+        ...(
+          isJobSeeker && updatedData.portfolio !== undefined
+            ? { portfolio_url: updatedData.portfolio }
+            : {}
+        ),
+        ...(
+          isJobSeeker && updatedData.industry !== undefined && (updatedData.industries === undefined)
+            ? { industries: updatedData.industry ? [updatedData.industry] : [] }
+            : {}
+        ),
+        ...(
+          isRecruiter && updatedData.industry !== undefined
+            ? { primary_industry: updatedData.industry }
+            : {}
+        ),
+      };
+
       const res = await fetch(getApiUrl('/auth/profile/'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(updatedData),
+        body: JSON.stringify({ profile: payload }),
       });
-      if (!res.ok) throw new Error('Failed to update profile');
+      if (!res.ok) {
+        // Attempt to parse error body for useful message
+        let details = 'Failed to update profile';
+        try {
+          const errJson = await res.json();
+          if (typeof errJson === 'object') {
+            // Collect first field error if available
+            const firstKey = Object.keys(errJson)[0];
+            const firstVal = Array.isArray(errJson[firstKey]) ? errJson[firstKey][0] : errJson[firstKey];
+            details = typeof firstVal === 'string' ? `${firstKey}: ${firstVal}` : details;
+          }
+        } catch (_) {
+          // fallback to text
+          try {
+            const txt = await res.text();
+            if (txt) details = txt;
+          } catch (_) { }
+        }
+        throw new Error(details);
+      }
       const data = await res.json();
-      setUserProfile(data);
+
+      // Re-normalize response for UI
+      const profile = data.profile || data.onboarding || {};
+      const tokenForFiles2 = localStorage.getItem('accessToken') || '';
+      const withToken2 = (url) => (url ? `${url}${url.includes('?') ? '&' : '?'}token=${tokenForFiles2}` : '');
+      const normalized = {
+        ...data,
+        profile,
+        role_raw: data.role,
+        id: data.id,
+        username: data.username,
+        email: data.email || profile.email || '',
+        first_name: data.first_name,
+        last_name: data.last_name,
+        firstName: profile.first_name || data.first_name || '',
+        lastName: profile.last_name || data.last_name || '',
+        phone: profile.phone || '',
+        location: profile.location || '',
+        bio: profile.bio || '',
+        website: profile.website_url || profile.website || '',
+        linkedin: profile.linkedin_url || '',
+        avatar: withToken2(profile.profile_image_url || profile.logo_url || ''),
+        profile_image_url: withToken2(profile.profile_image_url || ''),
+        resume: withToken2(profile.resume_url || ''),
+        resume_url: withToken2(profile.resume_url || ''),
+        jobTitle: profile.job_title || '',
+        company: profile.company_name || '',
+        experience: profile.experience_level || '',
+        skills: profile.skills || [],
+        desiredRoles: Array.isArray(profile.desired_roles)
+          ? profile.desired_roles
+          : (Array.isArray(profile.preferred_roles) ? profile.preferred_roles : []),
+        industry: (Array.isArray(profile.industries) && profile.industries[0]) || profile.industry || profile.primary_industry || '',
+        industries: Array.isArray(profile.industries) ? profile.industries : (profile.industry ? [profile.industry] : []),
+        salary: profile.salary || '',
+        salary_min: profile.salary_min || null,
+        salary_max: profile.salary_max || null,
+        salary_currency: profile.salary_currency || 'INR',
+        availability: profile.availability_date || profile.availability_start_date || '',
+        certifications: profile.certifications || [],
+        onboarding_complete: data.onboarding_complete,
+        role: data.role === 'job_seeker' ? 'jobseeker' : data.role,
+      };
+
+      setUserProfile(normalized);
+      setDraftProfile(normalized);
+      localStorage.setItem('user', JSON.stringify(normalized));
       setLastSaved(Date.now());
       // Show success feedback
       const successMessage = document.createElement('div');
@@ -163,7 +328,7 @@ const ProfileManagement = () => {
         document.body.removeChild(successMessage);
       }, 3000);
     } catch (err) {
-      alert('Failed to update profile.');
+      alert(err?.message || 'Failed to update profile.');
     } finally {
       setIsSaving(false);
     }
@@ -204,7 +369,7 @@ const ProfileManagement = () => {
       description="Manage your personal information, preferences, and security settings"
     >
       {/* Removed SidebarLayout and sidebar, main content only */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
           <button
@@ -251,7 +416,7 @@ const ProfileManagement = () => {
           {/* Profile Completion - left only, slightly wider */}
           <div className="lg:col-span-2 flex items-start">
             <div className="w-full max-w-lg">
-              <ProfileCompletionMeter userProfile={userProfile} />
+              <ProfileCompletionMeter userProfile={draftProfile || userProfile} />
             </div>
           </div>
 
@@ -293,8 +458,9 @@ const ProfileManagement = () => {
 
               {ActiveTabComponent && (
                 <ActiveTabComponent
-                  userProfile={userProfile}
+                  userProfile={draftProfile || userProfile}
                   onUpdateProfile={handleUpdateProfile}
+                  onDraftChange={handleDraftChange}
                 />
               )}
             </div>

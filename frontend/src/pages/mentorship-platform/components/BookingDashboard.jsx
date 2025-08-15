@@ -92,11 +92,12 @@ const BookingDashboard = ({ isOpen, onClose }) => {
     }
   };
 
+  const toINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
+    return date.toLocaleDateString('en-IN', {
+      weekday: 'short',
+      month: 'short',
       day: 'numeric',
       year: 'numeric'
     });
@@ -106,21 +107,21 @@ const BookingDashboard = ({ isOpen, onClose }) => {
     const [hours, minutes] = timeString.split(':');
     const date = new Date();
     date.setHours(parseInt(hours), parseInt(minutes));
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+    return date.toLocaleTimeString('en-IN', {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   };
 
   const filteredBookings = mockBookings.filter(booking => {
     const matchesSearch = booking.mentor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         booking.type.toLowerCase().includes(searchQuery.toLowerCase());
+      booking.type.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || booking.status === filterStatus;
     const matchesTab = activeTab === 'upcoming' ? ['confirmed', 'pending'].includes(booking.status) :
-                      activeTab === 'completed' ? booking.status === 'completed' :
-                      booking.status === 'cancelled';
-    
+      activeTab === 'completed' ? booking.status === 'completed' :
+        booking.status === 'cancelled';
+
     return matchesSearch && matchesStatus && matchesTab;
   });
 
@@ -165,16 +166,14 @@ const BookingDashboard = ({ isOpen, onClose }) => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium transition-spring whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'text-primary border-b-2 border-primary bg-primary/5' :'text-muted-foreground hover:text-foreground hover:bg-white/5'
-              }`}
+              className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium transition-spring whitespace-nowrap ${activeTab === tab.id
+                  ? 'text-primary border-b-2 border-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                }`}
             >
               <Icon name={tab.icon} size={16} />
               <span>{tab.label}</span>
-              <span className={`px-2 py-0.5 text-xs rounded-full ${
-                activeTab === tab.id ? 'bg-primary/20 text-primary' : 'bg-muted/20 text-muted-foreground'
-              }`}>
+              <span className={`px-2 py-0.5 text-xs rounded-full ${activeTab === tab.id ? 'bg-primary/20 text-primary' : 'bg-muted/20 text-muted-foreground'
+                }`}>
                 {filteredBookings.length}
               </span>
             </button>
@@ -207,9 +206,9 @@ const BookingDashboard = ({ isOpen, onClose }) => {
               <Icon name="Calendar" size={48} className="text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-foreground mb-2">No bookings found</h3>
               <p className="text-muted-foreground">
-                {activeTab === 'upcoming' ? 'You have no upcoming sessions' : 
-                 activeTab === 'completed' ? 'No completed sessions yet' : 
-                 'No cancelled sessions'}
+                {activeTab === 'upcoming' ? 'You have no upcoming sessions' :
+                  activeTab === 'completed' ? 'No completed sessions yet' :
+                    'No cancelled sessions'}
               </p>
             </div>
           ) : (
@@ -244,12 +243,12 @@ const BookingDashboard = ({ isOpen, onClose }) => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="text-right">
                       <span className={`px-3 py-1 text-xs rounded-full border ${getStatusColor(booking.status)}`}>
                         {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                       </span>
-                      <p className="text-lg font-bold text-primary mt-2">${booking.price}</p>
+                      <p className="text-lg font-bold text-primary mt-2">{toINR(booking.price)}</p>
                     </div>
                   </div>
 
@@ -260,7 +259,7 @@ const BookingDashboard = ({ isOpen, onClose }) => {
                         <p className="text-sm text-muted-foreground mt-1">{booking.sessionNotes}</p>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       {booking.status === 'confirmed' && (
                         <>
@@ -292,7 +291,7 @@ const BookingDashboard = ({ isOpen, onClose }) => {
                           </Button>
                         </>
                       )}
-                      
+
                       {booking.status === 'pending' && (
                         <>
                           <Button
@@ -314,7 +313,7 @@ const BookingDashboard = ({ isOpen, onClose }) => {
                           </Button>
                         </>
                       )}
-                      
+
                       {booking.status === 'completed' && (
                         <>
                           {booking.recordingUrl && (

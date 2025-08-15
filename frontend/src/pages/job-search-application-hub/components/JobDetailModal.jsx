@@ -36,12 +36,10 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onQuickApply, onSave })
   };
 
   const formatSalary = (min, max) => {
-    if (min && max) {
-      return `$${min}K - $${max}K`;
-    }
-    if (min) {
-      return `$${min}K+`;
-    }
+    // Interpret inputs as LPA when API provides K; display in INR format
+    const toINR = (valK) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format((valK || 0) * 100000);
+    if (min && max) return `${toINR(min)} - ${toINR(max)} per year`;
+    if (min) return `${toINR(min)}+ per year`;
     return 'Salary not disclosed';
   };
 
@@ -120,7 +118,7 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onQuickApply, onSave })
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${activeTab === tab.id
-                    ? 'bg-primary/20 text-primary border border-primary/30' : 'text-muted-foreground hover:bg-white/10'
+                  ? 'bg-primary/20 text-primary border border-primary/30' : 'text-muted-foreground hover:bg-white/10'
                   }`}
               >
                 <Icon name={tab.icon} size={16} />
@@ -247,7 +245,7 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onQuickApply, onSave })
                     <Icon name="MapPin" size={16} className="text-primary" />
                     <span className="font-medium text-foreground">Headquarters</span>
                   </div>
-                  <p className="text-muted-foreground">{job.company.headquarters || 'San Francisco, CA'}</p>
+                  <p className="text-muted-foreground">{job.company.headquarters || 'Bengaluru, Karnataka'}</p>
                 </div>
 
                 <div className="glassmorphic-surface p-4 rounded-lg">
@@ -275,14 +273,14 @@ const JobDetailModal = ({ job, isOpen, onClose, onApply, onQuickApply, onSave })
                 <h3 className="font-semibold text-foreground mb-3">Benefits & Perks</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {(job.benefits || [
-                    'Health, Dental & Vision Insurance',
-                    '401(k) with Company Match',
-                    'Unlimited PTO',
-                    'Remote Work Options',
-                    'Professional Development Budget',
-                    'Gym Membership',
-                    'Catered Meals',
-                    'Stock Options'
+                    'Health Insurance',
+                    'Provident Fund (PF)',
+                    'Paid Leave',
+                    'Remote/Hybrid Work Options',
+                    'Learning & Development Budget',
+                    'Gym/Wellness Benefits',
+                    'Meal Card/Food Coupons',
+                    'ESOPs/Stock Options'
                   ]).map((benefit, index) => (
                     <div key={index} className="flex items-center space-x-3 p-3 glassmorphic-surface rounded-lg">
                       <Icon name="Check" size={16} className="text-success flex-shrink-0" />

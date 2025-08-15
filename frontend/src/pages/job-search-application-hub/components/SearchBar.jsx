@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Icon from 'components/AppIcon';
 import Input from 'components/ui/Input';
 import Button from 'components/ui/Button';
+import { fetchLocations } from 'services/locationsService';
 
 const jobTypeOptions = [
   { value: '', label: 'Any' },
@@ -27,7 +28,7 @@ const SearchBar = ({
 
   const jobSuggestions = [
     "Frontend Developer",
-    "React Developer", 
+    "React Developer",
     "JavaScript Engineer",
     "Full Stack Developer",
     "UI/UX Designer",
@@ -38,18 +39,13 @@ const SearchBar = ({
     "Mobile Developer"
   ];
 
-  const locationOptions = [
+  const [locationOptions, setLocationOptions] = useState([
     "Remote",
-    "New York, NY",
-    "San Francisco, CA", 
-    "Los Angeles, CA",
-    "Chicago, IL",
-    "Austin, TX",
-    "Seattle, WA",
-    "Boston, MA",
-    "Denver, CO",
-    "Miami, FL"
-  ];
+    "Bengaluru, Karnataka",
+    "Mumbai, Maharashtra",
+    "Hyderabad, Telangana",
+    "Delhi NCR",
+  ]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,14 +70,26 @@ const SearchBar = ({
   }, [searchQuery]);
 
   useEffect(() => {
-    if (location.length > 0) {
-      const filtered = locationOptions.filter(option =>
-        option.toLowerCase().includes(location.toLowerCase())
-      );
-      setLocationSuggestions(filtered.slice(0, 5));
-    } else {
-      setLocationSuggestions([]);
-    }
+    let ignore = false;
+    (async () => {
+      try {
+        if (location.length === 0) { setLocationSuggestions([]); return; }
+        const results = await fetchLocations(location);
+        if (!ignore) {
+          const list = results.map(r => r.display_name);
+          // Always include 'Remote'
+          const withRemote = ['Remote', ...list];
+          setLocationSuggestions(withRemote.slice(0, 8));
+        }
+      } catch (e) {
+        // fallback to local filter if API fails
+        const filtered = locationOptions.filter(option =>
+          option.toLowerCase().includes(location.toLowerCase())
+        );
+        setLocationSuggestions(filtered.slice(0, 5));
+      }
+    })();
+    return () => { ignore = true; };
   }, [location]);
 
   const handleSearch = () => {
@@ -122,9 +130,9 @@ const SearchBar = ({
               onKeyDown={handleKeyPress}
               className="pl-10"
             />
-            <Icon 
-              name="Search" 
-              size={18} 
+            <Icon
+              name="Search"
+              size={18}
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
             />
           </div>
@@ -133,15 +141,15 @@ const SearchBar = ({
           <div className="flex-1 lg:flex-none lg:w-64 relative">
             <Input
               type="text"
-              placeholder="Location"
+              placeholder="Location (e.g., Bengaluru, Mumbai)"
               value={location}
               onChange={(e) => onLocationChange(e.target.value)}
               onFocus={() => setIsExpanded(true)}
               className="pl-10"
             />
-            <Icon 
-              name="MapPin" 
-              size={18} 
+            <Icon
+              name="MapPin"
+              size={18}
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
             />
           </div>
@@ -221,7 +229,7 @@ const SearchBar = ({
 
       {/* Search Suggestions Dropdown */}
       {isExpanded && (suggestions.length > 0 || locationSuggestions.length > 0) && (
-        <div className="absolute top-full left-0 right-0 mt-2 glassmorphic border border-white/20 rounded-lg shadow-glassmorphic-lg z-50 max-h-80 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-sm border border-border rounded-lg shadow-lg ring-1 ring-black/5 z-50 max-h-80 overflow-y-auto">
           {suggestions.length > 0 && (
             <div className="p-2 border-b border-white/10">
               <div className="text-xs font-medium text-muted-foreground mb-2 px-2">Job Suggestions</div>
@@ -229,7 +237,7 @@ const SearchBar = ({
                 <button
                   key={index}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-white/10 transition-all duration-200"
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-all duration-200"
                 >
                   <Icon name="Briefcase" size={16} className="text-muted-foreground" />
                   <span className="flex-1 text-left">{suggestion}</span>
@@ -245,7 +253,7 @@ const SearchBar = ({
                 <button
                   key={index}
                   onClick={() => handleLocationSuggestionClick(locationSuggestion)}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-white/10 transition-all duration-200"
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-all duration-200"
                 >
                   <Icon name="MapPin" size={16} className="text-muted-foreground" />
                   <span className="flex-1 text-left">{locationSuggestion}</span>

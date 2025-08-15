@@ -6,6 +6,7 @@ import Button from 'components/ui/Button';
 import { Checkbox } from 'components/ui/Checkbox';
 
 const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
+  const toINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
   const [formData, setFormData] = useState({
     selectedPlan: data.selectedPlan || 'professional',
     billingCycle: data.billingCycle || 'monthly',
@@ -16,7 +17,7 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
       city: '',
       state: '',
       zipCode: '',
-      country: 'US'
+      country: 'IN'
     },
     ...data
   });
@@ -89,6 +90,7 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
   ];
 
   const countryOptions = [
+    { value: 'IN', label: 'India' },
     { value: 'US', label: 'United States' },
     { value: 'CA', label: 'Canada' },
     { value: 'UK', label: 'United Kingdom' },
@@ -98,11 +100,16 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
   ];
 
   const stateOptions = [
-    { value: 'CA', label: 'California' },
-    { value: 'NY', label: 'New York' },
-    { value: 'TX', label: 'Texas' },
-    { value: 'FL', label: 'Florida' },
-    { value: 'IL', label: 'Illinois' }
+    { value: 'KA', label: 'Karnataka' },
+    { value: 'MH', label: 'Maharashtra' },
+    { value: 'DL', label: 'Delhi' },
+    { value: 'TN', label: 'Tamil Nadu' },
+    { value: 'TG', label: 'Telangana' },
+    { value: 'GJ', label: 'Gujarat' },
+    { value: 'UP', label: 'Uttar Pradesh' },
+    { value: 'RJ', label: 'Rajasthan' },
+    { value: 'WB', label: 'West Bengal' },
+    { value: 'KL', label: 'Kerala' }
   ];
 
   const handlePlanSelect = (planId) => {
@@ -224,13 +231,13 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
                 <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
 
                 <div className="mb-4">
-                  <span className="text-3xl font-bold text-foreground">${price}</span>
+                  <span className="text-3xl font-bold text-foreground">{toINR(price)}</span>
                   <span className="text-muted-foreground">
                     /{formData.billingCycle === 'yearly' ? 'year' : 'month'}
                   </span>
                   {savings > 0 && (
                     <p className="text-sm text-success mt-1">
-                      Save ${savings} per year
+                      Save {toINR(savings)} per year
                     </p>
                   )}
                 </div>
@@ -308,7 +315,7 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
           <Input
             label="City"
             type="text"
-            placeholder="San Francisco"
+            placeholder="Bengaluru"
             value={formData.billingAddress.city}
             onChange={(e) => handleAddressChange('city', e.target.value)}
             error={errors.city}
@@ -324,9 +331,9 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
           />
 
           <Input
-            label="ZIP/Postal Code"
+            label="PIN Code"
             type="text"
-            placeholder="94105"
+            placeholder="560001"
             value={formData.billingAddress.zipCode}
             onChange={(e) => handleAddressChange('zipCode', e.target.value)}
             error={errors.zipCode}
@@ -352,7 +359,7 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
             <div className="flex justify-between">
               <span className="text-foreground">{selectedPlan.name} Plan</span>
               <span className="font-medium text-foreground">
-                ${calculatePrice(selectedPlan).price}
+                {toINR(calculatePrice(selectedPlan).price)}
                 /{formData.billingCycle === 'yearly' ? 'year' : 'month'}
               </span>
             </div>
@@ -360,14 +367,14 @@ const BillingStep = ({ data, onUpdate, onNext, onPrev }) => {
             {formData.billingCycle === 'yearly' && calculatePrice(selectedPlan).savings > 0 && (
               <div className="flex justify-between text-success">
                 <span>Annual discount</span>
-                <span>-${calculatePrice(selectedPlan).savings}</span>
+                <span>-{toINR(calculatePrice(selectedPlan).savings)}</span>
               </div>
             )}
 
             <div className="border-t border-border pt-3">
               <div className="flex justify-between font-semibold text-foreground">
                 <span>Total</span>
-                <span>${calculatePrice(selectedPlan).price}</span>
+                <span>{toINR(calculatePrice(selectedPlan).price)}</span>
               </div>
             </div>
           </div>

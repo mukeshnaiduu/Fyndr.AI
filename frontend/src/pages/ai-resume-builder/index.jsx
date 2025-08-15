@@ -34,7 +34,7 @@ const AIResumeBuilder = () => {
       title: 'Senior Software Engineer',
       email: 'john.doe@email.com',
       phone: '+1 (555) 123-4567',
-      location: 'San Francisco, CA',
+      location: 'Bengaluru, Karnataka',
       summary: 'Experienced software engineer with 8+ years of expertise in full-stack development, specializing in React, Node.js, and cloud technologies. Proven track record of leading cross-functional teams and delivering scalable solutions that drive business growth.'
     },
     experience: [

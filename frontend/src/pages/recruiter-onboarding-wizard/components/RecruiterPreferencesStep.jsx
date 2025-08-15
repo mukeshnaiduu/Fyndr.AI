@@ -6,7 +6,7 @@ const RecruiterPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
         recruitmentType: data.recruitmentType || 'fullTime',
         remoteWork: data.remoteWork || false,
         positionTypes: data.positionTypes || [],
-        salaryCurrency: data.salaryCurrency || 'USD',
+        salaryCurrency: data.salaryCurrency || 'INR',
         salaryRangeFrom: data.salaryRangeFrom || '',
         salaryRangeTo: data.salaryRangeTo || '',
         communication: data.communication || {
@@ -211,13 +211,13 @@ const RecruiterPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
                                     onChange={handleChange}
                                     className="block w-full rounded-md border border-input dark:border-gray-700 bg-background dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                                 >
+                                    <option value="INR">INR</option>
                                     <option value="USD">USD</option>
                                     <option value="EUR">EUR</option>
                                     <option value="GBP">GBP</option>
                                     <option value="CAD">CAD</option>
                                     <option value="AUD">AUD</option>
                                     <option value="JPY">JPY</option>
-                                    <option value="INR">INR</option>
                                 </select>
                             </div>
                             <div className="sm:col-span-2">

@@ -31,14 +31,12 @@ const CompanyProfileManagement = () => {
           return;
         }
         const data = await res.json();
-
         // Check role authorization
         if (data.role !== 'company') {
           navigate('/404');
           return;
         }
-
-        setCompanyProfile(data);
+        setCompanyProfile(data.profile || {});
       } catch (err) {
         console.error('Failed to fetch profile:', err);
         navigate('/authentication-login-register');
@@ -81,11 +79,11 @@ const CompanyProfileManagement = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(updatedData),
+        body: JSON.stringify({ profile: updatedData }),
       });
       if (!res.ok) throw new Error('Failed to update profile');
       const data = await res.json();
-      setCompanyProfile(data);
+      setCompanyProfile(data.profile || updatedData);
       setLastSaved(Date.now());
 
       // Success feedback
@@ -108,32 +106,36 @@ const CompanyProfileManagement = () => {
       case 'company':
         return (
           <CompanyInfoTab
-            data={companyProfile}
+            profile={companyProfile}
             isEditing={isEditing}
+            setIsEditing={setIsEditing}
             onUpdate={handleUpdateProfile}
           />
         );
       case 'team':
         return (
           <TeamHiringTab
-            data={companyProfile}
+            profile={companyProfile}
             isEditing={isEditing}
+            setIsEditing={setIsEditing}
             onUpdate={handleUpdateProfile}
           />
         );
       case 'diversity':
         return (
           <DiversityTab
-            data={companyProfile}
+            profile={companyProfile}
             isEditing={isEditing}
+            setIsEditing={setIsEditing}
             onUpdate={handleUpdateProfile}
           />
         );
       case 'billing':
         return (
           <BillingTab
-            data={companyProfile}
+            profile={companyProfile}
             isEditing={isEditing}
+            setIsEditing={setIsEditing}
             onUpdate={handleUpdateProfile}
           />
         );
@@ -208,13 +210,7 @@ const CompanyProfileManagement = () => {
                   {isEditing ? 'Cancel' : 'Edit Profile'}
                 </Button>
                 {isEditing && (
-                  <Button
-                    onClick={() => {
-                      // This would trigger save in the active tab component
-                      setIsEditing(false);
-                    }}
-                    disabled={isSaving}
-                  >
+                  <Button onClick={() => setIsEditing(false)} disabled={isSaving}>
                     {isSaving ? 'Saving...' : 'Save Changes'}
                   </Button>
                 )}
@@ -264,7 +260,7 @@ const CompanyProfileManagement = () => {
               <Icon name="Download" size={16} className="mr-2" />
               Export Profile
             </Button>
-            <Button>
+            <Button onClick={() => setIsEditing(false)}>
               <Icon name="Save" size={16} className="mr-2" />
               Save All Changes
             </Button>

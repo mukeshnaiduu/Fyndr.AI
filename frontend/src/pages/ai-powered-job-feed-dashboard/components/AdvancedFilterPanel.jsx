@@ -3,26 +3,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 import Input from 'components/ui/Input';
+import LocationInput from 'components/ui/LocationInput';
 import Select from 'components/ui/Select';
 import { Checkbox } from 'components/ui/Checkbox';
 
-const AdvancedFilterPanel = ({ 
-  isOpen, 
-  onClose, 
-  filters, 
-  onFiltersChange, 
+const AdvancedFilterPanel = ({
+  isOpen,
+  onClose,
+  filters,
+  onFiltersChange,
   onApplyFilters,
-  onClearFilters 
+  onClearFilters
 }) => {
   const [localFilters, setLocalFilters] = useState(filters);
 
   const salaryRanges = [
-    { value: '0-50000', label: '$0 - $50,000' },
-    { value: '50000-75000', label: '$50,000 - $75,000' },
-    { value: '75000-100000', label: '$75,000 - $100,000' },
-    { value: '100000-150000', label: '$100,000 - $150,000' },
-    { value: '150000-200000', label: '$150,000 - $200,000' },
-    { value: '200000+', label: '$200,000+' }
+    { value: '0-300000', label: '₹0 - ₹3,00,000' },
+    { value: '300000-600000', label: '₹3,00,000 - ₹6,00,000' },
+    { value: '600000-1000000', label: '₹6,00,000 - ₹10,00,000' },
+    { value: '1000000-2000000', label: '₹10,00,000 - ₹20,00,000' },
+    { value: '2000000-3000000', label: '₹20,00,000 - ₹30,00,000' },
+    { value: '3000000+', label: '₹30,00,000+' }
   ];
 
   const experienceLevels = [
@@ -88,11 +89,11 @@ const AdvancedFilterPanel = ({
   };
 
   const panelVariants = {
-    hidden: { 
+    hidden: {
       x: '100%',
       opacity: 0
     },
-    visible: { 
+    visible: {
       x: 0,
       opacity: 1,
       transition: {
@@ -101,7 +102,7 @@ const AdvancedFilterPanel = ({
         stiffness: 200
       }
     },
-    exit: { 
+    exit: {
       x: '100%',
       opacity: 0,
       transition: {
@@ -151,12 +152,11 @@ const AdvancedFilterPanel = ({
             <div className="p-6 space-y-6">
               {/* Location */}
               <div>
-                <Input
+                <LocationInput
                   label="Location"
-                  type="text"
-                  placeholder="Enter city, state, or country"
+                  placeholder="e.g., Bengaluru, Karnataka or Remote"
                   value={localFilters.location}
-                  onChange={(e) => handleFilterChange('location', e.target.value)}
+                  onChange={(val) => handleFilterChange('location', val)}
                 />
               </div>
 

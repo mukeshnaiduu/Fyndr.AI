@@ -4,6 +4,7 @@ import Image from 'components/AppImage';
 import Button from 'components/ui/Button';
 import Input from 'components/ui/Input';
 import Select from 'components/ui/Select';
+import LocationInput from 'components/ui/LocationInput';
 
 const CreatePostModal = ({ isOpen, onClose, onCreatePost }) => {
   const [postType, setPostType] = useState('general');
@@ -58,7 +59,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const newPost = {
       id: Date.now(),
       type: postType,
@@ -104,7 +105,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      
+
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glassmorphic rounded-xl shadow-elevation-4">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
@@ -154,7 +155,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost }) => {
                 <Icon name="Briefcase" size={16} className="text-blue-500" />
                 <span>Job Details</span>
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="Job Title"
@@ -171,14 +172,14 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost }) => {
                   required
                 />
               </div>
-              
-              <Input
+
+              <LocationInput
                 label="Location"
                 value={jobDetails.location}
-                onChange={(e) => setJobDetails(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="e.g., San Francisco, CA (Remote)"
+                onChange={(val) => setJobDetails(prev => ({ ...prev, location: val }))}
+                placeholder="e.g., Bengaluru, Karnataka (Remote)"
               />
-              
+
               <Select
                 label="Required Skills"
                 options={skillOptions}
@@ -198,7 +199,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost }) => {
                 <Icon name="Calendar" size={16} className="text-green-500" />
                 <span>Event Details</span>
               </h3>
-              
+
               <Input
                 label="Event Title"
                 value={eventDetails.title}
@@ -206,7 +207,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost }) => {
                 placeholder="e.g., Alumni Networking Meetup"
                 required
               />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="Date & Time"
@@ -215,14 +216,14 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost }) => {
                   onChange={(e) => setEventDetails(prev => ({ ...prev, date: e.target.value }))}
                   required
                 />
-                <Input
+                <LocationInput
                   label="Location"
                   value={eventDetails.location}
-                  onChange={(e) => setEventDetails(prev => ({ ...prev, location: e.target.value }))}
-                  placeholder="e.g., Virtual / San Francisco"
+                  onChange={(val) => setEventDetails(prev => ({ ...prev, location: val }))}
+                  placeholder="e.g., Virtual / Bengaluru"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Event Description

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, JobSeekerProfile, RecruiterProfile, CompanyProfile
+from .models import User, JobSeekerProfile, RecruiterProfile, CompanyProfile, Location, Skill, JobRole, Industry, SalaryBand
 from django.contrib.auth.password_validation import validate_password
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -103,3 +103,33 @@ class JobSeekerOnboardingSerializer(JobSeekerProfileSerializer):
 class CompanyOnboardingSerializer(CompanyProfileSerializer):
     """Backward compatibility - redirect to CompanyProfileSerializer"""
     pass
+
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ('id', 'city', 'state', 'country', 'display_name', 'slug')
+
+
+class SkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = ('id', 'name', 'slug', 'category', 'popularity')
+
+
+class JobRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobRole
+        fields = ('id', 'title', 'normalized_title', 'slug', 'category', 'popularity', 'for_jobseekers', 'for_recruiters')
+
+
+class IndustrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Industry
+        fields = ('id', 'name', 'slug', 'category', 'popularity')
+
+
+class SalaryBandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalaryBand
+        fields = ('id', 'label', 'currency', 'min_amount', 'max_amount', 'popularity')

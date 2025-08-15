@@ -6,6 +6,24 @@ import ThemeSwitcher from './ThemeSwitcher';
 import { cn } from '../../utils/cn';
 import { getNavigationByRole } from '../../utils/roleNavigation';
 
+// Build an authenticated, cache-busted avatar URL
+const buildAvatarUrl = () => {
+  try {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return '';
+    const user = JSON.parse(userStr);
+    const raw = user?.profile_image_url || user?.avatar || '';
+    if (!raw) return '';
+    const token = localStorage.getItem('accessToken') || '';
+    const ver = localStorage.getItem('avatarVersion') || '';
+    let url = `${raw}${raw.includes('?') ? '&' : '?'}token=${token}`;
+    if (ver) url += `&t=${ver}`;
+    return url;
+  } catch {
+    return '';
+  }
+};
+
 // Utility to get user from localStorage
 function getStoredUser() {
   try {
@@ -27,8 +45,26 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
   const profileRef = useRef(null);
   const notificationsRef = useRef(null);
 
+  // Normalize role variants (e.g., 'jobseeker' -> 'job_seeker')
+  const normalizeRole = (role) => {
+    switch (role) {
+      case 'jobseeker':
+        return 'job_seeker';
+      case 'employer':
+      case 'company':
+      case 'recruiter':
+      case 'administrator':
+      case 'job_seeker':
+        return role;
+      default:
+        return role;
+    }
+  };
+  const effectiveRole = user ? normalizeRole(user.role) : undefined;
+
   // Get role-specific navigation
-  const navigation = user ? getNavigationByRole(user.role) : null;
+  const navigation = effectiveRole ? getNavigationByRole(effectiveRole) : null;
+  const [avatarUrl, setAvatarUrl] = useState(buildAvatarUrl());
 
   // Check if user has scrolled
   useEffect(() => {
@@ -72,13 +108,20 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
 
         if (isAuthenticated && hasToken && storedUser) {
           setUser(storedUser);
+          setAvatarUrl(buildAvatarUrl());
         } else {
           setUser(null);
+          setAvatarUrl('');
         }
       }
     };
+    const onAvatarUpdated = () => setAvatarUrl(buildAvatarUrl());
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    window.addEventListener('avatar-updated', onAvatarUpdated);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('avatar-updated', onAvatarUpdated);
+    };
   }, []);
 
   // Also update user state on mount and check authentication
@@ -89,8 +132,10 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
 
     if (isAuthenticated && hasToken && storedUser) {
       setUser(storedUser);
+      setAvatarUrl(buildAvatarUrl());
     } else {
       setUser(null);
+      setAvatarUrl('');
     }
   }, []);
 
@@ -98,6 +143,7 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
   const getRoleColor = (role) => {
     const colors = {
       'job_seeker': 'text-blue-600 dark:text-blue-400',
+      'jobseeker': 'text-blue-600 dark:text-blue-400',
       'company': 'text-green-600 dark:text-green-400',
       'recruiter': 'text-purple-600 dark:text-purple-400', // Separate role for recruiters
       'employer': 'text-purple-600 dark:text-purple-400', // Keep for backward compatibility
@@ -109,6 +155,7 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
   const getRoleLabel = (role) => {
     const labels = {
       'job_seeker': 'Job Seeker',
+      'jobseeker': 'Job Seeker',
       'company': 'Company',
       'recruiter': 'Recruiter', // Separate role for recruiters
       'employer': 'Employer', // Keep for backward compatibility
@@ -261,17 +308,24 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
                     aria-haspopup="true"
                     aria-expanded={isProfileOpen}
                   >
-                    <img
-                      className="h-8 w-8 rounded-full object-cover border-2 border-white shadow-sm"
-                      src={user.avatar || user.profile_image || 'https://i.pravatar.cc/150?img=11'}
-                      alt={user.name || user.first_name || user.email || 'User'}
-                    />
+                    {avatarUrl ? (
+                      <img
+                        className="h-8 w-8 rounded-full object-cover border-2 border-white shadow-sm"
+                        src={avatarUrl}
+                        alt={user.name || user.first_name || user.email || 'User'}
+                        onError={() => setAvatarUrl('')}
+                      />
+                    ) : (
+                      <span className="h-8 w-8 rounded-full border-2 border-white shadow-sm bg-muted flex items-center justify-center">
+                        <Icon name="User" size={16} className="text-muted-foreground" />
+                      </span>
+                    )}
                     <div className="hidden md:block text-left">
                       <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
                         {user.name || user.first_name || user.email}
                       </div>
-                      <div className={cn("text-xs", getRoleColor(user.role))}>
-                        {getRoleLabel(user.role)}
+                      <div className={cn("text-xs", getRoleColor(effectiveRole))}>
+                        {getRoleLabel(effectiveRole)}
                       </div>
                     </div>
                     <Icon name="ChevronDown" size={14} className="hidden md:block text-gray-400" />
@@ -284,8 +338,8 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
                             {user.name || user.first_name || user.email}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                          <p className={cn("text-xs font-medium", getRoleColor(user.role))}>
-                            {getRoleLabel(user.role)}
+                          <p className={cn("text-xs font-medium", getRoleColor(effectiveRole))}>
+                            {getRoleLabel(effectiveRole)}
                           </p>
                         </div>
                         <div className="py-1">
@@ -347,8 +401,8 @@ const RoleBasedNavbar = ({ toggleNavbar }) => {
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {user.name || user.first_name || user.email}
               </p>
-              <p className={cn("text-xs font-medium", getRoleColor(user.role))}>
-                {getRoleLabel(user.role)}
+              <p className={cn("text-xs font-medium", getRoleColor(effectiveRole))}>
+                {getRoleLabel(effectiveRole)}
               </p>
             </div>
 

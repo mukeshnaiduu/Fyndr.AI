@@ -82,15 +82,21 @@ class JobSeekerProfile(BaseProfile):
     # Career Preferences
     job_title = models.CharField(max_length=100, blank=True)
     job_types = models.JSONField(default=list, blank=True)  # ['full-time', 'part-time', 'contract']
-    work_arrangement = models.CharField(max_length=50, blank=True)  # 'remote', 'hybrid', 'onsite'
+    work_arrangement = models.CharField(max_length=50, blank=True)  # Legacy single value
+    # New: multiple work arrangements (e.g., ['remote', 'hybrid'])
+    work_arrangements = models.JSONField(default=list, blank=True)
     salary_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     salary_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     salary_currency = models.CharField(max_length=10, default='USD')
     preferred_locations = models.JSONField(default=list, blank=True)
+    # Multiple desired job titles/roles the candidate is targeting
+    preferred_roles = models.JSONField(default=list, blank=True)
     industries = models.JSONField(default=list, blank=True)
     company_size_preference = models.CharField(max_length=50, blank=True)
     benefits_preferences = models.JSONField(default=list, blank=True)
     availability_date = models.DateField(null=True, blank=True)
+    # Track progress through onboarding; default to 1 to satisfy NOT NULL
+    onboarding_step = models.IntegerField(default=1)
     
     # Additional Information
     bio = models.TextField(blank=True)
@@ -131,8 +137,16 @@ class RecruiterProfile(BaseProfile):
     # Professional Information
     job_title = models.CharField(max_length=100, blank=True)
     years_of_experience = models.IntegerField(null=True, blank=True)
+    # A list of recruiter specializations (e.g., Technical, Executive)
     specializations = models.JSONField(default=list, blank=True)
+    # Industries this recruiter focuses on
     industries = models.JSONField(default=list, blank=True)
+    # Primary industry focus
+    primary_industry = models.CharField(max_length=100, blank=True)
+    # Services offered by the recruiter (e.g., Sourcing, Screening)
+    services_offered = models.JSONField(default=list, blank=True)
+    # Geographic or functional recruiting areas
+    recruiting_areas = models.JSONField(default=list, blank=True)
     
     # Resume and Documents (stored as binary data in database)
     resume_data = models.BinaryField(blank=True, null=True)
@@ -150,6 +164,15 @@ class RecruiterProfile(BaseProfile):
     timezone = models.CharField(max_length=50, blank=True)
     skills = models.JSONField(default=list, blank=True)
     certifications = models.JSONField(default=list, blank=True)
+    # Preferences and availability
+    recruitment_type = models.CharField(max_length=50, blank=True)
+    remote_work = models.BooleanField(default=False)
+    position_types = models.JSONField(default=list, blank=True)
+    salary_currency = models.CharField(max_length=10, default='USD', blank=True)
+    salary_range_from = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    salary_range_to = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    communication_preferences = models.JSONField(default=dict, blank=True)
+    availability_start_date = models.DateField(null=True, blank=True)
     
     def __str__(self):
         return f"RecruiterProfile({self.first_name} {self.last_name})"
@@ -194,9 +217,20 @@ class CompanyProfile(BaseProfile):
     company_values = models.JSONField(default=list, blank=True)
     company_benefits = models.JSONField(default=list, blank=True)
     work_environment = models.CharField(max_length=50, blank=True)  # 'remote', 'hybrid', 'onsite'
+    # Team and Hiring
+    team_size = models.CharField(max_length=50, blank=True)
+    department = models.CharField(max_length=100, blank=True)
+    current_openings = models.IntegerField(null=True, blank=True)
+    role_title = models.CharField(max_length=100, blank=True)
+    hiring_focus = models.JSONField(default=list, blank=True)
     
     # Diversity, Equity & Inclusion
     dei_commitment = models.TextField(blank=True)
+    diversity_initiatives = models.JSONField(default=list, blank=True)
+    inclusive_practices = models.TextField(blank=True)
+    gender_diversity = models.CharField(max_length=50, blank=True)
+    cultural_diversity = models.CharField(max_length=50, blank=True)
+    leadership_diversity = models.CharField(max_length=50, blank=True)
     diversity_goals = models.JSONField(default=list, blank=True)
     inclusion_policies = models.JSONField(default=list, blank=True)
     
@@ -210,6 +244,29 @@ class CompanyProfile(BaseProfile):
     locations = models.JSONField(default=list, blank=True)
     tech_stack = models.JSONField(default=list, blank=True)
     certifications = models.JSONField(default=list, blank=True)
+    # Onboarding and settings
+    team_members = models.JSONField(default=list, blank=True)
+    invite_emails = models.JSONField(default=list, blank=True)
+    default_role = models.CharField(max_length=50, blank=True)
+    allow_invites = models.BooleanField(default=False)
+    require_approval = models.BooleanField(default=True)
+    activity_notifications = models.BooleanField(default=True)
+    compliance_requirements = models.JSONField(default=list, blank=True)
+    reporting_frequency = models.CharField(max_length=50, blank=True)
+    diversity_metrics = models.BooleanField(default=False)
+    anonymous_data = models.BooleanField(default=False)
+    bias_alerts = models.BooleanField(default=False)
+    selected_integrations = models.JSONField(default=list, blank=True)
+    hris_system = models.CharField(max_length=100, blank=True)
+    ats_system = models.CharField(max_length=100, blank=True)
+    selected_plan = models.CharField(max_length=50, blank=True)
+    billing_cycle = models.CharField(max_length=50, blank=True)
+    payment_method = models.CharField(max_length=50, blank=True)
+    billing_address = models.JSONField(default=dict, blank=True)
+    agree_to_terms = models.BooleanField(default=False)
+    marketing_emails = models.BooleanField(default=False)
+    sla_acknowledged = models.BooleanField(default=False)
+    final_confirmation = models.BooleanField(default=False)
     
     def __str__(self):
         return f"CompanyProfile({self.company_name})"
@@ -350,5 +407,122 @@ class OAuthToken(models.Model):
     def refresh_token(self, value: str):
         self.refresh_token_encrypted = encrypt_text(value) if value else None
 
+
+class Location(models.Model):
+    """Canonical location store for city/state/country used across the app."""
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, default='India')
+    display_name = models.CharField(max_length=255, db_index=True)
+    slug = models.SlugField(max_length=255, unique=True)
+    is_active = models.BooleanField(default=True)
+    popularity = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['city']),
+            models.Index(fields=['state']),
+            models.Index(fields=['country']),
+            models.Index(fields=['display_name']),
+        ]
+        unique_together = (
+            ('city', 'state', 'country'),
+        )
+
+    def __str__(self):
+        return self.display_name
+
     def is_expired(self) -> bool:
         return bool(self.expires_at and timezone.now() >= self.expires_at)
+
+
+class Skill(models.Model):
+    """Canonical skills dictionary used for suggestions and normalization."""
+    name = models.CharField(max_length=150, unique=True, db_index=True)
+    slug = models.SlugField(max_length=180, unique=True)
+    category = models.CharField(max_length=120, blank=True)
+    is_active = models.BooleanField(default=True)
+    popularity = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['category']),
+            models.Index(fields=['-popularity']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class JobRole(models.Model):
+    """Canonical job role/title dictionary for desired roles and matching."""
+    title = models.CharField(max_length=150, unique=True, db_index=True)
+    normalized_title = models.CharField(max_length=150, db_index=True)
+    slug = models.SlugField(max_length=180, unique=True)
+    category = models.CharField(max_length=120, blank=True)
+    # Audience flags to distinguish where the role is shown/used
+    for_jobseekers = models.BooleanField(default=True)
+    for_recruiters = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    popularity = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['title']),
+            models.Index(fields=['normalized_title']),
+            models.Index(fields=['category']),
+            models.Index(fields=['-popularity']),
+        ]
+
+    def __str__(self):
+        return self.title
+
+
+class Industry(models.Model):
+    """Canonical industry dictionary used for suggestions and normalization."""
+    name = models.CharField(max_length=150, unique=True, db_index=True)
+    slug = models.SlugField(max_length=180, unique=True)
+    category = models.CharField(max_length=120, blank=True)
+    is_active = models.BooleanField(default=True)
+    popularity = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['category']),
+            models.Index(fields=['-popularity']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class SalaryBand(models.Model):
+    """Reference table for expected salary ranges."""
+    label = models.CharField(max_length=150, unique=True, db_index=True)
+    currency = models.CharField(max_length=10, default='INR')
+    min_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    max_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+    popularity = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['label']),
+            models.Index(fields=['currency']),
+            models.Index(fields=['-popularity']),
+        ]
+
+    def __str__(self):
+        return f"{self.label} ({self.currency})"

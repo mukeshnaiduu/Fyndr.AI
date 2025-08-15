@@ -1,12 +1,84 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
+import { getApiUrl } from '../../../utils/api';
 
 const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
+  const [form, setForm] = useState({
+    company_name: '',
+    industry: '',
+    company_size: '',
+    website: '',
+    description: ''
+  });
+  const [logoUrl, setLogoUrl] = useState('');
+  const [logoError, setLogoError] = useState('');
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setForm({
+      company_name: profile?.company_name || '',
+      industry: profile?.industry || '',
+      company_size: profile?.company_size || '',
+      website: profile?.website || profile?.company_website || '',
+      description: profile?.description || profile?.company_description || ''
+    });
+    // Tokenize secured logo URL for direct <img> access
+    const token = localStorage.getItem('accessToken') || '';
+    const withToken = (url) => (url ? `${url}${url.includes('?') ? '&' : '?'}token=${token}` : '');
+    setLogoUrl(withToken(profile?.logo_url || ''));
+  }, [profile]);
+
   const handleSave = () => {
-    // Add save logic here if needed
+    onUpdate(form);
     setIsEditing(false);
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoError('');
+
+    if (file.size > 5 * 1024 * 1024) {
+      setLogoError('Logo must be under 5MB');
+      return;
+    }
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setLogoError('Allowed types: JPG, PNG, GIF, WEBP');
+      return;
+    }
+
+    try {
+      // Optimistic local preview
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const preview = evt.target?.result;
+        if (preview) setLogoUrl(preview);
+      };
+      reader.readAsDataURL(file);
+
+      const token = localStorage.getItem('accessToken');
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('type', 'logo');
+      const res = await fetch(getApiUrl('/auth/upload/'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) throw new Error(data?.error || 'Upload failed');
+      const urlToken = localStorage.getItem('accessToken') || '';
+      const finalUrl = data.url ? `${data.url}${data.url.includes('?') ? '&' : '?'}token=${urlToken}` : '';
+      if (finalUrl) {
+        setLogoUrl(finalUrl);
+      }
+      setLogoError('');
+    } catch (err) {
+      setLogoError('Logo upload failed. Try again.');
+    }
   };
 
   return (
@@ -27,9 +99,10 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Company Name
           </label>
           <Input
-            value={profile?.company_name || ''}
+            value={form.company_name}
             placeholder="Enter company name"
             readOnly={!isEditing}
+            onChange={(e) => setForm({ ...form, company_name: e.target.value })}
           />
         </div>
         <div>
@@ -37,9 +110,10 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Industry
           </label>
           <Input
-            value={profile?.industry || ''}
+            value={form.industry}
             placeholder="e.g., Technology, Healthcare"
             readOnly={!isEditing}
+            onChange={(e) => setForm({ ...form, industry: e.target.value })}
           />
         </div>
         <div>
@@ -47,9 +121,10 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Company Size
           </label>
           <Input
-            value={profile?.company_size || ''}
+            value={form.company_size}
             placeholder="e.g., 10-50 employees"
             readOnly={!isEditing}
+            onChange={(e) => setForm({ ...form, company_size: e.target.value })}
           />
         </div>
         <div>
@@ -57,9 +132,10 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Website
           </label>
           <Input
-            value={profile?.company_website || ''}
+            value={form.website}
             placeholder="https://yourcompany.com"
             readOnly={!isEditing}
+            onChange={(e) => setForm({ ...form, website: e.target.value })}
           />
         </div>
         <div className="md:col-span-2">
@@ -69,9 +145,10 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
           <textarea
             className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${!isEditing ? 'bg-gray-50 dark:bg-gray-700' : ''}`}
             rows="4"
-            value={profile?.company_description || ''}
+            value={form.description}
             placeholder="Brief description of your company"
             readOnly={!isEditing}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
         </div>
 
@@ -81,9 +158,9 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
             Company Logo
           </label>
           <div className="flex items-center space-x-4">
-            {profile?.logo ? (
+            {logoUrl ? (
               <img
-                src={profile.logo}
+                src={logoUrl}
                 alt="Company Logo"
                 className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200 dark:border-gray-600"
               />
@@ -93,11 +170,27 @@ const CompanyInfoTab = ({ profile, onUpdate, isEditing, setIsEditing }) => {
               </div>
             )}
             {isEditing && (
-              <button className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                Upload Logo
-              </button>
+              <>
+                <button
+                  className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                  type="button"
+                >
+                  Upload Logo
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+              </>
             )}
           </div>
+          {logoError && (
+            <p className="text-sm text-red-500 mt-2">{logoError}</p>
+          )}
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import Image from 'components/AppImage';
 import Button from 'components/ui/Button';
 import Input from 'components/ui/Input';
 import Select from 'components/ui/Select';
+import LocationInput from 'components/ui/LocationInput';
 
 const AlumniDirectory = ({ onProfileClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,7 +20,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
       name: 'Sarah Johnson',
       title: 'Senior Product Manager',
       company: 'Google',
-      location: 'Mountain View, CA',
+      location: 'Bengaluru, Karnataka',
       graduationYear: '2018',
       industry: 'Technology',
       avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
@@ -35,7 +36,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
       name: 'Michael Chen',
       title: 'Software Engineering Manager',
       company: 'Microsoft',
-      location: 'Seattle, WA',
+      location: 'Hyderabad, Telangana',
       graduationYear: '2016',
       industry: 'Technology',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
@@ -51,7 +52,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
       name: 'Emily Rodriguez',
       title: 'UX Design Lead',
       company: 'Airbnb',
-      location: 'San Francisco, CA',
+      location: 'Pune, Maharashtra',
       graduationYear: '2019',
       industry: 'Technology',
       avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
@@ -67,7 +68,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
       name: 'David Kim',
       title: 'Investment Banking Analyst',
       company: 'Goldman Sachs',
-      location: 'New York, NY',
+      location: 'Mumbai, Maharashtra',
       graduationYear: '2020',
       industry: 'Finance',
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
@@ -83,7 +84,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
       name: 'Lisa Wang',
       title: 'Marketing Director',
       company: 'Netflix',
-      location: 'Los Angeles, CA',
+      location: 'Chennai, Tamil Nadu',
       graduationYear: '2017',
       industry: 'Entertainment',
       avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
@@ -99,7 +100,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
       name: 'James Thompson',
       title: 'Data Scientist',
       company: 'Tesla',
-      location: 'Austin, TX',
+      location: 'Gurugram, Haryana',
       graduationYear: '2019',
       industry: 'Automotive',
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
@@ -122,15 +123,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
     { value: 'Tesla', label: 'Tesla' }
   ];
 
-  const locationOptions = [
-    { value: '', label: 'All Locations' },
-    { value: 'Mountain View, CA', label: 'Mountain View, CA' },
-    { value: 'Seattle, WA', label: 'Seattle, WA' },
-    { value: 'San Francisco, CA', label: 'San Francisco, CA' },
-    { value: 'New York, NY', label: 'New York, NY' },
-    { value: 'Los Angeles, CA', label: 'Los Angeles, CA' },
-    { value: 'Austin, TX', label: 'Austin, TX' }
-  ];
+  // Location options now come from the database via LocationInput suggestions
 
   const yearOptions = [
     { value: '', label: 'All Years' },
@@ -152,10 +145,11 @@ const AlumniDirectory = ({ onProfileClick }) => {
   const filteredAlumni = useMemo(() => {
     return alumniData.filter(alumni => {
       const matchesSearch = alumni.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          alumni.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          alumni.company.toLowerCase().includes(searchQuery.toLowerCase());
+        alumni.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        alumni.company.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCompany = !selectedCompany || alumni.company === selectedCompany;
-      const matchesLocation = !selectedLocation || alumni.location === selectedLocation;
+      const matchesLocation = !selectedLocation ||
+        alumni.location?.toLowerCase().includes(selectedLocation.toLowerCase());
       const matchesYear = !selectedYear || alumni.graduationYear === selectedYear;
       const matchesIndustry = !selectedIndustry || alumni.industry === selectedIndustry;
 
@@ -176,7 +170,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
           )}
         </div>
-        
+
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
             <h3 className="font-semibold text-foreground">{alumni.name}</h3>
@@ -186,7 +180,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
           </div>
           <p className="text-sm text-muted-foreground mb-1">{alumni.title}</p>
           <p className="text-sm text-muted-foreground mb-2">{alumni.company}</p>
-          
+
           <div className="flex items-center space-x-4 text-xs text-muted-foreground mb-3">
             <span className="flex items-center space-x-1">
               <Icon name="MapPin" size={12} />
@@ -197,9 +191,9 @@ const AlumniDirectory = ({ onProfileClick }) => {
               <span>Class of {alumni.graduationYear}</span>
             </span>
           </div>
-          
+
           <p className="text-sm text-foreground mb-3 line-clamp-2">{alumni.bio}</p>
-          
+
           <div className="flex flex-wrap gap-1 mb-4">
             {alumni.skills.slice(0, 3).map((skill, index) => (
               <span
@@ -210,13 +204,13 @@ const AlumniDirectory = ({ onProfileClick }) => {
               </span>
             ))}
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 text-xs text-muted-foreground">
               <span>{alumni.connections} connections</span>
               <span>{alumni.mutualConnections} mutual</span>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
@@ -248,7 +242,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
           )}
         </div>
-        
+
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <h3 className="font-medium text-foreground">{alumni.name}</h3>
@@ -258,7 +252,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
           </div>
           <p className="text-sm text-muted-foreground">{alumni.title} at {alumni.company}</p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <span className="text-xs text-muted-foreground">{alumni.mutualConnections} mutual</span>
           <Button
@@ -296,7 +290,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
             </Button>
           </div>
         </div>
-        
+
         <div className="space-y-4">
           <Input
             type="search"
@@ -305,7 +299,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full"
           />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Select
               placeholder="Company"
@@ -313,12 +307,15 @@ const AlumniDirectory = ({ onProfileClick }) => {
               value={selectedCompany}
               onChange={setSelectedCompany}
             />
-            <Select
-              placeholder="Location"
-              options={locationOptions}
-              value={selectedLocation}
-              onChange={setSelectedLocation}
-            />
+            <div>
+              <label className="sr-only">Location</label>
+              <LocationInput
+                label={null}
+                value={selectedLocation}
+                onChange={setSelectedLocation}
+                placeholder="e.g., Bengaluru, Karnataka"
+              />
+            </div>
             <Select
               placeholder="Graduation Year"
               options={yearOptions}
@@ -346,7 +343,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
             Export
           </Button>
         </div>
-        
+
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredAlumni.map(alumni => (
@@ -360,7 +357,7 @@ const AlumniDirectory = ({ onProfileClick }) => {
             ))}
           </div>
         )}
-        
+
         {filteredAlumni.length === 0 && (
           <div className="text-center py-12">
             <Icon name="Users" size={48} className="mx-auto text-muted-foreground mb-4" />

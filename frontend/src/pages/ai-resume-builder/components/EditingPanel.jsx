@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 import Input from 'components/ui/Input';
+import LocationInput from 'components/ui/LocationInput';
 import { Checkbox } from 'components/ui/Checkbox';
 
 const EditingPanel = ({ resumeData, onDataChange, onSectionReorder }) => {
@@ -74,7 +75,7 @@ const EditingPanel = ({ resumeData, onDataChange, onSectionReorder }) => {
           placeholder="e.g., Senior Software Engineer"
         />
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           label="Email"
@@ -91,12 +92,10 @@ const EditingPanel = ({ resumeData, onDataChange, onSectionReorder }) => {
         />
       </div>
 
-      <Input
+      <LocationInput
         label="Location"
-        type="text"
         value={resumeData.personal?.location || ''}
         onChange={(e) => handleInputChange('personal', 'location', e.target.value)}
-        placeholder="City, State"
       />
 
       <div>
@@ -357,11 +356,10 @@ const EditingPanel = ({ resumeData, onDataChange, onSectionReorder }) => {
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-card text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                activeSection === section.id
+              className={`flex items-center space-x-2 px-4 py-2 rounded-card text-sm font-medium whitespace-nowrap transition-all duration-200 ${activeSection === section.id
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-              }`}
+                }`}
             >
               <Icon name={section.icon} size={16} />
               <span>{section.label}</span>

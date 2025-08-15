@@ -11,7 +11,7 @@ const SalaryInsights = ({ salaryData, marketData, growthData }) => {
   ];
 
   const formatSalary = (value) => {
-    return `$${(value / 1000).toFixed(0)}k`;
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
   };
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -77,7 +77,7 @@ const SalaryInsights = ({ salaryData, marketData, growthData }) => {
               <span className="text-xs font-medium text-foreground">{formatSalary(salaryData.offered)}</span>
             </div>
             <div className="w-full bg-muted rounded-full h-2">
-              <div 
+              <div
                 className="bg-primary h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(salaryData.offered / salaryData.top10) * 100}%` }}
               />
@@ -89,7 +89,7 @@ const SalaryInsights = ({ salaryData, marketData, growthData }) => {
               <span className="text-xs font-medium text-foreground">{formatSalary(salaryData.market)}</span>
             </div>
             <div className="w-full bg-muted rounded-full h-2">
-              <div 
+              <div
                 className="bg-success h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(salaryData.market / salaryData.top10) * 100}%` }}
               />
@@ -104,11 +104,10 @@ const SalaryInsights = ({ salaryData, marketData, growthData }) => {
           <button
             key={tab.id}
             onClick={() => setActiveChart(tab.id)}
-            className={`flex items-center space-x-2 px-3 py-2 rounded text-sm font-medium transition-all duration-200 flex-1 justify-center ${
-              activeChart === tab.id
+            className={`flex items-center space-x-2 px-3 py-2 rounded text-sm font-medium transition-all duration-200 flex-1 justify-center ${activeChart === tab.id
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <Icon name={tab.icon} size={14} />
             <span>{tab.label}</span>
@@ -122,11 +121,11 @@ const SalaryInsights = ({ salaryData, marketData, growthData }) => {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={marketData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-              <XAxis 
-                dataKey="experience" 
+              <XAxis
+                dataKey="experience"
                 tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }}
               />
-              <YAxis 
+              <YAxis
                 tickFormatter={formatSalary}
                 tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }}
               />
@@ -140,19 +139,19 @@ const SalaryInsights = ({ salaryData, marketData, growthData }) => {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={growthData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-              <XAxis 
-                dataKey="year" 
+              <XAxis
+                dataKey="year"
                 tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }}
               />
-              <YAxis 
+              <YAxis
                 tickFormatter={formatSalary}
                 tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Line 
-                type="monotone" 
-                dataKey="salary" 
-                stroke="var(--color-primary)" 
+              <Line
+                type="monotone"
+                dataKey="salary"
+                stroke="var(--color-primary)"
                 strokeWidth={3}
                 dot={{ fill: 'var(--color-primary)', strokeWidth: 2, r: 4 }}
                 name="Average Salary"
@@ -169,8 +168,8 @@ const SalaryInsights = ({ salaryData, marketData, growthData }) => {
           <div>
             <h5 className="font-medium text-accent mb-1">Salary Insight</h5>
             <p className="text-sm text-muted-foreground">
-              This position offers {((salaryData.offered / salaryData.market - 1) * 100).toFixed(1)}% 
-              {salaryData.offered > salaryData.market ? ' above' : ' below'} market average. 
+              This position offers {((salaryData.offered / salaryData.market - 1) * 100).toFixed(1)}%
+              {salaryData.offered > salaryData.market ? ' above' : ' below'} market average.
               The salary range has grown by 12% over the past year in this location.
             </p>
           </div>

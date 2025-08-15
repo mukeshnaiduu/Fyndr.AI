@@ -54,7 +54,7 @@ const ContactSection = () => {
     {
       type: 'address',
       label: 'Visit Us',
-      value: '123 Innovation Drive, San Francisco, CA 94105',
+      value: '123 Innovation Drive, Bengaluru, Karnataka 560001',
       icon: 'MapPin',
       description: 'Our headquarters'
     }

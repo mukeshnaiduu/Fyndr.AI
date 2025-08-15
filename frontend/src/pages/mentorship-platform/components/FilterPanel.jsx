@@ -5,6 +5,7 @@ import Input from 'components/ui/Input';
 import { Checkbox } from 'components/ui/Checkbox';
 
 const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, onClearFilters, mentors }) => {
+  const toINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
   const [localFilters, setLocalFilters] = useState(filters);
 
   // Calculate dynamic max price from mentors
@@ -19,7 +20,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, onClearFilters
   }, [filters]);
 
   const industries = [
-    'Technology', 'Finance', 'Healthcare', 'Marketing', 'Design', 
+    'Technology', 'Finance', 'Healthcare', 'Marketing', 'Design',
     'Sales', 'Operations', 'Consulting', 'Education', 'Legal'
   ];
 
@@ -86,7 +87,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, onClearFilters
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden" onClick={onClose} />
       )}
-      
+
       {/* Filter Panel */}
       <div className={`
         fixed lg:relative top-0 right-0 h-full w-80 lg:w-full
@@ -215,7 +216,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, onClearFilters
                 />
               </div>
               <div className="text-xs text-muted-foreground">
-                ${localFilters.priceRange?.[0] ?? 0} - ${localFilters.priceRange?.[1] ?? maxMentorPrice} per hour
+                {toINR(localFilters.priceRange?.[0] ?? 0)} - {toINR(localFilters.priceRange?.[1] ?? maxMentorPrice)} per hour
               </div>
             </div>
           </div>

@@ -49,8 +49,8 @@ const ContentManagementSection = () => {
       company: 'TechCorp Inc.',
       status: 'active',
       applications: 45,
-      location: 'San Francisco, CA',
-      salary: '$120,000 - $150,000',
+      location: 'Bengaluru, Karnataka',
+      salary: '₹30,00,000 - ₹37,50,000',
       postedDate: '2024-07-01',
       expiryDate: '2024-08-01'
     },
@@ -61,7 +61,7 @@ const ContentManagementSection = () => {
       status: 'expired',
       applications: 23,
       location: 'Remote',
-      salary: '$90,000 - $120,000',
+      salary: '₹22,50,000 - ₹30,00,000',
       postedDate: '2024-06-15',
       expiryDate: '2024-07-15'
     },
@@ -71,8 +71,8 @@ const ContentManagementSection = () => {
       company: 'Innovation Labs',
       status: 'pending',
       applications: 0,
-      location: 'New York, NY',
-      salary: '$130,000 - $160,000',
+      location: 'Hyderabad, Telangana',
+      salary: '₹32,50,000 - ₹40,00,000',
       postedDate: '2024-07-09',
       expiryDate: '2024-08-09'
     }
@@ -109,13 +109,13 @@ const ContentManagementSection = () => {
 
   const handleContentAction = (id, action, type) => {
     console.log(`${action} ${type}:`, id);
-    
+
     if (type === 'course') {
-      setCourses(prev => prev.map(course => 
+      setCourses(prev => prev.map(course =>
         course.id === id ? { ...course, status: action } : course
       ));
     } else if (type === 'job') {
-      setJobListings(prev => prev.map(job => 
+      setJobListings(prev => prev.map(job =>
         job.id === id ? { ...job, status: action } : job
       ));
     }
@@ -124,7 +124,7 @@ const ContentManagementSection = () => {
   const renderCoursesTab = () => {
     const filteredCourses = courses.filter(course => {
       const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
+        course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = selectedStatus === 'all' || course.status === selectedStatus;
       return matchesSearch && matchesStatus;
     });
@@ -144,7 +144,7 @@ const ContentManagementSection = () => {
                 <p className="text-sm text-muted-foreground mb-3">
                   by {course.instructor} • {course.category}
                 </p>
-                
+
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Enrollments:</span>
@@ -202,7 +202,7 @@ const ContentManagementSection = () => {
   const renderJobsTab = () => {
     const filteredJobs = jobListings.filter(job => {
       const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           job.company.toLowerCase().includes(searchQuery.toLowerCase());
+        job.company.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = selectedStatus === 'all' || job.status === selectedStatus;
       return matchesSearch && matchesStatus;
     });
@@ -222,7 +222,7 @@ const ContentManagementSection = () => {
                 <p className="text-sm text-muted-foreground mb-3">
                   {job.company} • {job.location}
                 </p>
-                
+
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Applications:</span>
@@ -315,16 +315,14 @@ const ContentManagementSection = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'bg-primary/20 text-primary border border-primary/30' :'text-muted-foreground hover:text-foreground hover:bg-white/10'
-              }`}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+                ? 'bg-primary/20 text-primary border border-primary/30' : 'text-muted-foreground hover:text-foreground hover:bg-white/10'
+                }`}
             >
               <Icon name={tab.icon} size={16} />
               <span>{tab.label}</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs ${
-                activeTab === tab.id ? 'bg-primary/20 text-primary' : 'bg-white/10 text-muted-foreground'
-              }`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id ? 'bg-primary/20 text-primary' : 'bg-white/10 text-muted-foreground'
+                }`}>
                 {tab.count}
               </span>
             </button>

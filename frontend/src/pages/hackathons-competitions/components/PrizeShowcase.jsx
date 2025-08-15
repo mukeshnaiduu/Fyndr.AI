@@ -11,7 +11,7 @@ const PrizeShowcase = ({ hackathonId }) => {
       id: 1,
       position: 1,
       title: "Grand Prize Winner",
-      amount: "$10,000",
+      amount: "₹8,00,000",
       description: "Cash prize plus mentorship program with industry leaders",
       sponsor: {
         name: "TechCorp",
@@ -19,7 +19,7 @@ const PrizeShowcase = ({ hackathonId }) => {
         tier: "Platinum"
       },
       benefits: [
-        "Cash prize of $10,000",
+        "Cash prize of ₹8,00,000",
         "6-month mentorship program",
         "Job interview opportunity",
         "Featured on company blog",
@@ -32,7 +32,7 @@ const PrizeShowcase = ({ hackathonId }) => {
       id: 2,
       position: 2,
       title: "Runner-up Prize",
-      amount: "$5,000",
+      amount: "₹4,00,000",
       description: "Cash prize and internship opportunity",
       sponsor: {
         name: "InnovateLab",
@@ -40,7 +40,7 @@ const PrizeShowcase = ({ hackathonId }) => {
         tier: "Gold"
       },
       benefits: [
-        "Cash prize of $5,000",
+        "Cash prize of ₹4,00,000",
         "3-month internship offer",
         "Technical workshop access",
         "Networking opportunities"
@@ -52,7 +52,7 @@ const PrizeShowcase = ({ hackathonId }) => {
       id: 3,
       position: 3,
       title: "Third Place",
-      amount: "$2,500",
+      amount: "₹2,00,000",
       description: "Cash prize and development resources",
       sponsor: {
         name: "DevTools Inc",
@@ -60,7 +60,7 @@ const PrizeShowcase = ({ hackathonId }) => {
         tier: "Silver"
       },
       benefits: [
-        "Cash prize of $2,500",
+        "Cash prize of ₹2,00,000",
         "Free development tools license",
         "Code review session",
         "Certificate of achievement"
@@ -74,7 +74,7 @@ const PrizeShowcase = ({ hackathonId }) => {
     {
       id: 4,
       title: "Best Innovation Award",
-      amount: "$1,500",
+      amount: "₹1,20,000",
       description: "For the most innovative solution",
       sponsor: {
         name: "Innovation Hub",
@@ -86,7 +86,7 @@ const PrizeShowcase = ({ hackathonId }) => {
     {
       id: 5,
       title: "Best Design Award",
-      amount: "$1,000",
+      amount: "₹80,000",
       description: "For exceptional user experience design",
       sponsor: {
         name: "Design Studio",
@@ -98,7 +98,7 @@ const PrizeShowcase = ({ hackathonId }) => {
     {
       id: 6,
       title: "People\'s Choice Award",
-      amount: "$750",
+      amount: "₹60,000",
       description: "Voted by the community",
       sponsor: {
         name: "Community Fund",
@@ -123,7 +123,7 @@ const PrizeShowcase = ({ hackathonId }) => {
           { name: "Carol Davis", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150" }
         ]
       },
-      prize: "$15,000",
+      prize: "₹12,00,000",
       description: "Revolutionary AI assistant that helps doctors diagnose diseases faster and more accurately.",
       image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400"
     },
@@ -139,7 +139,7 @@ const PrizeShowcase = ({ hackathonId }) => {
           { name: "Emma Brown", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150" }
         ]
       },
-      prize: "$12,000",
+      prize: "₹10,00,000",
       description: "Secure and transparent voting system built on blockchain technology.",
       image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400"
     },
@@ -157,14 +157,19 @@ const PrizeShowcase = ({ hackathonId }) => {
           { name: "Ivy Wang", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150" }
         ]
       },
-      prize: "$8,000",
+      prize: "₹6,50,000",
       description: "IoT-based system for optimizing energy consumption in smart homes.",
       image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400"
     }
   ];
 
+  const parseINR = (str) => {
+    if (!str) return 0;
+    const num = parseInt(str.replace(/[^0-9]/g, ''));
+    return isNaN(num) ? 0 : num;
+  };
   const totalPrizePool = [...currentPrizes, ...specialPrizes]
-    .reduce((total, prize) => total + parseInt(prize.amount.replace(/[$,]/g, '')), 0);
+    .reduce((total, prize) => total + parseINR(prize.amount), 0);
 
   return (
     <div className="glassmorphic rounded-xl p-6">
@@ -176,7 +181,7 @@ const PrizeShowcase = ({ hackathonId }) => {
         </div>
         <div className="text-right">
           <p className="text-sm text-muted-foreground">Total Prize Pool</p>
-          <p className="text-2xl font-bold text-warning">${totalPrizePool.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-warning">₹{totalPrizePool.toLocaleString('en-IN')}</p>
         </div>
       </div>
 
@@ -184,18 +189,16 @@ const PrizeShowcase = ({ hackathonId }) => {
       <div className="flex items-center space-x-1 bg-white/5 rounded-lg p-1 mb-6">
         <button
           onClick={() => setActiveTab('current')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-spring ${
-            activeTab === 'current' ?'bg-primary text-primary-foreground' :'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-spring ${activeTab === 'current' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           <Icon name="Gift" size={16} />
           <span>Current Prizes</span>
         </button>
         <button
           onClick={() => setActiveTab('winners')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-spring ${
-            activeTab === 'winners' ?'bg-primary text-primary-foreground' :'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-spring ${activeTab === 'winners' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           <Icon name="Users" size={16} />
           <span>Previous Winners</span>

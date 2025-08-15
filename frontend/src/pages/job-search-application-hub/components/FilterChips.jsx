@@ -5,7 +5,7 @@ import Button from 'components/ui/Button';
 const FilterChips = ({ activeFilters, onRemoveFilter, onClearAll }) => {
   const getFilterLabel = (key, value) => {
     const labels = {
-      salary: `$${value}K+`,
+      salary: `₹${value}K+`,
       experience: `${value} years`,
       jobType: value,
       remote: 'Remote',
@@ -29,7 +29,7 @@ const FilterChips = ({ activeFilters, onRemoveFilter, onClearAll }) => {
     return icons[key] || 'Filter';
   };
 
-  const filterEntries = Object.entries(activeFilters).filter(([key, value]) => 
+  const filterEntries = Object.entries(activeFilters).filter(([key, value]) =>
     value !== null && value !== undefined && value !== ''
   );
 

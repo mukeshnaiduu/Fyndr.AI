@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Icon from 'components/AppIcon';
 import Input from 'components/ui/Input';
-import Select from 'components/ui/Select';
+// Select not used here; using LocationInput for DB-driven locations
+import LocationInput from 'components/ui/LocationInput';
 import Button from 'components/ui/Button';
 import Image from 'components/AppImage';
 import { getApiUrl } from 'utils/api';
@@ -30,20 +31,29 @@ const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
     }));
   }, [data.firstName, data.lastName, data.email]);
 
+  // When parent provides/updates a backend image URL, convert it to a tokenized, cache-busted URL for display
+  React.useEffect(() => {
+    const rawUrl = (data && (
+      (data.profileImageFile && data.profileImageFile.url) ||
+      data.profileImageUrl ||
+      data.profile_image_url ||
+      (typeof data.profile_image === 'string' ? data.profile_image : '')
+    )) || '';
+    if (!rawUrl) return;
+    const tokenForFiles = localStorage.getItem('accessToken') || '';
+    const base = `${rawUrl}${rawUrl.includes('?') ? '&' : '?'}token=${tokenForFiles}`;
+    const displayUrl = `${base}&t=${Date.now()}`;
+    setFormData(prev => ({
+      ...prev,
+      profileImage: displayUrl,
+      profileImageFile: prev.profileImageFile || { url: rawUrl },
+    }));
+  }, [data?.profileImageFile?.url, data?.profileImageUrl, data?.profile_image_url, data?.profile_image]);
+
   const [errors, setErrors] = useState({});
   const [isUploading, setIsUploading] = useState(false);
 
-  const locationOptions = [
-    { value: 'san-francisco', label: 'San Francisco, CA' },
-    { value: 'new-york', label: 'New York, NY' },
-    { value: 'seattle', label: 'Seattle, WA' },
-    { value: 'austin', label: 'Austin, TX' },
-    { value: 'chicago', label: 'Chicago, IL' },
-    { value: 'boston', label: 'Boston, MA' },
-    { value: 'los-angeles', label: 'Los Angeles, CA' },
-    { value: 'denver', label: 'Denver, CO' },
-    { value: 'remote', label: 'Remote' }
-  ];
+  // Locations sourced from DB via LocationInput
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -89,18 +99,40 @@ const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
 
       const uploadResult = await response.json();
 
-      // Set both the file URL and create a preview blob URL for immediate display
-      const previewUrl = URL.createObjectURL(file);
+      // Prefer the persisted DB-serve URL with a token for display,
+      // while keeping the raw URL (without token) for saving to backend later.
+      const tokenForFiles = localStorage.getItem('accessToken') || '';
+      const baseUrlWithToken = uploadResult.url
+        ? `${uploadResult.url}${uploadResult.url.includes('?') ? '&' : '?'}token=${tokenForFiles}`
+        : '';
+      // Add cache-busting param to force refresh after updates
+      const urlWithToken = baseUrlWithToken ? `${baseUrlWithToken}&t=${Date.now()}` : '';
       setFormData(prev => ({
         ...prev,
-        profileImage: previewUrl,
+        // Use tokenized URL so <img> can load it without Authorization header
+        profileImage: urlWithToken,
         profileImageFile: {
           name: uploadResult.filename,
-          url: uploadResult.url,
+          url: uploadResult.url, // keep bare URL (no token) for persistence
           size: uploadResult.size,
           uploadedAt: uploadResult.uploaded_at
         }
       }));
+      // Bump a version to invalidate caches and let navbar re-render
+      localStorage.setItem('avatarVersion', Date.now().toString());
+      // Update user.profile_image_url if present so navbar picks it up
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          userObj.profile_image_url = uploadResult.url;
+          localStorage.setItem('user', JSON.stringify(userObj));
+          // Notify listeners (RoleBasedNavbar) to refresh avatar
+          window.dispatchEvent(new Event('avatar-updated'));
+          // Also fire storage event for components listening to 'user' changes
+          window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(userObj) }));
+        }
+      } catch { }
       setIsUploading(false);
 
       if (errors.profileImage) {
@@ -260,15 +292,13 @@ const PersonalInfoStep = ({ data, onUpdate, onNext, onPrev }) => {
         required
       />
 
-      <Select
+      <LocationInput
         label="Current Location"
-        placeholder="Select your location"
-        options={locationOptions}
+        placeholder="e.g., Bengaluru, Karnataka"
         value={formData.location}
-        onChange={(value) => handleInputChange('location', value)}
+        onChange={(val) => handleInputChange('location', val)}
         error={errors.location}
         description="This helps us show you relevant local opportunities"
-        searchable
         required
       />
 

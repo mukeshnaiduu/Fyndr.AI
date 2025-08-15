@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import Icon from '../AppIcon';
 import Button from './Button';
 
-const SearchHeader = ({ 
-  onSearch = () => {}, 
-  onFilterChange = () => {},
+const SearchHeader = ({
+  onSearch = () => { },
+  onFilterChange = () => { },
   placeholder = "Search jobs, companies, skills...",
   showFilters = true,
   className = ''
@@ -38,13 +38,13 @@ const SearchHeader = ({
   const filterOptions = {
     jobType: ['Full-time', 'Part-time', 'Contract', 'Remote'],
     experience: ['Entry Level', '1-3 years', '3-5 years', '5+ years'],
-    salary: ['$50k-$75k', '$75k-$100k', '$100k-$150k', '$150k+']
+    salary: ['₹5L-₹10L', '₹10L-₹15L', '₹15L-₹25L', '₹25L+']
   };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        searchRef.current && 
+        searchRef.current &&
         !searchRef.current.contains(event.target) &&
         suggestionsRef.current &&
         !suggestionsRef.current.contains(event.target)
@@ -60,7 +60,7 @@ const SearchHeader = ({
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
-    
+
     if (value.length > 0) {
       const filtered = mockSuggestions.filter(item =>
         item.text.toLowerCase().includes(value.toLowerCase())
@@ -111,10 +111,10 @@ const SearchHeader = ({
         {/* Search Bar */}
         <div className="relative" ref={searchRef}>
           <form onSubmit={handleSearchSubmit} className="relative">
-            <Icon 
-              name="Search" 
-              size={20} 
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" 
+            <Icon
+              name="Search"
+              size={20}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground"
             />
             <input
               type="text"
@@ -149,7 +149,7 @@ const SearchHeader = ({
 
           {/* Search Suggestions */}
           {showSuggestions && suggestions.length > 0 && (
-            <div 
+            <div
               ref={suggestionsRef}
               className="absolute top-full left-0 right-0 mt-2 glass-card border border-glass-border rounded-card shadow-glass max-h-64 overflow-y-auto z-50"
             >
@@ -176,7 +176,7 @@ const SearchHeader = ({
         {activeFilterCount > 0 && (
           <div className="flex items-center space-x-2 mt-3 flex-wrap">
             <span className="text-sm text-muted-foreground">Filters:</span>
-            {Object.entries(activeFilters).map(([key, value]) => 
+            {Object.entries(activeFilters).map(([key, value]) =>
               value && (
                 <div
                   key={key}

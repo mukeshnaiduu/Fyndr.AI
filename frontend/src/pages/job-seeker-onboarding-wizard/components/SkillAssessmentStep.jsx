@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Icon from 'components/AppIcon';
 import Input from 'components/ui/Input';
 import Button from 'components/ui/Button';
+import { fetchSkills } from 'services/skillsService';
 
 const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
   const [selectedSkills, setSelectedSkills] = useState(data.skills || []);
@@ -11,34 +12,20 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef(null);
 
-  const skillCategories = {
-    'Programming Languages': [
-      'JavaScript', 'Python', 'Java', 'TypeScript', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Rust'
-    ],
-    'Frontend Development': [
-      'React', 'Vue.js', 'Angular', 'HTML5', 'CSS3', 'Sass', 'Tailwind CSS', 'Bootstrap', 'jQuery'
-    ],
-    'Backend Development': [
-      'Node.js', 'Express.js', 'Django', 'Flask', 'Spring Boot', 'Laravel', 'Ruby on Rails'
-    ],
-    'Database': [
-      'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 'Oracle', 'Cassandra'
-    ],
-    'Cloud & DevOps': [
-      'AWS', 'Azure', 'Google Cloud', 'Docker', 'Kubernetes', 'Jenkins', 'Git', 'CI/CD'
-    ],
-    'Design': [
-      'Figma', 'Adobe XD', 'Sketch', 'Photoshop', 'Illustrator', 'UI/UX Design', 'Prototyping'
-    ],
-    'Data Science': [
-      'Machine Learning', 'Data Analysis', 'TensorFlow', 'PyTorch', 'Pandas', 'NumPy', 'R'
-    ],
-    'Mobile Development': [
-      'React Native', 'Flutter', 'iOS Development', 'Android Development', 'Xamarin'
-    ]
-  };
+  // Popular skills from DB (top by popularity); used as quick-pick chips
+  // Shape: [{ name, category }]
+  const [popularSkills, setPopularSkills] = useState([]);
 
-  const allSkills = Object.values(skillCategories).flat();
+  useEffect(() => {
+    // Preload popular skills (no query) from DB; fallback is empty
+    (async () => {
+      try {
+        const results = await fetchSkills('');
+        // Take top N popular; keep name+category
+        setPopularSkills((results || []).slice(0, 18).map(s => ({ name: s.name, category: s.category })));
+      } catch { }
+    })();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -56,24 +43,38 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
     setSkillInput(value);
 
     if (value.length > 0) {
-      const filtered = allSkills.filter(skill =>
-        skill.toLowerCase().includes(value.toLowerCase()) &&
-        !selectedSkills.find(s => s.name === skill)
-      );
-      setSuggestions(filtered.slice(0, 8));
-      setShowSuggestions(true);
+      // Try DB-backed suggestions first; fallback to static list on error
+      (async () => {
+        try {
+          const results = await fetchSkills(value);
+          // Keep name+category; filter out already selected
+          const filtered = results
+            .filter(r => !selectedSkills.find(s => s.name === r.name))
+            .map(r => ({ name: r.name, category: r.category }));
+          setSuggestions(filtered.slice(0, 8));
+          setShowSuggestions(true);
+        } catch (e) {
+          // Fallback: show a filtered slice of popularSkills
+          const filtered = popularSkills.filter(item =>
+            item.name.toLowerCase().includes(value.toLowerCase()) &&
+            !selectedSkills.find(s => s.name === item.name)
+          );
+          setSuggestions(filtered.slice(0, 8));
+          setShowSuggestions(true);
+        }
+      })();
     } else {
       setShowSuggestions(false);
     }
   };
 
-  const addSkill = (skillName, proficiency = 'intermediate') => {
+  const addSkill = (skillName, proficiency = 'intermediate', category = 'Other') => {
     if (!selectedSkills.find(s => s.name === skillName)) {
       const newSkill = {
         id: Date.now(),
         name: skillName,
         proficiency,
-        category: getSkillCategory(skillName)
+        category
       };
       setSelectedSkills(prev => [...prev, newSkill]);
     }
@@ -81,14 +82,7 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
     setShowSuggestions(false);
   };
 
-  const getSkillCategory = (skillName) => {
-    for (const [category, skills] of Object.entries(skillCategories)) {
-      if (skills.includes(skillName)) {
-        return category;
-      }
-    }
-    return 'Other';
-  };
+  const getSkillCategory = () => 'Other';
 
   const removeSkill = (skillId) => {
     setSelectedSkills(prev => prev.filter(s => s.id !== skillId));
@@ -164,7 +158,7 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
             onKeyPress={handleKeyPress}
             description={`${selectedSkills.length} skills added`}
           />
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -185,18 +179,18 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
               exit={{ opacity: 0, y: -10 }}
               className="absolute top-full left-0 right-0 mt-2 glass-card border border-glass-border rounded-card shadow-glass max-h-64 overflow-y-auto z-50"
             >
-              {suggestions.map((skill, index) => (
+              {suggestions.map((item, index) => (
                 <button
                   key={index}
-                  onClick={() => addSkill(skill)}
+                  onClick={() => addSkill(item.name, 'intermediate', item.category || 'Other')}
                   className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted transition-colors first:rounded-t-card last:rounded-b-card"
                 >
                   <div className="flex items-center space-x-3">
                     <Icon name="Zap" size={16} className="text-accent" />
-                    <span className="font-medium">{skill}</span>
+                    <span className="font-medium">{item.name}</span>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {getSkillCategory(skill)}
+                    {item.category || 'Other'}
                   </span>
                 </button>
               ))}
@@ -212,7 +206,7 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
             <h3 className="text-lg font-semibold text-foreground">
               Your Skills ({selectedSkills.length})
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AnimatePresence>
                 {selectedSkills.map((skill) => (
@@ -228,7 +222,7 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
                         <h4 className="font-medium text-foreground">{skill.name}</h4>
                         <p className="text-xs text-muted-foreground">{skill.category}</p>
                       </div>
-                      
+
                       <Button
                         variant="ghost"
                         size="sm"
@@ -237,7 +231,7 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
                         className="text-muted-foreground hover:text-error"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <p className="text-xs text-muted-foreground">Proficiency Level</p>
                       <div className="flex space-x-1">
@@ -245,11 +239,10 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
                           <button
                             key={level}
                             onClick={() => updateSkillProficiency(skill.id, level)}
-                            className={`px-2 py-1 text-xs rounded transition-all duration-200 ${
-                              skill.proficiency === level
+                            className={`px-2 py-1 text-xs rounded transition-all duration-200 ${skill.proficiency === level
                                 ? `${getProficiencyColor(level)} bg-current/10 border border-current/20`
                                 : 'text-muted-foreground hover:text-foreground bg-muted/50'
-                            }`}
+                              }`}
                           >
                             {level.charAt(0).toUpperCase() + level.slice(1)}
                           </button>
@@ -264,36 +257,30 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
         )}
 
         {/* Popular Skills */}
-        {selectedSkills.length < 5 && (
+        {selectedSkills.length < 5 && popularSkills.length > 0 && (
           <div className="mt-8">
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Popular Skills
             </h3>
-            
+
             <div className="space-y-4">
-              {Object.entries(skillCategories).slice(0, 3).map(([category, skills]) => (
-                <div key={category}>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                    {category}
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {skills.slice(0, 6).map((skill) => (
-                      <button
-                        key={skill}
-                        onClick={() => addSkill(skill)}
-                        disabled={selectedSkills.find(s => s.name === skill)}
-                        className={`px-3 py-1.5 text-sm rounded-card border transition-all duration-200 ${
-                          selectedSkills.find(s => s.name === skill)
-                            ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                            : 'bg-background border-border hover:border-primary hover:text-primary hover:bg-primary/5'
+              <div>
+                <div className="flex flex-wrap gap-2">
+                  {popularSkills.map((item) => (
+                    <button
+                      key={item.name}
+                      onClick={() => addSkill(item.name, 'intermediate', item.category || 'Other')}
+                      disabled={selectedSkills.find(s => s.name === item.name)}
+                      className={`px-3 py-1.5 text-sm rounded-card border transition-all duration-200 ${selectedSkills.find(s => s.name === item.name)
+                          ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                          : 'bg-background border-border hover:border-primary hover:text-primary hover:bg-primary/5'
                         }`}
-                      >
-                        {skill}
-                      </button>
-                    ))}
-                  </div>
+                    >
+                      {item.name}
+                    </button>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         )}
@@ -319,7 +306,7 @@ const SkillAssessmentStep = ({ data, onUpdate, onNext, onPrev }) => {
         >
           Previous
         </Button>
-        
+
         <Button
           onClick={handleNext}
           disabled={selectedSkills.length === 0}

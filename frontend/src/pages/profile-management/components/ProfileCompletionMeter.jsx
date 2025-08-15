@@ -10,7 +10,9 @@ const ProfileCompletionMeter = ({ userProfile }) => {
   }, [userProfile]);
 
   const calculateCompletion = () => {
-    const items = [
+    const isJobSeeker = userProfile?.role === 'jobseeker' || userProfile?.role === 'job_seeker';
+    const isRecruiter = userProfile?.role === 'recruiter';
+    const baseItems = [
       {
         id: 'avatar',
         label: 'Profile Photo',
@@ -26,7 +28,7 @@ const ProfileCompletionMeter = ({ userProfile }) => {
       {
         id: 'bio',
         label: 'Bio/Description',
-        completed: !!(userProfile.bio && userProfile.bio.length > 50),
+        completed: !!(userProfile.bio && userProfile.bio.length > 0),
         weight: 10
       },
       {
@@ -36,15 +38,9 @@ const ProfileCompletionMeter = ({ userProfile }) => {
         weight: 10
       },
       {
-        id: 'professional',
-        label: 'Professional Details',
-        completed: !!(userProfile.jobTitle && userProfile.company),
-        weight: 20
-      },
-      {
         id: 'skills',
         label: 'Skills & Expertise',
-        completed: !!(userProfile.skills && userProfile.skills.length >= 3),
+        completed: !!(userProfile.skills && userProfile.skills.length >= 1),
         weight: 15
       },
       {
@@ -53,36 +49,38 @@ const ProfileCompletionMeter = ({ userProfile }) => {
         completed: !!userProfile.experience,
         weight: 10
       },
-      {
-        id: 'preferences',
-        label: 'Job Preferences',
-        completed: !!(userProfile.preferences && userProfile.preferences.jobPreferences),
-        weight: 10
-      }
     ];
 
-    // Add role-specific items
-    if (userProfile.role === 'jobseeker') {
-      items.push({
-        id: 'resume',
-        label: 'Resume Upload',
-        completed: !!userProfile.resume,
-        weight: 15
-      });
-      items.push({
-        id: 'portfolio',
-        label: 'Portfolio Link',
-        completed: !!userProfile.portfolio,
-        weight: 5
-      });
-    }
+    // Professional item is role-aware
+    const professionalItem = isJobSeeker
+      ? { id: 'professional', label: 'Desired Roles & Industry', completed: !!((userProfile.desiredRoles && userProfile.desiredRoles.length > 0) || userProfile.industry), weight: 20 }
+      : isRecruiter
+        ? { id: 'professional', label: 'Job Title', completed: !!userProfile.jobTitle, weight: 20 }
+        : { id: 'professional', label: 'Company Details', completed: !!(userProfile.company || userProfile.industry), weight: 20 };
+
+    const items = [
+      ...baseItems,
+      professionalItem,
+      // Optional preferences item only for job seekers
+      ...(isJobSeeker ? [{
+        id: 'preferences',
+        label: 'Career Preferences',
+        completed: !!((userProfile.desiredRoles && userProfile.desiredRoles.length > 0) || (userProfile.location) || (userProfile.industry)),
+        weight: 10,
+      }] : []),
+      // Job seeker document/link tasks
+      ...(isJobSeeker ? [
+        { id: 'resume', label: 'Resume Upload', completed: !!userProfile.resume || !!userProfile.resume_url, weight: 15 },
+        { id: 'salary', label: 'Expected Salary', completed: !!userProfile.salary || !!userProfile.salary_min || !!userProfile.salary_max, weight: 5 },
+      ] : []),
+    ];
 
     const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
     const completedWeight = items
       .filter(item => item.completed)
       .reduce((sum, item) => sum + item.weight, 0);
 
-    const percentage = Math.round((completedWeight / totalWeight) * 100);
+    const percentage = totalWeight > 0 ? Math.round((completedWeight / totalWeight) * 100) : 0;
 
     setCompletionItems(items);
     setCompletionPercentage(percentage);
@@ -167,16 +165,15 @@ const ProfileCompletionMeter = ({ userProfile }) => {
           <p className="text-sm text-muted-foreground mb-4">
             {getCompletionMessage()}
           </p>
-          
+
           {/* Progress Bar */}
           <div className="w-full bg-muted rounded-full h-2 mb-4">
             <div
-              className={`h-2 rounded-full spring-transition ${
-                completionPercentage >= 80 ? 'bg-success' :
+              className={`h-2 rounded-full spring-transition ${completionPercentage >= 80 ? 'bg-success' :
                 completionPercentage >= 60 ? 'bg-accent' :
-                completionPercentage >= 40 ? 'bg-warning' : 'bg-error'
-              }`}
-              style={{ 
+                  completionPercentage >= 40 ? 'bg-warning' : 'bg-error'
+                }`}
+              style={{
                 width: `${completionPercentage}%`,
                 transition: 'width 1s ease-in-out'
               }}
@@ -212,13 +209,12 @@ const ProfileCompletionMeter = ({ userProfile }) => {
           {completionItems.map((item) => (
             <div
               key={item.id}
-              className={`flex items-center space-x-2 text-xs p-2 rounded ${
-                item.completed ? 'text-success bg-success/5' : 'text-muted-foreground'
-              }`}
+              className={`flex items-center space-x-2 text-xs p-2 rounded ${item.completed ? 'text-success bg-success/5' : 'text-muted-foreground'
+                }`}
             >
-              <Icon 
-                name={item.completed ? "CheckCircle" : "Circle"} 
-                size={14} 
+              <Icon
+                name={item.completed ? 'CheckCircle' : 'Circle'}
+                size={14}
                 className={item.completed ? 'text-success' : 'text-muted-foreground'}
               />
               <span>{item.label}</span>

@@ -6,6 +6,7 @@ import Input from 'components/ui/Input';
 import Select from 'components/ui/Select';
 
 const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
+  const toINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [sessionType, setSessionType] = useState('consultation');
@@ -46,13 +47,13 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
     const basePrice = mentor.hourlyRate;
     const durationMultiplier = parseInt(duration) / 60;
     let sessionMultiplier = 1;
-    
+
     if (sessionType === 'mentorship') {
       sessionMultiplier = 0.85; // 15% discount
     } else if (sessionType === 'group') {
       sessionMultiplier = 0.6; // 40% discount
     }
-    
+
     return Math.round(basePrice * durationMultiplier * sessionMultiplier);
   };
 
@@ -122,17 +123,15 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
         <div className="flex items-center justify-center p-4 border-b border-white/10">
           {[1, 2, 3].map((stepNumber) => (
             <div key={stepNumber} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step >= stepNumber 
-                  ? 'bg-primary text-primary-foreground' 
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= stepNumber
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground'
-              }`}>
+                }`}>
                 {stepNumber}
               </div>
               {stepNumber < 3 && (
-                <div className={`w-16 h-0.5 mx-2 ${
-                  step > stepNumber ? 'bg-primary' : 'bg-muted'
-                }`} />
+                <div className={`w-16 h-0.5 mx-2 ${step > stepNumber ? 'bg-primary' : 'bg-muted'
+                  }`} />
               )}
             </div>
           ))}
@@ -144,7 +143,7 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-4">Session Details</h3>
-                
+
                 <div className="space-y-4">
                   <Select
                     label="Session Type"
@@ -153,7 +152,7 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
                     onChange={setSessionType}
                     required
                   />
-                  
+
                   <Select
                     label="Duration"
                     options={durationOptions}
@@ -161,11 +160,11 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
                     onChange={setDuration}
                     required
                   />
-                  
+
                   <div className="glassmorphic rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <span className="text-foreground">Session Price:</span>
-                      <span className="text-2xl font-bold text-primary">${calculatePrice()}</span>
+                      <span className="text-2xl font-bold text-primary">{toINR(calculatePrice())}</span>
                     </div>
                     {sessionType === 'mentorship' && (
                       <p className="text-sm text-green-500 mt-1">15% discount applied</p>
@@ -183,7 +182,7 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-4">Select Date & Time</h3>
-                
+
                 <div className="space-y-4">
                   <Select
                     label="Available Dates"
@@ -193,7 +192,7 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
                     placeholder="Choose a date"
                     required
                   />
-                  
+
                   {selectedDate && (
                     <Select
                       label="Available Times"
@@ -204,7 +203,7 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
                       required
                     />
                   )}
-                  
+
                   {selectedDate && selectedTime && (
                     <div className="glassmorphic rounded-lg p-4">
                       <div className="flex items-center space-x-2 text-foreground">
@@ -229,7 +228,7 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-4">Additional Information</h3>
-                
+
                 <div className="space-y-4">
                   <Input
                     label="Message to Mentor (Optional)"
@@ -239,11 +238,11 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
                     onChange={(e) => setMessage(e.target.value)}
                     description="Help your mentor prepare for the session"
                   />
-                  
+
                   {/* Booking Summary */}
                   <div className="glassmorphic rounded-lg p-4 space-y-3">
                     <h4 className="font-medium text-foreground">Booking Summary</h4>
-                    
+
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Session Type:</span>
@@ -264,7 +263,7 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
                       </div>
                       <div className="flex justify-between border-t border-white/10 pt-2">
                         <span className="font-medium text-foreground">Total Price:</span>
-                        <span className="font-bold text-primary text-lg">${calculatePrice()}</span>
+                        <span className="font-bold text-primary text-lg">{toINR(calculatePrice())}</span>
                       </div>
                     </div>
                   </div>
@@ -284,7 +283,7 @@ const BookingModal = ({ mentor, isOpen, onClose, onConfirmBooking }) => {
               </Button>
             )}
           </div>
-          
+
           <div className="flex items-center space-x-3">
             {step < 3 ? (
               <Button

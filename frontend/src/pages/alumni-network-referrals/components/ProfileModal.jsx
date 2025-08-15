@@ -26,7 +26,7 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
       title: 'Senior Product Manager',
       company: 'Google',
       duration: '2022 - Present',
-      location: 'Mountain View, CA',
+      location: 'Bengaluru, Karnataka',
       description: 'Leading product strategy for Google Search features, managing cross-functional teams of 15+ engineers and designers.'
     },
     {
@@ -34,7 +34,7 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
       title: 'Product Manager',
       company: 'Facebook',
       duration: '2020 - 2022',
-      location: 'Menlo Park, CA',
+      location: 'Hyderabad, Telangana',
       description: 'Managed Instagram Stories product, driving 25% increase in user engagement through innovative features.'
     },
     {
@@ -42,7 +42,7 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
       title: 'Associate Product Manager',
       company: 'Microsoft',
       duration: '2018 - 2020',
-      location: 'Seattle, WA',
+      location: 'Pune, Maharashtra',
       description: 'Worked on Office 365 suite, focusing on collaboration tools and user experience improvements.'
     }
   ];
@@ -92,13 +92,13 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      
+
       <div className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden glassmorphic rounded-xl shadow-elevation-4">
         {/* Header */}
         <div className="relative">
           {/* Cover Image */}
           <div className="h-32 bg-gradient-to-r from-primary to-accent"></div>
-          
+
           {/* Profile Info */}
           <div className="px-6 pb-6">
             <div className="flex items-end space-x-4 -mt-16">
@@ -112,7 +112,7 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
                   <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white dark:border-gray-800"></div>
                 )}
               </div>
-              
+
               <div className="flex-1 pt-16">
                 <div className="flex items-center justify-between">
                   <div>
@@ -136,7 +136,7 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
                       <span>{profile.connections} connections</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-3">
                     <Button variant="ghost" size="icon">
                       <Icon name="MessageCircle" size={20} />
@@ -177,10 +177,9 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 py-3 border-b-2 transition-spring ${
-                  activeTab === tab.id
-                    ? 'border-primary text-primary' :'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
+                className={`flex items-center space-x-2 py-3 border-b-2 transition-spring ${activeTab === tab.id
+                    ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
               >
                 <Icon name={tab.icon} size={16} />
                 <span className="font-medium">{tab.label}</span>
@@ -197,7 +196,7 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
                 <h3 className="font-semibold text-foreground mb-3">About</h3>
                 <p className="text-foreground leading-relaxed">{profile.bio}</p>
               </div>
-              
+
               <div>
                 <h3 className="font-semibold text-foreground mb-3">Skills</h3>
                 <div className="flex flex-wrap gap-2">
@@ -211,7 +210,7 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
                   ))}
                 </div>
               </div>
-              
+
               <div>
                 <h3 className="font-semibold text-foreground mb-3">Industry</h3>
                 <p className="text-foreground">{profile.industry}</p>
@@ -260,7 +259,7 @@ const ProfileModal = ({ isOpen, onClose, profile }) => {
                   ))}
                 </div>
               </div>
-              
+
               <div>
                 <Button variant="outline" className="w-full">
                   View All Connections

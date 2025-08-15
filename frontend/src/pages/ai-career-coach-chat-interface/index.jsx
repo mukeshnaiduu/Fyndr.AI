@@ -93,7 +93,7 @@ const AICareerCoachChatInterface = () => {
 
   const generateAIResponse = (userMessage) => {
     const lowerMessage = userMessage.toLowerCase();
-    
+
     if (lowerMessage.includes('resume') || lowerMessage.includes('cv')) {
       return {
         id: Date.now() + 1,
@@ -103,7 +103,7 @@ const AICareerCoachChatInterface = () => {
         isUser: false
       };
     }
-    
+
     if (lowerMessage.includes('job') || lowerMessage.includes('position')) {
       return {
         id: Date.now() + 1,
@@ -111,12 +111,12 @@ const AICareerCoachChatInterface = () => {
         content: `Based on your profile, I found some relevant opportunities for you:`,
         jobTitle: 'Senior Frontend Developer',
         company: 'TechCorp Solutions',
-        salary: '$85,000 - $110,000',
+        salary: '₹20,00,000 - ₹26,00,000',
         timestamp: new Date(),
         isUser: false
       };
     }
-    
+
     if (lowerMessage.includes('skill') || lowerMessage.includes('learn')) {
       return {
         id: Date.now() + 1,
@@ -132,7 +132,7 @@ const AICareerCoachChatInterface = () => {
         isUser: false
       };
     }
-    
+
     if (lowerMessage.includes('course') || lowerMessage.includes('training')) {
       return {
         id: Date.now() + 1,
@@ -145,7 +145,7 @@ const AICareerCoachChatInterface = () => {
         isUser: false
       };
     }
-    
+
     if (lowerMessage.includes('interview')) {
       return {
         id: Date.now() + 1,
@@ -155,7 +155,7 @@ const AICareerCoachChatInterface = () => {
         isUser: false
       };
     }
-    
+
     // Default response
     return {
       id: Date.now() + 1,
@@ -232,7 +232,7 @@ const AICareerCoachChatInterface = () => {
                 >
                   <Icon name="Menu" size={18} />
                 </Button>
-                
+
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                     <Icon name="Bot" size={16} color="white" />
@@ -291,7 +291,7 @@ const AICareerCoachChatInterface = () => {
                   )}
                 </div>
               ))}
-              
+
               {isTyping && (
                 <ChatMessage
                   message={{}}
@@ -300,7 +300,7 @@ const AICareerCoachChatInterface = () => {
                   isTyping={true}
                 />
               )}
-              
+
               <div ref={messagesEndRef} />
             </div>
 

@@ -14,8 +14,8 @@ const FilterChips = ({ activeFilters, onFilterChange, onClearAll }) => {
     {
       key: 'salary',
       label: 'Salary',
-      icon: 'DollarSign',
-      options: ['$50k-$75k', '$75k-$100k', '$100k-$150k', '$150k+']
+      icon: 'IndianRupee',
+      options: ['₹5L-₹10L', '₹10L-₹15L', '₹15L-₹25L', '₹25L+']
     },
     {
       key: 'experience',
@@ -36,7 +36,7 @@ const FilterChips = ({ activeFilters, onFilterChange, onClearAll }) => {
     const newValues = currentValues.includes(value)
       ? currentValues.filter(v => v !== value)
       : [...currentValues, value];
-    
+
     onFilterChange(filterKey, newValues);
   };
 
@@ -79,18 +79,17 @@ const FilterChips = ({ activeFilters, onFilterChange, onClearAll }) => {
               <div className="flex items-center space-x-1">
                 {filter.options.map((option) => {
                   const isActive = activeFilters[filter.key]?.includes(option);
-                  
+
                   return (
                     <motion.button
                       key={option}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleFilterToggle(filter.key, option)}
-                      className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                        isActive
+                      className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${isActive
                           ? 'bg-primary text-primary-foreground shadow-elevation-1'
                           : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-                      }`}
+                        }`}
                     >
                       <Icon name={filter.icon} size={12} />
                       <span>{option}</span>

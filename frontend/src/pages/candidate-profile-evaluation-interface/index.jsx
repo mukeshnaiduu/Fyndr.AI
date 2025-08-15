@@ -16,11 +16,11 @@ const CandidateProfileEvaluationInterface = () => {
     name: 'Sarah Johnson',
     email: 'sarah.johnson@email.com',
     phone: '+1 (555) 123-4567',
-    location: 'San Francisco, CA',
+    location: 'Bengaluru, Karnataka',
     avatar: 'https://images.unsplash.com/photo-1494790108755-2616b9c5e8b3?w=400&h=400&fit=crop&crop=face',
     status: 'interviewing',
     yearsOfExperience: 5,
-    expectedSalary: '$95,000 - $110,000',
+    expectedSalary: '₹24,00,000 - ₹28,00,000',
     matchScore: 87,
     rating: 4.2,
     reviewCount: 12,
@@ -220,8 +220,8 @@ const CandidateProfileEvaluationInterface = () => {
                           key={option.id}
                           onClick={() => setActiveView(option.id)}
                           className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeView === option.id
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'text-muted-foreground hover:text-foreground hover:bg-white/10'
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-white/10'
                             }`}
                         >
                           <Icon name={option.icon} size={16} />

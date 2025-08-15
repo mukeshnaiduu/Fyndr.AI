@@ -33,9 +33,15 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
     }
 
     // Career Preferences (25 points)
-    if (profileData.jobTitle) score += 5;
+    if (profileData.desiredRoles && profileData.desiredRoles.length > 0) score += 5;
     if (profileData.jobTypes && profileData.jobTypes.length > 0) score += 5;
-    if (profileData.workArrangement) score += 5;
+    // Prefer new multi-select array if available
+    if (Array.isArray(profileData.workArrangements) && profileData.workArrangements.length > 0) {
+      score += 5;
+    } else if (profileData.workArrangement) {
+      // Legacy single select still gives credit
+      score += 5;
+    }
     if (profileData.preferredLocations && profileData.preferredLocations.length > 0) score += 5;
     if (profileData.industries && profileData.industries.length > 0) score += 5;
 
@@ -59,8 +65,12 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
         resume: data.resume || {},
         skills: Array.isArray(data.skills) ? data.skills : [],
         job_title: data.jobTitle || '',
+        desired_roles: Array.isArray(data.desiredRoles) ? data.desiredRoles : [],
         job_types: Array.isArray(data.jobTypes) ? data.jobTypes : [],
+        // Keep legacy single field for backward compatibility
         work_arrangement: data.workArrangement || '',
+        // New multi-select array supported by backend
+        work_arrangements: Array.isArray(data.workArrangements) ? data.workArrangements : [],
         salary_min: data.salaryMin || '',
         salary_max: data.salaryMax || '',
         preferred_locations: Array.isArray(data.preferredLocations) ? data.preferredLocations : [],
@@ -118,10 +128,11 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
   };
 
   const formatSalaryRange = (min, max) => {
+    const toINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(parseInt(val));
     if (!min && !max) return 'Not specified';
-    if (!min) return `Up to $${parseInt(max).toLocaleString()}`;
-    if (!max) return `From $${parseInt(min).toLocaleString()}`;
-    return `$${parseInt(min).toLocaleString()} - $${parseInt(max).toLocaleString()}`;
+    if (!min) return `Up to ${toINR(max)}`;
+    if (!max) return `From ${toINR(min)}`;
+    return `${toINR(min)} - ${toINR(max)}`;
   };
 
   const getScoreColor = (score) => {
@@ -137,6 +148,25 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
     if (score >= 40) return 'Your profile needs more information for optimal matching.';
     return 'Please complete more sections to improve your job matches.';
   };
+
+  // Helpers for tokenized URLs (image/resume) with optional cache-busting
+  const withToken = (url, bust = false) => {
+    if (!url) return '';
+    const token = localStorage.getItem('accessToken') || '';
+    let out = `${url}${url.includes('?') ? '&' : '?'}token=${token}`;
+    if (bust) out += `&t=${Date.now()}`;
+    return out;
+  };
+
+  // Normalize image URL defensively in case caller didn't provide tokenized preview
+  const safeProfileImage = React.useMemo(() => {
+    if (!data?.profileImage) {
+      const raw = data?.profileImageFile?.url || '';
+      return raw ? withToken(raw, true) : '';
+    }
+    // If already tokenized, keep it; else attach token
+    return data.profileImage.includes('token=') ? data.profileImage : withToken(data.profileImage, true);
+  }, [data?.profileImage, data?.profileImageFile?.url]);
 
   return (
     <motion.div
@@ -211,9 +241,9 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center overflow-hidden">
-                {data.profileImage ? (
+                {safeProfileImage ? (
                   <Image
-                    src={data.profileImage}
+                    src={safeProfileImage}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
@@ -267,11 +297,32 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
           {data.resume ? (
             <div className="flex items-center space-x-3 p-3 bg-success/10 border border-success/20 rounded-card">
               <Icon name="FileCheck" size={20} className="text-success" />
-              <div>
-                <p className="font-medium text-foreground">{data.resume.name}</p>
+              {/* Text container needs to shrink properly so the actions stay visible */}
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-foreground truncate" title={data.resume.name}>{data.resume.name}</p>
                 <p className="text-sm text-muted-foreground">
                   Uploaded and analyzed by AI
                 </p>
+              </div>
+              <div className="ml-auto flex items-center space-x-2">
+                {data.resume.url && (
+                  <a
+                    href={withToken(data.resume.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    View
+                  </a>
+                )}
+                {data.resume.url && (
+                  <a
+                    href={`${withToken(data.resume.url)}&download=1`}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Download
+                  </a>
+                )}
               </div>
             </div>
           ) : (
@@ -329,11 +380,6 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
 
           <div className="space-y-3">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Job Title</p>
-              <p className="text-sm">{data.jobTitle || 'Not specified'}</p>
-            </div>
-
-            <div>
               <p className="text-sm font-medium text-muted-foreground">Job Types</p>
               <p className="text-sm">
                 {data.jobTypes?.length > 0 ? data.jobTypes.join(', ') : 'Not specified'}
@@ -342,7 +388,11 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
 
             <div>
               <p className="text-sm font-medium text-muted-foreground">Work Arrangement</p>
-              <p className="text-sm">{data.workArrangement || 'Not specified'}</p>
+              <p className="text-sm">
+                {Array.isArray(data.workArrangements) && data.workArrangements.length > 0
+                  ? data.workArrangements.join(', ')
+                  : (data.workArrangement || 'Not specified')}
+              </p>
             </div>
 
             <div>
@@ -354,6 +404,44 @@ const ProfileReviewStep = ({ data, onUpdate, onPrev }) => {
               <p className="text-sm font-medium text-muted-foreground">Preferred Locations</p>
               <p className="text-sm">
                 {data.preferredLocations?.length > 0 ? data.preferredLocations.join(', ') : 'Not specified'}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Desired Roles</p>
+              {Array.isArray(data.desiredRoles) && data.desiredRoles.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {data.desiredRoles.map((role) => (
+                    <span key={role} className="px-2.5 py-1.5 bg-accent/10 text-accent text-sm font-semibold rounded-full">
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm">Not specified</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Preferred Industries</p>
+              <p className="text-sm">
+                {Array.isArray(data.industries) && data.industries.length > 0
+                  ? data.industries.join(', ')
+                  : 'Not specified'}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Company Size Preference</p>
+              <p className="text-sm">{data.companySize || 'Not specified'}</p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Benefits</p>
+              <p className="text-sm">
+                {Array.isArray(data.benefits) && data.benefits.length > 0
+                  ? data.benefits.join(', ')
+                  : 'Not specified'}
               </p>
             </div>
           </div>

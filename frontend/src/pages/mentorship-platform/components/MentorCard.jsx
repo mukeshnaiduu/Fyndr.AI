@@ -4,6 +4,7 @@ import Image from 'components/AppImage';
 import Button from 'components/ui/Button';
 
 const MentorCard = ({ mentor, onViewProfile, onStartChat, onBookSession }) => {
+  const toINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
   const [isHovered, setIsHovered] = useState(false);
 
   const getAvailabilityColor = (status) => {
@@ -33,7 +34,7 @@ const MentorCard = ({ mentor, onViewProfile, onStartChat, onBookSession }) => {
   };
 
   return (
-    <div 
+    <div
       className="glassmorphic rounded-xl p-6 transition-spring hover:shadow-elevation-3 hover:scale-105 cursor-pointer relative overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -66,14 +67,14 @@ const MentorCard = ({ mentor, onViewProfile, onStartChat, onBookSession }) => {
           </div>
           {/* Price and status on mobile */}
           <div className="flex flex-col items-start mt-2 sm:hidden">
-            <p className="text-lg font-bold text-primary">${mentor.hourlyRate}/hr</p>
+            <p className="text-lg font-bold text-primary">{toINR(mentor.hourlyRate)}/hr</p>
             <p className="text-xs text-muted-foreground">{getAvailabilityText(mentor.availability)}</p>
           </div>
         </div>
 
         {/* Price and status on desktop */}
         <div className="hidden sm:flex flex-col items-end w-24 whitespace-nowrap">
-          <p className="text-lg font-bold text-primary">${mentor.hourlyRate}/hr</p>
+          <p className="text-lg font-bold text-primary">{toINR(mentor.hourlyRate)}/hr</p>
           <p className="text-xs text-muted-foreground">{getAvailabilityText(mentor.availability)}</p>
         </div>
       </div>

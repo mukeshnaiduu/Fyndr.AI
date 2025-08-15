@@ -1,10 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Icon from 'components/AppIcon';
 import Image from 'components/AppImage';
 import Input from 'components/ui/Input';
+import LocationInput from 'components/ui/LocationInput';
 import Button from 'components/ui/Button';
+import { getApiUrl } from 'utils/api';
+// Location suggestions are now provided via LocationInput component
 
-const PersonalInfoTab = ({ userProfile, onUpdateProfile }) => {
+const PersonalInfoTab = ({ userProfile, onUpdateProfile, onDraftChange }) => {
   const [formData, setFormData] = useState({
     firstName: userProfile.firstName || '',
     lastName: userProfile.lastName || '',
@@ -21,6 +24,7 @@ const PersonalInfoTab = ({ userProfile, onUpdateProfile }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [avatar, setAvatar] = useState(userProfile.avatar || '');
   const fileInputRef = useRef(null);
+  // Location suggestions handled by LocationInput
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -28,6 +32,10 @@ const PersonalInfoTab = ({ userProfile, onUpdateProfile }) => {
       ...prev,
       [name]: value
     }));
+    // bubble draft changes up for live checklist updates
+    if (onDraftChange) {
+      onDraftChange({ [name]: value });
+    }
 
     // Clear error when user starts typing
     if (errors[name]) {
@@ -74,29 +82,108 @@ const PersonalInfoTab = ({ userProfile, onUpdateProfile }) => {
     }
   };
 
-  const handleAvatarUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setErrors(prev => ({
-          ...prev,
-          avatar: 'File size must be less than 5MB'
-        }));
-        return;
-      }
+  // Dynamic location suggestions moved into LocationInput
 
-      setIsUploading(true);
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'File size must be less than 5MB'
+      }));
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Please upload a valid image file (JPG, PNG, GIF, WEBP)'
+      }));
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Show local preview immediately
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setAvatar(e.target.result);
-        setIsUploading(false);
-        setErrors(prev => ({
-          ...prev,
-          avatar: ''
-        }));
+      reader.onload = (evt) => {
+        const preview = evt.target?.result;
+        if (preview) {
+          setAvatar(preview);
+          if (onDraftChange) onDraftChange({ avatar: preview });
+        }
       };
       reader.readAsDataURL(file);
+
+      // Upload to backend
+      const token = localStorage.getItem('accessToken');
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('type', 'profile_image');
+      const res = await fetch(getApiUrl('/auth/upload/'), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: fd
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.error || 'Upload failed');
+      }
+      // Use served URL from backend so it persists and works across refreshes
+      if (data.url) {
+        const tokenVal = localStorage.getItem('accessToken') || '';
+        const urlWithToken = `${data.url}${data.url.includes('?') ? '&' : '?'}token=${tokenVal}`;
+        setAvatar(urlWithToken);
+        if (onDraftChange) onDraftChange({ avatar: urlWithToken, profile_image_url: urlWithToken });
+        // Update localStorage user and notify navbar/avatar listeners
+        try {
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            const userObj = JSON.parse(userStr);
+            // store the raw serve URL; Navbar will append token+bust
+            userObj.profile_image_url = data.url;
+            localStorage.setItem('user', JSON.stringify(userObj));
+            localStorage.setItem('avatarVersion', Date.now().toString());
+            window.dispatchEvent(new Event('avatar-updated'));
+            window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(userObj) }));
+          }
+        } catch { }
+      }
+      setErrors(prev => ({ ...prev, avatar: '' }));
+    } catch (err) {
+      setErrors(prev => ({ ...prev, avatar: 'Photo upload failed. Try again.' }));
+    } finally {
+      setIsUploading(false);
     }
+  };
+
+  const removeAvatar = async () => {
+    // Clear locally
+    setAvatar('');
+    if (onDraftChange) onDraftChange({ avatar: '', profile_image_url: '' });
+    // Persist removal to backend if supported
+    try {
+      const token = localStorage.getItem('accessToken');
+      await fetch(getApiUrl('/auth/profile/'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ profile: { profile_image_url: '' } }),
+      });
+    } catch { }
+    // Update localStorage user and notify navbar/avatar listeners
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const userObj = JSON.parse(userStr);
+        userObj.profile_image_url = '';
+        localStorage.setItem('user', JSON.stringify(userObj));
+        localStorage.setItem('avatarVersion', Date.now().toString());
+        window.dispatchEvent(new Event('avatar-updated'));
+        window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: JSON.stringify(userObj) }));
+      }
+    } catch { }
   };
 
   const copyToClipboard = (text, type) => {
@@ -166,7 +253,7 @@ const PersonalInfoTab = ({ userProfile, onUpdateProfile }) => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setAvatar('')}
+                onClick={removeAvatar}
                 iconName="Trash2"
                 iconPosition="left"
                 iconSize={16}
@@ -198,7 +285,7 @@ const PersonalInfoTab = ({ userProfile, onUpdateProfile }) => {
             <Icon name="User" size={20} className="mr-2" />
             Basic Information
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="First Name"
@@ -260,14 +347,13 @@ const PersonalInfoTab = ({ userProfile, onUpdateProfile }) => {
           </div>
 
           <div className="mt-4">
-            <Input
+            <LocationInput
               label="Location"
               name="location"
-              type="text"
               value={formData.location}
               onChange={handleInputChange}
               error={errors.location}
-              placeholder="City, State, Country"
+              placeholder="City, State (e.g., Bengaluru, Karnataka)"
               description="Your current location"
             />
           </div>
@@ -285,7 +371,7 @@ const PersonalInfoTab = ({ userProfile, onUpdateProfile }) => {
               placeholder="Tell us about yourself..."
               maxLength={500}
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className={`text-xs mt-1 ${formData.bio.length < 50 ? 'text-error' : 'text-success'}`}>
               {formData.bio.length}/500 characters
             </p>
           </div>
@@ -297,7 +383,7 @@ const PersonalInfoTab = ({ userProfile, onUpdateProfile }) => {
             <Icon name="Globe" size={20} className="mr-2" />
             Social Links
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Website"

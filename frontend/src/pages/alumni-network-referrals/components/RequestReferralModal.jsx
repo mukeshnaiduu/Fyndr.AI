@@ -3,6 +3,7 @@ import Icon from 'components/AppIcon';
 import Button from 'components/ui/Button';
 import Input from 'components/ui/Input';
 import Select from 'components/ui/Select';
+import LocationInput from 'components/ui/LocationInput';
 
 const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
   const [formData, setFormData] = useState({
@@ -65,7 +66,7 @@ const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const request = {
       id: Date.now(),
       ...formData,
@@ -86,11 +87,11 @@ const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
 
   const calculatePoints = (data) => {
     let points = 50; // Base points
-    
+
     if (data.experience === 'senior' || data.experience === 'lead') points += 25;
     if (data.skills.length > 5) points += 15;
     if (data.timeline === 'immediate') points += 10;
-    
+
     return points;
   };
 
@@ -113,7 +114,7 @@ const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      
+
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glassmorphic rounded-xl shadow-elevation-4">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
@@ -128,7 +129,7 @@ const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
           {/* Job Details */}
           <div className="space-y-4">
             <h3 className="font-medium text-foreground">Job Details</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Position Title"
@@ -145,13 +146,13 @@ const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
                 required
               />
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
+              <LocationInput
                 label="Location"
                 value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="e.g., San Francisco, CA"
+                onChange={(val) => handleInputChange('location', val)}
+                placeholder="e.g., Bengaluru, Karnataka"
               />
               <Input
                 label="Job URL (Optional)"
@@ -166,7 +167,7 @@ const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
           {/* Experience & Timeline */}
           <div className="space-y-4">
             <h3 className="font-medium text-foreground">Experience & Timeline</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
                 label="Experience Level"
@@ -190,7 +191,7 @@ const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
           {/* Skills */}
           <div className="space-y-4">
             <h3 className="font-medium text-foreground">Skills & Expertise</h3>
-            
+
             <Select
               label="Relevant Skills"
               description="Select skills that match the job requirements"
@@ -207,7 +208,7 @@ const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
           {/* Message */}
           <div className="space-y-4">
             <h3 className="font-medium text-foreground">Personal Message</h3>
-            
+
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Message to Referrer
@@ -229,7 +230,7 @@ const RequestReferralModal = ({ isOpen, onClose, onSubmitRequest }) => {
           {/* Resume Upload */}
           <div className="space-y-4">
             <h3 className="font-medium text-foreground">Resume</h3>
-            
+
             <div className="border-2 border-dashed border-white/20 rounded-lg p-6 text-center hover:border-primary/50 transition-spring">
               {formData.resume ? (
                 <div className="flex items-center justify-center space-x-3">

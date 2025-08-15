@@ -21,7 +21,7 @@ const AlumniNetworkReferrals = () => {
   useEffect(() => {
     const savedLanguage = localStorage.getItem('language') || 'en';
     setCurrentLanguage(savedLanguage);
-    
+
     // Initialize with mock posts
     const mockPosts = [
       {
@@ -29,12 +29,12 @@ const AlumniNetworkReferrals = () => {
         type: 'job',
         content: `Exciting opportunity at Google! We're looking for a Senior Frontend Developer to join our Search team. This role involves building user-facing features that impact billions of users worldwide.\n\nKey requirements:\n• 5+ years of React/JavaScript experience\n• Strong understanding of web performance\n• Experience with large-scale applications\n\nGreat benefits, competitive salary, and amazing team culture. Happy to provide referrals for qualified candidates!`,
         author: {
-          name: 'Sarah Johnson',title: 'Senior Product Manager',company: 'Google',avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+          name: 'Sarah Johnson', title: 'Senior Product Manager', company: 'Google', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
           isVerified: true,
           isOnline: true
         },
         jobDetails: {
-          title: 'Senior Frontend Developer',company: 'Google',location: 'Mountain View, CA',
+          title: 'Senior Frontend Developer', company: 'Google', location: 'Bengaluru, Karnataka',
           skills: ['React', 'JavaScript', 'TypeScript', 'Node.js']
         },
         timestamp: new Date(Date.now() - 3600000),
@@ -42,7 +42,7 @@ const AlumniNetworkReferrals = () => {
         comments: [
           {
             author: {
-              name: 'Michael Chen',avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face'
+              name: 'Michael Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face'
             },
             content: 'This sounds like an amazing opportunity! I have a friend who might be perfect for this role.',
             timestamp: new Date(Date.now() - 1800000)
@@ -52,7 +52,7 @@ const AlumniNetworkReferrals = () => {
       },
       {
         id: 2,
-        type: 'achievement',content: `Thrilled to announce that I've been promoted to Engineering Manager at Microsoft! 🎉\n\nThis journey has been incredible, and I couldn't have done it without the support of my amazing team and mentors. Special thanks to everyone who believed in me.\n\nFor anyone looking to transition into management, I'm happy to share my experience and provide guidance. The key is to focus on people development and creating psychological safety for your team.`,
+        type: 'achievement', content: `Thrilled to announce that I've been promoted to Engineering Manager at Microsoft! 🎉\n\nThis journey has been incredible, and I couldn't have done it without the support of my amazing team and mentors. Special thanks to everyone who believed in me.\n\nFor anyone looking to transition into management, I'm happy to share my experience and provide guidance. The key is to focus on people development and creating psychological safety for your team.`,
         image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop',
         author: {
           name: 'Michael Chen',
@@ -89,19 +89,19 @@ const AlumniNetworkReferrals = () => {
         type: 'event',
         content: `Join us for the Bay Area Alumni Networking Meetup! 🌟\n\nWe're bringing together alumni from various companies for an evening of networking, knowledge sharing, and career discussions.\n\nWhat to expect:\n• Panel discussion on career growth\n• Networking sessions by industry\n• Startup pitch presentations\n• Food and drinks\n\nGreat opportunity to expand your network and learn from fellow alumni!`,
         author: {
-          name: 'Emily Rodriguez',title: 'UX Design Lead',company: 'Airbnb',avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+          name: 'Emily Rodriguez', title: 'UX Design Lead', company: 'Airbnb', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
           isVerified: false,
           isOnline: true
         },
         eventDetails: {
-          title: 'Bay Area Alumni Networking Meetup',date: '2025-01-15 18:00',location: 'San Francisco, CA'
+          title: 'Bengaluru Alumni Networking Meetup', date: '2025-01-15 18:00', location: 'Bengaluru, Karnataka'
         },
         timestamp: new Date(Date.now() - 10800000),
         likes: 89,
         comments: [
           {
             author: {
-              name: 'David Kim',avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face'
+              name: 'David Kim', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face'
             },
             content: 'Count me in! This sounds like a fantastic networking opportunity.',
             timestamp: new Date(Date.now() - 9000000)
@@ -110,7 +110,7 @@ const AlumniNetworkReferrals = () => {
         isLiked: false
       }
     ];
-    
+
     setPosts(mockPosts);
   }, []);
 
@@ -125,8 +125,8 @@ const AlumniNetworkReferrals = () => {
   };
 
   const handleLike = (postId, isLiked) => {
-    setPosts(prev => prev.map(post => 
-      post.id === postId 
+    setPosts(prev => prev.map(post =>
+      post.id === postId
         ? { ...post, isLiked, likes: isLiked ? post.likes + 1 : post.likes - 1 }
         : post
     ));
@@ -142,8 +142,8 @@ const AlumniNetworkReferrals = () => {
       timestamp: new Date()
     };
 
-    setPosts(prev => prev.map(post => 
-      post.id === postId 
+    setPosts(prev => prev.map(post =>
+      post.id === postId
         ? { ...post, comments: [...(post.comments || []), newComment] }
         : post
     ));
@@ -226,19 +226,17 @@ const AlumniNetworkReferrals = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-lg font-medium transition-spring ${
-                  activeTab === tab.id
+                className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-lg font-medium transition-spring ${activeTab === tab.id
                     ? 'bg-primary text-primary-foreground shadow-elevation-2'
                     : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
-                }`}
+                  }`}
               >
                 <Icon name={tab.icon} size={20} />
                 <span>{tab.label}</span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  activeTab === tab.id
+                <span className={`px-2 py-1 rounded-full text-xs ${activeTab === tab.id
                     ? 'bg-white/20 text-primary-foreground'
                     : 'bg-muted text-muted-foreground'
-                }`}>
+                  }`}>
                   {tab.count}
                 </span>
               </button>

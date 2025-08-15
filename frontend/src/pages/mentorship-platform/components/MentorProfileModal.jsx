@@ -4,6 +4,7 @@ import Image from 'components/AppImage';
 import Button from 'components/ui/Button';
 
 const MentorProfileModal = ({ mentor, isOpen, onClose, onBookSession, onStartChat }) => {
+  const toINR = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedSessionType, setSelectedSessionType] = useState('consultation');
 
@@ -80,10 +81,10 @@ const MentorProfileModal = ({ mentor, isOpen, onClose, onBookSession, onStartCha
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -135,10 +136,9 @@ const MentorProfileModal = ({ mentor, isOpen, onClose, onBookSession, onStartCha
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium transition-spring whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'text-primary border-b-2 border-primary bg-primary/5' :'text-muted-foreground hover:text-foreground hover:bg-white/5'
-              }`}
+              className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium transition-spring whitespace-nowrap ${activeTab === tab.id
+                  ? 'text-primary border-b-2 border-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                }`}
             >
               <Icon name={tab.icon} size={16} />
               <span>{tab.label}</span>
@@ -244,9 +244,8 @@ const MentorProfileModal = ({ mentor, isOpen, onClose, onBookSession, onStartCha
               {sessionTypes.map((session) => (
                 <div
                   key={session.id}
-                  className={`glassmorphic rounded-lg p-4 cursor-pointer transition-spring ${
-                    selectedSessionType === session.id ? 'border-2 border-primary' : 'border border-white/20'
-                  }`}
+                  className={`glassmorphic rounded-lg p-4 cursor-pointer transition-spring ${selectedSessionType === session.id ? 'border-2 border-primary' : 'border border-white/20'
+                    }`}
                   onClick={() => setSelectedSessionType(session.id)}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -255,7 +254,7 @@ const MentorProfileModal = ({ mentor, isOpen, onClose, onBookSession, onStartCha
                       <p className="text-sm text-muted-foreground">{session.duration}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-primary">${session.price}</div>
+                      <div className="text-lg font-bold text-primary">{toINR(Math.round(session.price))}</div>
                       {session.id === 'mentorship' && (
                         <div className="text-xs text-green-500">15% discount</div>
                       )}

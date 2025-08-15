@@ -79,7 +79,7 @@ const JobDetailView = () => {
       min: fetchedJob.salary?.min || 0,
       max: fetchedJob.salary?.max || 0,
       type: 'annual',
-      currency: 'USD',
+      currency: 'INR',
       equity: true,
       bonusEligible: true
     }
@@ -120,7 +120,7 @@ const JobDetailView = () => {
     founded: jobData.company?.founded || "2015",
     description: jobData.company?.description || `${jobData.company?.name || 'This company'} is a leading technology company specializing in innovative web applications and digital solutions. We're passionate about creating products that make a difference in people's lives and are committed to fostering a culture of innovation, collaboration, and continuous learning.`,
     fundingStage: "Series C",
-    revenue: "$50M+",
+    revenue: "₹400Cr+",
     growth: "+25%",
     rating: "4.2",
     workLifeBalance: 4.1,
@@ -148,17 +148,18 @@ const JobDetailView = () => {
 
   // Enhanced salary data based on real job data
   const salaryData = {
-    offered: jobData?.salaryDetails?.max || jobData?.salary?.max || 140000,
-    market: (jobData?.salaryDetails?.min || jobData?.salary?.min || 120000) + 15000,
-    top10: (jobData?.salaryDetails?.max || jobData?.salary?.max || 160000) + 20000
+    // Keep numbers as annual INR values (e.g., 2,400,000 for 24 LPA)
+    offered: jobData?.salaryDetails?.max || jobData?.salary?.max || 2400000,
+    market: (jobData?.salaryDetails?.min || jobData?.salary?.min || 1800000) + 200000,
+    top10: (jobData?.salaryDetails?.max || jobData?.salary?.max || 3000000) + 300000
   };
 
   const marketData = [
-    { experience: "0-2 years", min: 80000, avg: 95000, max: 110000 },
-    { experience: "3-5 years", min: 110000, avg: 135000, max: 160000 },
-    { experience: "5-8 years", min: 140000, avg: 165000, max: 190000 },
-    { experience: "8+ years", min: 170000, avg: 200000, max: 250000 }
-  ];
+    { experience: "0-2 years", min: 400000, avg: 600000, max: 900000 },
+    { experience: "3-5 years", min: 800000, avg: 1200000, max: 1800000 },
+    { experience: "5-8 years", min: 1500000, avg: 2200000, max: 3000000 },
+    { experience: "8+ years", min: 2500000, avg: 3500000, max: 5000000 }
+  ]
 
   const growthData = [
     { year: "2020", salary: 125000 },

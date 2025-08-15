@@ -51,7 +51,7 @@ const JobApplications = () => {
       appliedDate: '2024-01-15T10:30:00Z',
       lastUpdate: '2024-01-15T10:30:00Z',
       applicationMethod: 'platform',
-      jobLocation: 'San Francisco, CA',
+      jobLocation: 'Bengaluru, Karnataka',
       jobType: 'Full-time',
       salary: { min: 120000, max: 150000 },
       description: 'We are looking for an experienced Senior Software Engineer to join our dynamic team. You will be responsible for designing, developing, and maintaining scalable web applications using modern technologies including React, Node.js, and cloud platforms.',
@@ -135,7 +135,7 @@ const JobApplications = () => {
       appliedDate: '2024-01-08T16:45:00Z',
       lastUpdate: '2024-01-16T11:30:00Z',
       applicationMethod: 'platform',
-      jobLocation: 'New York, NY',
+      jobLocation: 'Hyderabad, Telangana',
       jobType: 'Full-time',
       salary: { min: 100000, max: 130000 },
       description: 'We\'re seeking a talented Full Stack Developer to join our innovation team. You\'ll work on both frontend and backend development for our enterprise software solutions, collaborating with cross-functional teams to deliver high-quality products.',
@@ -177,7 +177,7 @@ const JobApplications = () => {
       appliedDate: '2024-01-05T09:00:00Z',
       lastUpdate: '2024-01-10T17:20:00Z',
       applicationMethod: 'external',
-      jobLocation: 'Los Angeles, CA',
+      jobLocation: 'Pune, Maharashtra',
       jobType: 'Contract',
       salary: { min: 80, max: 120, type: 'hourly' },
       description: 'Contract opportunity for an experienced React Developer to work on exciting client projects. You\'ll be building responsive web applications and working closely with our design team to create pixel-perfect implementations.',
@@ -243,7 +243,7 @@ const JobApplications = () => {
     try {
       const res = await apiRequest('/auth/oauth/google/init/', 'GET');
       if (res && res.authorize_url) {
-        try { localStorage.setItem('postGoogleConnectNext', '/job-applications'); } catch {}
+        try { localStorage.setItem('postGoogleConnectNext', '/job-applications'); } catch { }
         window.location.href = res.authorize_url;
       }
     } catch (e) {
@@ -283,13 +283,13 @@ const JobApplications = () => {
         appliedDate: a.created_at || a.applied_at || a.appliedDate,
         lastUpdate: a.updated_at || a.lastUpdate,
         applicationMethod: a.application_method || a.applicationMethod,
-  jobUrl: a.application_url || a.job?.url || a.job_url,
+        jobUrl: a.application_url || a.job?.url || a.job_url,
         companyLogo: a.job?.company_logo || a.company_logo,
         notes: a.notes,
-  confirmationNumber: a.confirmation_number || a.external_application_id || null,
-  is_verified: a.is_verified || false,
-  verified_source: a.verified_source || null,
-  automation_log: a.automation_log || [],
+        confirmationNumber: a.confirmation_number || a.external_application_id || null,
+        is_verified: a.is_verified || false,
+        verified_source: a.verified_source || null,
+        automation_log: a.automation_log || [],
       }));
       setApplications(mapped);
       setFilteredApplications(prev => prev.length ? prev : mapped);
@@ -375,8 +375,8 @@ const JobApplications = () => {
 
   const handleWithdrawApplication = async (applicationId) => {
     try {
-    await updateApplicationStatus(applicationId, 'withdrawn');
-    await fetchApplications(1, 50);
+      await updateApplicationStatus(applicationId, 'withdrawn');
+      await fetchApplications(1, 50);
     } catch (err) {
       console.error('Failed to withdraw application:', err);
     }
@@ -384,8 +384,8 @@ const JobApplications = () => {
 
   const handleDeleteApplication = async (applicationId) => {
     try {
-    // If delete API exists, call it; otherwise just filter locally
-    setApplications(prev => prev.filter(app => app.id !== applicationId));
+      // If delete API exists, call it; otherwise just filter locally
+      setApplications(prev => prev.filter(app => app.id !== applicationId));
     } catch (err) {
       console.error('Failed to delete application:', err);
     }
@@ -483,8 +483,8 @@ const JobApplications = () => {
                     <button
                       onClick={handleRealTimeModeToggle}
                       className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${realTimeMode
-                          ? 'bg-green-500 text-white hover:bg-green-600'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-green-500 text-white hover:bg-green-600'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                     >
                       {realTimeMode ? '⚡ Live Tracking' : '🔄 Enable Live Tracking'}
