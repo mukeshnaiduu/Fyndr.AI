@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,6 +11,7 @@ import BulkActions from './components/BulkActions';
 import NotificationStats from './components/NotificationStats';
 import QuickFilters from './components/QuickFilters';
 import EmptyState from './components/EmptyState';
+import { apiRequest } from 'utils/api';
 
 const NotificationsCenter = () => {
   const [notifications, setNotifications] = useState([]);
@@ -32,113 +33,58 @@ const NotificationsCenter = () => {
 
   const navigate = useNavigate();
 
-  // Mock notifications data
-  const mockNotifications = [
-    {
-      id: 1,
-      sender: "Sarah Johnson",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b9e0e4e4?w=150",
-      title: "Interview Scheduled",
-      message: "Your technical interview for Senior React Developer position has been scheduled for tomorrow at 2:00 PM. Please join the video call 5 minutes early.",
-      type: "interview",
-      priority: "high",
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      read: false,
-      archived: false,
-      tags: ["urgent", "technical-interview"]
-    },
-    {
-      id: 2,
-      sender: "TechCorp HR",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
-      title: "Application Status Update",
-      message: "Great news! Your application for the Frontend Developer role has moved to the next stage. We\'ll be in touch soon with next steps.",
-      type: "application",
-      priority: "medium",
-      timestamp: new Date(Date.now() - 30 * 60 * 1000),
-      read: false,
-      archived: false,
-      tags: ["application", "frontend"]
-    },
-    {
-      id: 3,
-      sender: "Alex Chen",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-      title: "New Message",
-      message: "Hi! I reviewed your portfolio and I\'m impressed with your React projects. Would you be interested in discussing a potential opportunity?",
-      type: "message",
-      priority: "medium",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      read: true,
-      archived: false,
-      tags: ["portfolio", "opportunity"]
-    },
-    {
-      id: 4,
-      sender: "Fyndr.AI System",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-      title: "Profile Optimization Tip",
-      message: "Your profile is 85% complete! Add 2 more skills and a professional summary to increase your visibility to recruiters by 40%.",
-      type: "system",
-      priority: "low",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      read: true,
-      archived: false,
-      tags: ["profile", "optimization"]
-    },
-    {
-      id: 5,
-      sender: "Emma Wilson",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
-      title: "Interview Reminder",
-      message: "This is a friendly reminder about your interview tomorrow at 2:00 PM with TechCorp. Don\'t forget to test your camera and microphone beforehand.",
-      type: "reminder",
-      priority: "high",
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      read: false,
-      archived: false,
-      tags: ["reminder", "interview-prep"]
-    },
-    {
-      id: 6,
-      sender: "StartupXYZ",
-      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150",
-      title: "Job Match Found",
-      message: "We found a perfect match for your skills! Full-Stack Developer position at StartupXYZ offers remote work and competitive salary.",
-      type: "application",
-      priority: "medium",
-      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
-      read: true,
-      archived: false,
-      tags: ["job-match", "remote", "full-stack"]
-    },
-    {
-      id: 7,
-      sender: "Michael Rodriguez",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
-      title: "Connection Request",
-      message: "I\'d like to connect with you on Fyndr.AI. I\'m a Senior Developer at Google and I think we could have some great conversations about React development.",
-      type: "message",
-      priority: "low",
-      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
-      read: false,
-      archived: false,
-      tags: ["connection", "networking"]
-    },
-    {
-      id: 8,
-      sender: "DataTech Solutions",
-      avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150",
-      title: "Interview Feedback",
-      message: "Thank you for interviewing with us yesterday. We were impressed with your technical skills and will have a decision by end of week.",
-      type: "interview",
-      priority: "medium",
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      read: true,
-      archived: false,
-      tags: ["feedback", "decision-pending"]
+  const pollRef = useRef(null);
+
+  const mapInvitesToNotifications = (role, invites) => {
+    const items = [];
+    const list = Array.isArray(invites) ? invites : [];
+    if (role === 'company') {
+      // Only recruiter-initiated join requests
+      list.forEach((inv, idx) => {
+        const initiatedBy = inv?.permissions?.initiated_by || inv.initiated_by;
+        if (initiatedBy === 'recruiter') {
+          const sender = inv.recruiter_name || 'Recruiter';
+          const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(sender)}&background=random&color=fff&size=100`;
+          items.push({
+            id: inv.id || `req_${idx}`,
+            sender,
+            avatar,
+            title: 'Join Request',
+            message: inv.message || `${sender} requested to join your team as ${inv.role || 'recruiter'}.`,
+            type: 'application',
+            priority: 'medium',
+            timestamp: inv.created_at ? new Date(inv.created_at) : (inv.invited_at ? new Date(inv.invited_at) : new Date()),
+            read: false,
+            archived: false,
+            tags: ['join-request']
+          });
+        }
+      });
+    } else if (role === 'recruiter') {
+      // Only company-initiated invitations to the recruiter
+      list.forEach((inv, idx) => {
+        const initiatedBy = inv?.permissions?.initiated_by || inv.initiated_by;
+        if (initiatedBy === 'company' || !initiatedBy) {
+          const sender = inv.company_name || 'Company';
+          const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(sender)}&background=random&color=fff&size=100`;
+          items.push({
+            id: inv.id || `inv_${idx}`,
+            sender,
+            avatar,
+            title: 'Team Invitation',
+            message: `${sender} invited you to join as ${inv.role || 'recruiter'}. Status: ${inv.status}`,
+            type: 'message',
+            priority: 'medium',
+            timestamp: inv.created_at ? new Date(inv.created_at) : (inv.invited_at ? new Date(inv.invited_at) : new Date()),
+            read: false,
+            archived: false,
+            tags: ['invitation']
+          });
+        }
+      });
     }
-  ];
+    return items;
+  };
 
   useEffect(() => {
     // Check authentication
@@ -148,48 +94,67 @@ const NotificationsCenter = () => {
       return;
     }
 
-    // Simulate loading
-    setTimeout(() => {
-      setNotifications(mockNotifications);
-      setIsLoading(false);
-    }, 1000);
-  }, [navigate]);
+    const fetchAndSetNotifications = async () => {
+      try {
+        const profile = await apiRequest('/auth/profile/');
+        const invites = await apiRequest('/team/invitations/');
+        const dynamic = mapInvitesToNotifications(profile.role, invites);
+        setNotifications(dynamic);
+      } catch (e) {
+        // If API fails, leave notifications empty rather than mock
+        setNotifications([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Filter notifications based on search and filters
+    fetchAndSetNotifications();
+    pollRef.current = setInterval(fetchAndSetNotifications, 30000);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+
+  }, []);
+
+  // Derive filtered notifications from raw list and UI filters
   useEffect(() => {
     let filtered = [...notifications];
 
-    // Apply search filter
+    // Quick filter
+    switch (activeQuickFilter) {
+      case 'unread':
+        filtered = filtered.filter(n => !n.read);
+        break;
+      case 'archived':
+        filtered = filtered.filter(n => n.archived);
+        break;
+      case 'messages':
+        filtered = filtered.filter(n => n.type === 'message');
+        break;
+      case 'applications':
+        filtered = filtered.filter(n => n.type === 'application');
+        break;
+      case 'today': {
+        const today = new Date().toDateString();
+        filtered = filtered.filter(n => new Date(n.timestamp).toDateString() === today);
+        break;
+      }
+      default:
+        break;
+    }
+
+    // Search query
     if (searchQuery) {
-      filtered = filtered.filter(notification =>
-        notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        notification.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        notification.sender.toLowerCase().includes(searchQuery.toLowerCase())
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(n =>
+        (n.sender && n.sender.toLowerCase().includes(q)) ||
+        (n.title && n.title.toLowerCase().includes(q)) ||
+        (n.message && n.message.toLowerCase().includes(q)) ||
+        (Array.isArray(n.tags) && n.tags.some(t => t.toLowerCase().includes(q)))
       );
     }
 
-    // Apply quick filter
-    if (activeQuickFilter !== 'all') {
-      switch (activeQuickFilter) {
-        case 'unread':
-          filtered = filtered.filter(n => !n.read);
-          break;
-        case 'interview':
-          filtered = filtered.filter(n => n.type === 'interview');
-          break;
-        case 'applications':
-          filtered = filtered.filter(n => n.type === 'application');
-          break;
-        case 'messages':
-          filtered = filtered.filter(n => n.type === 'message');
-          break;
-        case 'archived':
-          filtered = filtered.filter(n => n.archived);
-          break;
-      }
-    }
-
-    // Apply advanced filters
+    // Detailed filters
     if (filters.type !== 'all') {
       filtered = filtered.filter(n => n.type === filters.type);
     }
@@ -205,6 +170,8 @@ const NotificationsCenter = () => {
         case 'archived':
           filtered = filtered.filter(n => n.archived);
           break;
+        default:
+          break;
       }
     }
 
@@ -212,24 +179,22 @@ const NotificationsCenter = () => {
       filtered = filtered.filter(n => n.priority === filters.priority);
     }
 
-    // Apply date range filter
     if (filters.dateRange !== 'all') {
       const now = new Date();
       switch (filters.dateRange) {
         case 'today':
-          filtered = filtered.filter(n => {
-            const notificationDate = new Date(n.timestamp);
-            return notificationDate.toDateString() === now.toDateString();
-          });
+          filtered = filtered.filter(n => new Date(n.timestamp).toDateString() === now.toDateString());
           break;
-        case 'week':
+        case 'week': {
           const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
           filtered = filtered.filter(n => new Date(n.timestamp) >= weekAgo);
           break;
-        case 'month':
+        }
+        case 'month': {
           const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
           filtered = filtered.filter(n => new Date(n.timestamp) >= monthAgo);
           break;
+        }
         case 'custom':
           if (filters.startDate && filters.endDate) {
             const start = new Date(filters.startDate);
@@ -239,6 +204,8 @@ const NotificationsCenter = () => {
               return date >= start && date <= end;
             });
           }
+          break;
+        default:
           break;
       }
     }

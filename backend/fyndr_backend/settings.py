@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'cloudinary',  # Image management
     'cloudinary_storage',  # Cloudinary storage backend
     'fyndr_auth',
+    'team_management',
     'jobscraper',  # Job scraping engine
     'jobapplier',  # Job application automation
     'jobmatcher',  # AI-powered job matching and preparation

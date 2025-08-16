@@ -3,11 +3,10 @@ from .views import (
     RegisterView, LoginView, ProfileView,
     JobSeekerProfileView, RecruiterProfileView, CompanyProfileView,
     JobSeekerOnboardingView, RecruiterOnboardingView, CompanyOnboardingView,  # Backward compatibility
-    CompanyRecruiterInvitationView, CompanyRecruiterResponseView, RecruiterCompanySelectionView,
     FileUploadView, FileServeView,
     GoogleAuthInitView, GoogleAuthCallbackView, GoogleDisconnectView, GoogleAuthStatusView
 )
-from .views import LocationsListView, SkillsListView, JobRolesListView, IndustriesListView, SalaryBandsListView
+from .views import LocationsListView, SkillsListView, JobRolesListView, IndustriesListView, SalaryBandsListView, RecruitersListView, RecruiterDetailView, CompaniesListView, CompanyDetailView
 
 urlpatterns = [
     # Authentication
@@ -28,16 +27,17 @@ urlpatterns = [
     path('roles/', JobRolesListView.as_view(), name='roles-list'),
     path('industries/', IndustriesListView.as_view(), name='industries-list'),
     path('salary-bands/', SalaryBandsListView.as_view(), name='salary-bands-list'),
+    path('recruiters/', RecruitersListView.as_view(), name='recruiters-list'),
+    path('recruiters/<int:recruiter_id>/', RecruiterDetailView.as_view(), name='recruiter-detail'),
+    path('companies/', CompaniesListView.as_view(), name='companies-list'),
+    path('companies/<int:company_id>/', CompanyDetailView.as_view(), name='company-detail'),
     
     # Profile Endpoints
     path('jobseeker-profile/', JobSeekerProfileView.as_view(), name='jobseeker-profile'),
     path('recruiter-profile/', RecruiterProfileView.as_view(), name='recruiter-profile'),
     path('company-profile/', CompanyProfileView.as_view(), name='company-profile'),
     
-    # Company-Recruiter Relationship Endpoints
-    path('company/invitations/', CompanyRecruiterInvitationView.as_view(), name='company-invitations'),
-    path('recruiter/invitations/<int:invitation_id>/respond/', CompanyRecruiterResponseView.as_view(), name='respond-invitation'),
-    path('recruiter/select-company/', RecruiterCompanySelectionView.as_view(), name='select-company'),
+    # Team management endpoints moved to team_management app under /api/team/
     
     # Backward Compatibility Endpoints
     path('jobseeker-onboarding/', JobSeekerOnboardingView.as_view(), name='jobseeker-onboarding'),

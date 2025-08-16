@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 from django.http import HttpResponse
 from django.utils import timezone
 from .models import User, JobSeekerProfile, RecruiterProfile, CompanyProfile, CompanyRecruiterRelationship, Location, Skill, JobRole
+from django.db.models import Q
 from .serializers import (
     RegisterSerializer, LoginSerializer, 
     JobSeekerProfileSerializer, RecruiterProfileSerializer, CompanyProfileSerializer,
@@ -60,6 +61,34 @@ class ProfileView(APIView):
                 if profile_obj.email:
                     user_data['email'] = profile_obj.email
                 user_data['name'] = profile_obj.full_name or f"{user_data['first_name']} {user_data['last_name']}"
+
+                # Include current company details for recruiters
+                current_company = None
+                active_company_id = profile_obj.current_company_id
+                # Fallback to first accepted relationship if no explicit current company
+                if not active_company_id:
+                    try:
+                        rel = CompanyRecruiterRelationship.objects.filter(recruiter=profile_obj, status='accepted').order_by('responded_at').first()
+                        if rel:
+                            active_company_id = rel.company.id
+                    except Exception:
+                        active_company_id = None
+                if active_company_id:
+                    try:
+                        comp = CompanyProfile.objects.get(id=active_company_id)
+                        current_company = {
+                            'id': comp.id,
+                            'name': comp.company_name,
+                            'industry': comp.industry,
+                            'headquarters': comp.headquarters,
+                            'website': comp.website,
+                        }
+                        # include logo url if present
+                        if comp.logo_data or comp.logo_url:
+                            current_company['logo_url'] = comp.logo_url or self.request.build_absolute_uri(f'/api/auth/files/company/{comp.id}/logo/')
+                    except CompanyProfile.DoesNotExist:
+                        current_company = None
+                user_data['current_company'] = current_company
             except RecruiterProfile.DoesNotExist:
                 profile = None
                 user_data['name'] = f"{user_data['first_name']} {user_data['last_name']}"
@@ -1233,19 +1262,15 @@ class CompanyRecruiterInvitationView(APIView):
             # Get the company profile of the requesting user
             company = CompanyProfile.objects.get(user=request.user)
             
-            # Validate recruiter email
-            recruiter_email = data.get('email')
-            if not recruiter_email:
-                return Response({'error': 'Recruiter email is required'},
-                               status=status.HTTP_400_BAD_REQUEST)
-                
-            # Check if user exists
+            # Require recruiter_id (email-based invites removed)
+            recruiter = None
+            recruiter_id = data.get('recruiter_id')
+            if not recruiter_id:
+                return Response({'error': 'recruiter_id is required'}, status=status.HTTP_400_BAD_REQUEST)
             try:
-                recruiter_user = User.objects.get(email=recruiter_email, role='recruiter')
-                recruiter = RecruiterProfile.objects.get(user=recruiter_user)
-            except (User.DoesNotExist, RecruiterProfile.DoesNotExist):
-                return Response({'error': 'Recruiter not found'},
-                               status=status.HTTP_404_NOT_FOUND)
+                recruiter = RecruiterProfile.objects.get(id=int(recruiter_id))
+            except (ValueError, RecruiterProfile.DoesNotExist):
+                return Response({'error': 'Recruiter not found'}, status=status.HTTP_404_NOT_FOUND)
             
             # Check for existing relationship
             existing = CompanyRecruiterRelationship.objects.filter(
@@ -1257,11 +1282,33 @@ class CompanyRecruiterInvitationView(APIView):
                     return Response({'error': 'Recruiter is already a member of this company'},
                                   status=status.HTTP_400_BAD_REQUEST)
                 elif existing.status in ['pending', 'declined']:
-                    # Update the existing invitation
+                    # If there's a pending recruiter-initiated request, surface a conflict
+                    if existing.status == 'pending':
+                        initiator = None
+                        if isinstance(existing.permissions, dict):
+                            initiator = existing.permissions.get('initiated_by')
+                        if initiator == 'recruiter':
+                            return Response(
+                                {'error': 'Recruiter already requested to join. Please review the pending request instead of sending an invite.'},
+                                status=status.HTTP_409_CONFLICT
+                            )
+                    # Otherwise (declined or company-initiated pending), update/resend the invite
                     existing.status = 'pending'
                     existing.invited_at = timezone.now()
                     existing.responded_at = None
                     existing.role = data.get('role', 'recruiter')
+                    # Optional permissions payload
+                    if 'permissions' in data:
+                        perms = data.get('permissions')
+                        if isinstance(perms, dict):
+                            perms.setdefault('initiated_by', 'company')
+                        existing.permissions = perms
+                    else:
+                        # ensure initiator marked as company for clarity
+                        meta = existing.permissions or {}
+                        if isinstance(meta, dict):
+                            meta.setdefault('initiated_by', 'company')
+                            existing.permissions = meta
                     existing.save()
                     return Response({
                         'message': 'Invitation resent successfully',
@@ -1275,6 +1322,16 @@ class CompanyRecruiterInvitationView(APIView):
                 role=data.get('role', 'recruiter'),
                 status='pending'
             )
+            # Optional permissions payload stored on relationship
+            if 'permissions' in data:
+                perms = data.get('permissions')
+                if isinstance(perms, dict):
+                    perms.setdefault('initiated_by', 'company')
+                relationship.permissions = perms
+                relationship.save(update_fields=['permissions'])
+            else:
+                relationship.permissions = {'initiated_by': 'company'}
+                relationship.save(update_fields=['permissions'])
             
             # TODO: Send email notification to the recruiter
             
@@ -1306,7 +1363,9 @@ class CompanyRecruiterInvitationView(APIView):
                         'recruiter_name': rel.recruiter.full_name,
                         'recruiter_email': rel.recruiter.email,
                         'role': rel.role,
-                        'status': rel.status,
+                        'status': 'removed' if rel.status == 'revoked' else rel.status,
+                        'initiated_by': (rel.permissions or {}).get('initiated_by') if isinstance(rel.permissions, dict) else None,
+                        'message': (rel.permissions or {}).get('message') if isinstance(rel.permissions, dict) else None,
                         'invited_at': rel.invited_at.isoformat(),
                         'responded_at': rel.responded_at.isoformat() if rel.responded_at else None
                     })
@@ -1325,7 +1384,9 @@ class CompanyRecruiterInvitationView(APIView):
                         'company_id': rel.company.id,
                         'company_name': rel.company.company_name,
                         'role': rel.role,
-                        'status': rel.status,
+                        'status': 'removed' if rel.status == 'revoked' else rel.status,
+                        'initiated_by': (rel.permissions or {}).get('initiated_by') if isinstance(rel.permissions, dict) else None,
+                        'message': (rel.permissions or {}).get('message') if isinstance(rel.permissions, dict) else None,
                         'invited_at': rel.invited_at.isoformat(),
                         'responded_at': rel.responded_at.isoformat() if rel.responded_at else None
                     })
@@ -1417,6 +1478,66 @@ class CompanyRecruiterResponseView(APIView):
                           status=status.HTTP_404_NOT_FOUND)
 
 
+class CompanyProcessRequestView(APIView):
+    """Company approves/declines recruiter-initiated join requests (pending relationships)."""
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, relationship_id, *args, **kwargs):
+        if request.user.role != 'company':
+            return Response({'error': 'Only company users can process requests'}, status=status.HTTP_403_FORBIDDEN)
+        action = request.data.get('action')
+        if action not in ['accept', 'decline']:
+            return Response({'error': 'Invalid action. Must be "accept" or "decline"'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            company = CompanyProfile.objects.get(user=request.user)
+            rel = CompanyRecruiterRelationship.objects.get(id=relationship_id, company=company)
+            if rel.status != 'pending':
+                return Response({'error': f'Cannot process a request with status "{rel.status}"'}, status=status.HTTP_400_BAD_REQUEST)
+            # Accept or decline
+            rel.status = 'accepted' if action == 'accept' else 'declined'
+            rel.responded_at = timezone.now()
+            # Allow role/permissions update on accept
+            if action == 'accept':
+                new_role = request.data.get('role')
+                if new_role:
+                    allowed_roles = [choice[0] for choice in CompanyRecruiterRelationship.ROLE_CHOICES]
+                    if new_role not in allowed_roles:
+                        return Response({'error': f'Invalid role. Must be one of {allowed_roles}'}, status=status.HTTP_400_BAD_REQUEST)
+                    rel.role = new_role
+                if 'permissions' in request.data:
+                    rel.permissions = request.data.get('permissions')
+            rel.save()
+
+            # On accept, update recruiter associations
+            if action == 'accept':
+                recruiter = rel.recruiter
+                current_associations = recruiter.company_associations or []
+                found = False
+                for assoc in current_associations:
+                    if assoc.get('company_id') == rel.company.id:
+                        assoc['role'] = rel.role
+                        assoc['status'] = 'active'
+                        found = True
+                        break
+                if not found:
+                    current_associations.append({
+                        'company_id': rel.company.id,
+                        'role': rel.role,
+                        'status': 'active',
+                        'joined_at': rel.responded_at.isoformat()
+                    })
+                recruiter.company_associations = current_associations
+                if not recruiter.current_company_id:
+                    recruiter.current_company_id = rel.company.id
+                recruiter.save()
+
+            return Response({'message': f'Request {action}ed successfully', 'status': rel.status})
+        except CompanyProfile.DoesNotExist:
+            return Response({'error': 'Company profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        except CompanyRecruiterRelationship.DoesNotExist:
+            return Response({'error': 'Request not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 class RecruiterCompanySelectionView(APIView):
     """View for recruiters to select their active company"""
     permission_classes = [IsAuthenticated]
@@ -1471,6 +1592,147 @@ class RecruiterCompanySelectionView(APIView):
         except RecruiterProfile.DoesNotExist:
             return Response({'error': 'Recruiter profile not found'},
                           status=status.HTTP_404_NOT_FOUND)
+
+
+class RecruiterJoinRequestView(APIView):
+    """Allow a recruiter to request to join a company (creates pending relationship)."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        if request.user.role != 'recruiter':
+            return Response({'error': 'Only recruiters can request to join a company'}, status=status.HTTP_403_FORBIDDEN)
+        company_id = request.data.get('company_id')
+        if not company_id:
+            return Response({'error': 'Company ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            recruiter = RecruiterProfile.objects.get(user=request.user)
+            company = CompanyProfile.objects.get(id=int(company_id))
+            # Check for existing relationship
+            rel = CompanyRecruiterRelationship.objects.filter(company=company, recruiter=recruiter).first()
+            if rel:
+                if rel.status == 'accepted':
+                    return Response({'error': 'You are already part of this company'}, status=status.HTTP_400_BAD_REQUEST)
+                if rel.status == 'pending':
+                    initiator = None
+                    if isinstance(rel.permissions, dict):
+                        initiator = rel.permissions.get('initiated_by')
+                    if initiator in [None, 'company']:
+                        return Response({'error': 'Company already invited you. Please respond to the pending invite.'}, status=status.HTTP_409_CONFLICT)
+                    return Response({'message': 'Request already pending', 'relationship_id': rel.id}, status=status.HTTP_200_OK)
+                # If previously declined or revoked, reset to pending
+                rel.status = 'pending'
+                rel.invited_at = timezone.now()
+                rel.responded_at = None
+                # mark initiator via permissions meta to avoid schema change
+                meta = rel.permissions or {}
+                if isinstance(meta, dict):
+                    meta['initiated_by'] = 'recruiter'
+                    note = request.data.get('message')
+                    if note:
+                        meta['message'] = note
+                    rel.permissions = meta
+                rel.save()
+                return Response({'message': 'Request submitted', 'relationship_id': rel.id}, status=status.HTTP_200_OK)
+            # Create a new relationship
+            permissions_meta = {'initiated_by': 'recruiter'}
+            if request.data.get('message'):
+                permissions_meta['message'] = request.data.get('message')
+            rel = CompanyRecruiterRelationship.objects.create(
+                company=company,
+                recruiter=recruiter,
+                role=request.data.get('role', 'recruiter'),
+                status='pending',
+                permissions=permissions_meta
+            )
+            return Response({'message': 'Request submitted', 'relationship_id': rel.id}, status=status.HTTP_201_CREATED)
+        except (RecruiterProfile.DoesNotExist, CompanyProfile.DoesNotExist):
+            return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# Company Team Management Views
+class CompanyTeamMembersView(APIView):
+    """List accepted team members for a company user"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if request.user.role != 'company':
+            return Response({'error': 'Only company users can view team members'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            company = CompanyProfile.objects.get(user=request.user)
+            relationships = CompanyRecruiterRelationship.objects.filter(company=company, status='accepted').select_related('recruiter__user')
+            members = []
+            for rel in relationships:
+                rec = rel.recruiter
+                members.append({
+                    'relationship_id': rel.id,
+                    'recruiter_id': rec.id,
+                    'name': rec.full_name or rec.user.get_full_name() or rec.user.username,
+                    'email': rec.email or rec.user.email,
+                    'role': rel.role,
+                    'permissions': rel.permissions or {},
+                    'joined_at': rel.responded_at.isoformat() if rel.responded_at else rel.invited_at.isoformat(),
+                })
+            return Response({'members': members})
+        except CompanyProfile.DoesNotExist:
+            return Response({'error': 'Company profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CompanyTeamMemberDetailView(APIView):
+    """Update or revoke a team member relationship for a company user"""
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, relationship_id, *args, **kwargs):
+        if request.user.role != 'company':
+            return Response({'error': 'Only company users can manage team'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            company = CompanyProfile.objects.get(user=request.user)
+            rel = CompanyRecruiterRelationship.objects.get(id=relationship_id, company=company)
+            data = request.data or {}
+            allowed_roles = [choice[0] for choice in CompanyRecruiterRelationship.ROLE_CHOICES]
+            if 'role' in data:
+                new_role = data.get('role')
+                if new_role not in allowed_roles:
+                    return Response({'error': f'Invalid role. Must be one of {allowed_roles}'}, status=status.HTTP_400_BAD_REQUEST)
+                rel.role = new_role
+            if 'permissions' in data and isinstance(data.get('permissions'), (dict, list)):
+                # store arbitrary permission structure
+                rel.permissions = data.get('permissions')
+            rel.save()
+            return Response({'message': 'Team member updated successfully'})
+        except CompanyProfile.DoesNotExist:
+            return Response({'error': 'Company profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        except CompanyRecruiterRelationship.DoesNotExist:
+            return Response({'error': 'Team member not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, relationship_id, *args, **kwargs):
+        """Revoke team member access (soft delete by setting status=revoked)"""
+        if request.user.role != 'company':
+            return Response({'error': 'Only company users can manage team'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            company = CompanyProfile.objects.get(user=request.user)
+            rel = CompanyRecruiterRelationship.objects.get(id=relationship_id, company=company)
+            if rel.status == 'revoked':
+                return Response({'message': 'Already revoked'}, status=status.HTTP_200_OK)
+            rel.status = 'revoked'
+            rel.responded_at = timezone.now()
+            rel.save()
+
+            # Update recruiter profile associations to mark inactive for this company
+            recruiter = rel.recruiter
+            associations = recruiter.company_associations or []
+            for assoc in associations:
+                if assoc.get('company_id') == company.id:
+                    assoc['status'] = 'inactive'
+            recruiter.company_associations = associations
+            if recruiter.current_company_id == company.id:
+                recruiter.current_company_id = None
+            recruiter.save()
+
+            return Response({'message': 'Team member access revoked'})
+        except CompanyProfile.DoesNotExist:
+            return Response({'error': 'Company profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        except CompanyRecruiterRelationship.DoesNotExist:
+            return Response({'error': 'Team member not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class RecruiterOnboardingView(generics.GenericAPIView):
@@ -1608,3 +1870,167 @@ class SalaryBandsListView(APIView):
         qs = SalaryBand.objects.filter(is_active=True, currency=currency).order_by('-popularity', 'min_amount')
         serializer = SalaryBandSerializer(qs, many=True)
         return Response({'results': serializer.data, 'count': len(serializer.data)})
+
+
+class RecruitersListView(APIView):
+    """List/search recruiter profiles (company-authenticated recommended)."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # Optional: restrict to company users only
+        if getattr(request.user, 'role', None) != 'company':
+            return Response({'error': 'Only company users can list recruiters'}, status=status.HTTP_403_FORBIDDEN)
+        q = (request.GET.get('q') or '').strip()
+        limit = min(int(request.GET.get('limit') or 20), 100)
+        qs = RecruiterProfile.objects.select_related('user')
+        if q:
+            qs = qs.filter(Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(email__icontains=q) | Q(user__email__icontains=q))
+        qs = qs.order_by('first_name', 'last_name')[:limit]
+        results = []
+        for r in qs:
+            results.append({
+                'id': r.id,
+                'name': (r.full_name or r.user.get_full_name() or r.user.username).strip(),
+                'email': r.email or r.user.email,
+            })
+        return Response({'results': results, 'count': len(results)})
+
+
+class RecruiterDetailView(APIView):
+    """Restricted recruiter profile for company users to evaluate before inviting/hiring."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, recruiter_id, *args, **kwargs):
+        if getattr(request.user, 'role', None) != 'company':
+            return Response({'error': 'Only company users can view recruiter details'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            rec = RecruiterProfile.objects.select_related('user').get(id=int(recruiter_id))
+            data = {
+                'id': rec.id,
+                'name': (rec.full_name or rec.user.get_full_name() or rec.user.username).strip(),
+                'email': rec.email or rec.user.email,
+                'location': rec.location,
+                'job_title': rec.job_title,
+                'years_of_experience': rec.years_of_experience,
+                'specializations': rec.specializations,
+                'industries': rec.industries,
+                'primary_industry': rec.primary_industry,
+                'services_offered': rec.services_offered,
+                'recruiting_areas': rec.recruiting_areas,
+                'skills': rec.skills,
+            }
+            # include profile image url if present
+            if rec.profile_image_data or rec.profile_image_url:
+                data['profile_image_url'] = rec.profile_image_url or request.build_absolute_uri(f'/api/auth/files/recruiter/{rec.id}/profile_image/')
+            # include resume url if present (optional)
+            if rec.resume_data or rec.resume_url:
+                data['resume_url'] = rec.resume_url or request.build_absolute_uri(f'/api/auth/files/recruiter/{rec.id}/resume/')
+            return Response(data)
+        except RecruiterProfile.DoesNotExist:
+            return Response({'error': 'Recruiter not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CompaniesListView(APIView):
+    """List/search companies (for recruiters to request/apply)."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if getattr(request.user, 'role', None) not in ['recruiter', 'company', 'administrator']:
+            return Response({'error': 'Not allowed'}, status=status.HTTP_403_FORBIDDEN)
+        q = (request.GET.get('q') or '').strip()
+        limit = min(int(request.GET.get('limit') or 20), 100)
+        qs = CompanyProfile.objects.all()
+        if q:
+            qs = qs.filter(Q(company_name__icontains=q) | Q(industry__icontains=q) | Q(headquarters__icontains=q))
+        qs = qs.order_by('company_name')[:limit]
+        results = []
+        for c in qs:
+            item = {
+                'id': c.id,
+                'name': c.company_name,
+                'industry': c.industry,
+                'headquarters': c.headquarters,
+            }
+            if c.logo_data or c.logo_url:
+                item['logo_url'] = c.logo_url or request.build_absolute_uri(f'/api/auth/files/company/{c.id}/logo/')
+            results.append(item)
+        return Response({'results': results, 'count': len(results)})
+
+
+class CompanyDetailView(APIView):
+    """Return public company details by ID for authenticated users (recruiter/company/admin)."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, company_id, *args, **kwargs):
+        if getattr(request.user, 'role', None) not in ['recruiter', 'company', 'administrator']:
+            return Response({'error': 'Not allowed'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            c = CompanyProfile.objects.get(id=int(company_id))
+            data = {
+                'id': c.id,
+                'name': c.company_name,
+                'industry': c.industry,
+                'headquarters': c.headquarters,
+                'company_size': c.company_size,
+                'founded_year': c.founded_year,
+                'website': c.website,
+                'contact_email': c.contact_email,
+                'contact_phone': c.contact_phone,
+                'hr_contact_name': c.hr_contact_name,
+                'hr_contact_email': c.hr_contact_email,
+                'linkedin_url': c.linkedin_url,
+                'description': c.description,
+                'mission_statement': c.mission_statement,
+                'company_values': c.company_values,
+                'company_benefits': c.company_benefits,
+                'work_environment': c.work_environment,
+                'team_size': c.team_size,
+                'department': c.department,
+                'current_openings': c.current_openings,
+                'hiring_focus': c.hiring_focus,
+                'dei_commitment': c.dei_commitment,
+                'diversity_initiatives': c.diversity_initiatives,
+                'inclusive_practices': c.inclusive_practices,
+                'locations': c.locations,
+                'tech_stack': c.tech_stack,
+            }
+            if c.logo_data or c.logo_url:
+                data['logo_url'] = c.logo_url or request.build_absolute_uri(f'/api/auth/files/company/{c.id}/logo/')
+            if c.company_brochure_data or c.company_brochure_url:
+                data['brochure_url'] = c.company_brochure_url or request.build_absolute_uri(f'/api/auth/files/company/{c.id}/brochure/')
+            return Response(data)
+        except CompanyProfile.DoesNotExist:
+            return Response({'error': 'Company not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class RecruiterCompaniesListView(APIView):
+    """List recruiter's active companies with details and mark the current one."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if getattr(request.user, 'role', None) != 'recruiter':
+            return Response({'error': 'Only recruiters can view their companies'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            rec = RecruiterProfile.objects.get(user=request.user)
+            rels = CompanyRecruiterRelationship.objects.filter(recruiter=rec, status='accepted').select_related('company')
+            items = []
+            for rel in rels:
+                comp = rel.company
+                item = {
+                    'company_id': comp.id,
+                    'name': comp.company_name,
+                    'industry': comp.industry,
+                    'headquarters': comp.headquarters,
+                    'website': comp.website,
+                    'role': rel.role,
+                    'joined_at': rel.responded_at.isoformat() if rel.responded_at else rel.invited_at.isoformat(),
+                    'is_current': rec.current_company_id == comp.id,
+                }
+                if comp.logo_data or comp.logo_url:
+                    item['logo_url'] = comp.logo_url or request.build_absolute_uri(f'/api/auth/files/company/{comp.id}/logo/')
+                items.append(item)
+            return Response({'results': items, 'count': len(items)})
+        except RecruiterProfile.DoesNotExist:
+            return Response({'error': 'Recruiter profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+

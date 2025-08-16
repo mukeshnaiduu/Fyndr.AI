@@ -140,7 +140,7 @@ export const RECRUITER_NAV = {
     },
     {
       label: 'Team',
-      path: ROUTES_B.TEAM_MANAGEMENT,
+      path: '/team/recruiter',
       icon: 'UserCheck',
       description: 'Manage your recruitment team'
     },
@@ -186,7 +186,7 @@ export const RECRUITER_NAV = {
     },
     {
       label: 'Team Management',
-      path: ROUTES_B.TEAM_MANAGEMENT,
+      path: '/team/recruiter',
       icon: 'Users',
       description: 'Manage your team'
     },
@@ -234,7 +234,7 @@ export const EMPLOYER_NAV = {
     },
     {
       label: 'Team',
-      path: ROUTES_B.TEAM_MANAGEMENT,
+      path: '/team/company',
       icon: 'UserCheck',
       description: 'Manage hiring team'
     },
@@ -380,7 +380,7 @@ export const COMPANY_NAV = {
     },
     {
       label: 'Team',
-      path: '/team-management-dashboard',
+      path: '/team/company',
       icon: 'UserPlus',
       description: 'Manage your recruitment team'
     },

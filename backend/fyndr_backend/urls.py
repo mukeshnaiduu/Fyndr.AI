@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('fyndr_auth.urls')),
+    path('api/team/', include('team_management.urls')),
     # path('api/jobmatcher/', include('jobmatcher.urls')),  # Temporarily disabled for migration
     path('api/applications/', include('jobapplier.urls')),
     # path('api/jobtracker/', include('jobtracker.urls')),  # Temporarily disabled for migration

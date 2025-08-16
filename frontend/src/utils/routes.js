@@ -19,7 +19,6 @@ export const ROUTES_B = {
   JOB_SEEKER_ONBOARDING: '/job-seeker-onboarding-wizard',
   JOB_DETAIL: '/job-detail-view',
   JOB_FEED: '/ai-powered-job-feed-dashboard',
-  TEAM_MANAGEMENT: '/team-management-dashboard',
   RESUME_BUILDER: '/ai-resume-builder',
   RECRUITER_ONBOARDING: '/recruiter-onboarding-wizard',
   COMPANY_ONBOARDING: '/company-onboarding-wizard',
