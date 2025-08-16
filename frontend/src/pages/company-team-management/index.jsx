@@ -172,7 +172,7 @@ export default function CompanyTeamManagement() {
 
     return (
         <MainLayout>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-foreground mb-2">Company Team Management</h1>
@@ -282,30 +282,23 @@ export default function CompanyTeamManagement() {
             <InviteTeamModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} onInvite={handleInviteTeam} />
 
             {isRecruiterModalOpen && viewRecruiter && (
-                <div className="fixed inset-0 z-modal bg-black/50 flex items-center justify-center p-4">
-                    <div className="w-full max-w-lg bg-background border border-border rounded-lg shadow-xl">
-                        <div className="flex items-center justify-between p-4 border-b border-border">
-                            <h3 className="text-lg font-semibold">{viewRecruiter.name}</h3>
-                            <Button variant="ghost" size="sm" onClick={() => setIsRecruiterModalOpen(false)}>Close</Button>
+                <div className="fixed inset-0 z-modal bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50" onClick={() => setIsRecruiterModalOpen(false)}>
+                    <div className="w-full max-w-4xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl ring-1 ring-border/30 dark:ring-white/10 bg-background animate-in zoom-in-95" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between gap-3 p-4 border-b border-border/40 dark:border-white/10 bg-gradient-to-r from-primary/10 to-transparent">
+                            <div className="flex items-center gap-3 min-w-0">
+                                {viewRecruiter.profile_image_url && (
+                                    <img src={viewRecruiter.profile_image_url} alt={viewRecruiter.name} className="h-10 w-10 rounded-lg object-cover ring-1 ring-border/40 dark:ring-white/10" />
+                                )}
+                                <div className="min-w-0">
+                                    <h3 className="text-lg font-semibold truncate text-foreground">{viewRecruiter.name}</h3>
+                                    {viewRecruiter.job_title && (
+                                        <div className="text-xs text-muted-foreground truncate">{viewRecruiter.job_title}</div>
+                                    )}
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="sm" iconName="X" onClick={() => setIsRecruiterModalOpen(false)}>Close</Button>
                         </div>
-                        <div className="p-4 space-y-2 text-sm">
-                            {viewRecruiter.profile_image_url && (
-                                <img src={viewRecruiter.profile_image_url} alt={viewRecruiter.name} className="h-12 w-12 rounded-full object-cover" />
-                            )}
-                            <div><span className="text-muted-foreground">Email:</span> {viewRecruiter.email || '—'}</div>
-                            <div><span className="text-muted-foreground">Location:</span> {viewRecruiter.location || '—'}</div>
-                            <div><span className="text-muted-foreground">Job title:</span> {viewRecruiter.job_title || '—'}</div>
-                            <div><span className="text-muted-foreground">Experience:</span> {viewRecruiter.years_of_experience || '—'} years</div>
-                            {Array.isArray(viewRecruiter.skills) && viewRecruiter.skills.length > 0 && (
-                                <div><span className="text-muted-foreground">Skills:</span> {viewRecruiter.skills.join(', ')}</div>
-                            )}
-                            {viewRecruiter.resume_url && (
-                                <div><a className="text-primary" href={viewRecruiter.resume_url} target="_blank" rel="noreferrer">View resume</a></div>
-                            )}
-                        </div>
-                        <div className="p-4 border-t border-border flex items-center justify-end gap-2">
-                            <Button variant="outline" onClick={() => setIsRecruiterModalOpen(false)}>Close</Button>
-                        </div>
+                        <RecruiterDetailsTabs recruiter={viewRecruiter} />
                     </div>
                 </div>
             )}
@@ -393,5 +386,92 @@ export default function CompanyTeamManagement() {
                 </div>
             )}
         </MainLayout>
+    );
+}
+
+function RecruiterDetailsTabs({ recruiter }) {
+    const [tab, setTab] = React.useState('overview');
+    const TabBtn = ({ id, children }) => (
+        <button
+            onClick={() => setTab(id)}
+            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${tab === id
+                ? 'bg-primary/20 dark:bg-primary/25 text-foreground ring-1 ring-primary/30 dark:ring-primary/20'
+                : 'bg-muted/60 dark:bg-muted/20 text-foreground/80 hover:bg-muted/80 dark:hover:bg-muted/30'
+                }`}
+        >
+            {children}
+        </button>
+    );
+    const KeyVal = ({ k, v }) => (
+        <div className="grid grid-cols-3 gap-3 py-1 text-sm">
+            <div className="text-muted-foreground break-all">{k}</div>
+            <div className="col-span-2 break-words">{renderVal(v)}</div>
+        </div>
+    );
+    const renderVal = (v) => {
+        if (v == null || v === '') return '—';
+        if (Array.isArray(v)) return v.length ? v.map((x, i) => <span key={i} className="inline-block mr-1 mb-1 px-2 py-0.5 bg-muted/30 dark:bg-muted/20 rounded text-xs">{String(x)}</span>) : '—';
+        if (typeof v === 'object') return <pre className="whitespace-pre-wrap break-words text-xs bg-muted/20 dark:bg-muted/30 p-2 rounded ring-1 ring-border/20 dark:ring-white/5">{JSON.stringify(v, null, 2)}</pre>;
+        if (String(v).startsWith('http')) return <a href={v} className="text-primary" target="_blank" rel="noreferrer">{String(v)}</a>;
+        return String(v);
+    };
+    return (
+        <div className="px-4">
+            <div className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-background/90 backdrop-blur supports-[backdrop-filter]:backdrop-blur border-b border-border/40 dark:border-white/10 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <TabBtn id="overview">Overview</TabBtn>
+                <TabBtn id="contact">Contact</TabBtn>
+                <TabBtn id="experience">Experience</TabBtn>
+                <TabBtn id="skills">Skills</TabBtn>
+                <TabBtn id="documents">Documents</TabBtn>
+                <TabBtn id="all">All Fields</TabBtn>
+            </div>
+            <div className="mt-4 max-h-[60vh] overflow-auto pr-3 pb-6">
+                {tab === 'overview' && (
+                    <div className="space-y-3">
+                        <KeyVal k="Name" v={recruiter.name} />
+                        <KeyVal k="Job Title" v={recruiter.job_title} />
+                        <KeyVal k="Location" v={recruiter.location} />
+                        <KeyVal k="Years of Experience" v={recruiter.years_of_experience} />
+                        <KeyVal k="Bio" v={recruiter.bio} />
+                    </div>
+                )}
+                {tab === 'contact' && (
+                    <div className="space-y-1">
+                        <KeyVal k="Email" v={recruiter.email} />
+                        <KeyVal k="Phone" v={recruiter.phone} />
+                        <KeyVal k="LinkedIn" v={recruiter.linkedin_url} />
+                        <KeyVal k="Website" v={recruiter.website} />
+                    </div>
+                )}
+                {tab === 'experience' && (
+                    <div className="space-y-1">
+                        <KeyVal k="Current Company" v={recruiter.current_company?.name} />
+                        <KeyVal k="Company Associations" v={recruiter.company_associations} />
+                        <KeyVal k="Education" v={recruiter.education} />
+                        <KeyVal k="Certifications" v={recruiter.certifications} />
+                    </div>
+                )}
+                {tab === 'skills' && (
+                    <div>
+                        <KeyVal k="Skills" v={recruiter.skills} />
+                        <KeyVal k="Tools" v={recruiter.tools} />
+                        <KeyVal k="Languages" v={recruiter.languages} />
+                    </div>
+                )}
+                {tab === 'documents' && (
+                    <div className="space-y-1">
+                        <KeyVal k="Resume URL" v={recruiter.resume_url} />
+                        <KeyVal k="Portfolio URL" v={recruiter.portfolio_url} />
+                    </div>
+                )}
+                {tab === 'all' && (
+                    <div className="space-y-2">
+                        {Object.entries(recruiter).map(([k, v]) => (
+                            <KeyVal key={k} k={k} v={v} />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }

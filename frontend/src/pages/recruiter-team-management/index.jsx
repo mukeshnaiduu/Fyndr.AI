@@ -142,7 +142,7 @@ export default function RecruiterTeamManagement() {
 
     return (
         <MainLayout>
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold">Recruiter Team Management</h1>
                     <p className="text-muted-foreground">View company invitations, track your requests, and manage your current companies</p>
@@ -246,59 +246,121 @@ export default function RecruiterTeamManagement() {
                             </div>
                         </div>
 
-                        <ActivityFeed activities={recentActivities} />
+                        <div className="lg:sticky lg:top-4">
+                            <ActivityFeed activities={recentActivities} />
+                        </div>
                     </div>
                 </div>
 
                 {isCompanyModalOpen && viewCompany && (
-                    <div className="fixed inset-0 z-modal bg-black/50 flex items-center justify-center p-4">
-                        <div className="w-full max-w-3xl bg-background border border-border rounded-lg shadow-xl">
-                            <div className="flex items-center justify-between p-4 border-b border-border">
-                                <h3 className="text-xl font-semibold">{viewCompany.name}</h3>
-                                <Button variant="ghost" size="sm" onClick={() => setIsCompanyModalOpen(false)}>Close</Button>
-                            </div>
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                                <div className="md:col-span-2 space-y-3">
-                                    {viewCompany.logo_url && (
-                                        <img src={viewCompany.logo_url} alt={viewCompany.name} className="h-14 w-14 rounded object-cover" />
-                                    )}
-                                    <div><span className="text-muted-foreground">Industry:</span> {viewCompany.industry || '—'}</div>
-                                    <div><span className="text-muted-foreground">Headquarters:</span> {viewCompany.headquarters || '—'}</div>
-                                    <div><span className="text-muted-foreground">Website:</span> {viewCompany.website ? <a className="text-primary" href={viewCompany.website} target="_blank" rel="noreferrer">{viewCompany.website}</a> : '—'}</div>
-                                    <div><span className="text-muted-foreground">LinkedIn:</span> {viewCompany.linkedin_url ? <a className="text-primary" href={viewCompany.linkedin_url} target="_blank" rel="noreferrer">{viewCompany.linkedin_url}</a> : '—'}</div>
-                                    <div><span className="text-muted-foreground">Contact Email:</span> {viewCompany.contact_email || '—'}</div>
-                                    <div><span className="text-muted-foreground">Contact Phone:</span> {viewCompany.contact_phone || '—'}</div>
-                                    <div><span className="text-muted-foreground">HR Contact:</span> {viewCompany.hr_contact_name || '—'} {viewCompany.hr_contact_email ? `(${viewCompany.hr_contact_email})` : ''}</div>
-                                    {viewCompany.description && <p className="pt-2 text-foreground/90 whitespace-pre-line">{viewCompany.description}</p>}
+                    <div className="fixed inset-0 z-modal bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in-50" onClick={() => setIsCompanyModalOpen(false)}>
+                        <div className="w-full max-w-4xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl ring-1 ring-border/30 dark:ring-white/10 bg-background animate-in zoom-in-95" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between gap-3 p-4 border-b border-border/40 dark:border-white/10 bg-gradient-to-r from-primary/10 to-transparent">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    {viewCompany.logo_url && <img src={viewCompany.logo_url} alt={viewCompany.name} className="h-10 w-10 rounded-lg object-cover ring-1 ring-border/40 dark:ring-white/10" />}
+                                    <div className="min-w-0">
+                                        <h3 className="text-lg font-semibold truncate text-foreground">{viewCompany.name}</h3>
+                                        {viewCompany.website && <a href={viewCompany.website} target="_blank" rel="noreferrer" className="text-xs text-primary truncate inline-block">{viewCompany.website}</a>}
+                                    </div>
                                 </div>
-                                <div className="space-y-3">
-                                    <div className="text-sm text-muted-foreground">Locations</div>
-                                    {Array.isArray(viewCompany.locations) && viewCompany.locations.length > 0 ? (
-                                        <ul className="list-disc list-inside">
-                                            {viewCompany.locations.map((loc, idx) => <li key={idx}>{loc}</li>)}
-                                        </ul>
-                                    ) : (
-                                        <div className="text-muted-foreground">—</div>
-                                    )}
-                                    <div className="text-sm text-muted-foreground pt-2">Tech Stack</div>
-                                    {Array.isArray(viewCompany.tech_stack) && viewCompany.tech_stack.length > 0 ? (
-                                        <div className="flex flex-wrap gap-1">
-                                            {viewCompany.tech_stack.map((t, idx) => (
-                                                <span key={idx} className="px-2 py-0.5 rounded bg-muted text-xs">{t}</span>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-muted-foreground">—</div>
-                                    )}
-                                </div>
+                                <Button variant="ghost" size="sm" iconName="X" onClick={() => setIsCompanyModalOpen(false)}>Close</Button>
                             </div>
-                            <div className="p-4 border-t border-border flex items-center justify-end">
-                                <Button variant="outline" onClick={() => setIsCompanyModalOpen(false)}>Close</Button>
-                            </div>
+                            <CompanyDetailsTabs company={viewCompany} />
                         </div>
                     </div>
                 )}
             </div>
         </MainLayout>
+    );
+}
+
+function CompanyDetailsTabs({ company }) {
+    const [tab, setTab] = React.useState('overview');
+    const TabBtn = ({ id, children }) => (
+        <button
+            onClick={() => setTab(id)}
+            className={`px-3 py-1.5 text-sm rounded-full transition-colors ${tab === id
+                ? 'bg-primary/20 dark:bg-primary/25 text-foreground ring-1 ring-primary/30 dark:ring-primary/20'
+                : 'bg-muted/60 dark:bg-muted/20 text-foreground/80 hover:bg-muted/80 dark:hover:bg-muted/30'
+                }`}
+        >
+            {children}
+        </button>
+    );
+    const KeyVal = ({ k, v }) => (
+        <div className="grid grid-cols-3 gap-3 py-1 text-sm">
+            <div className="text-muted-foreground break-all">{k}</div>
+            <div className="col-span-2 break-words">{renderVal(v)}</div>
+        </div>
+    );
+    const renderVal = (v) => {
+        if (v == null || v === '') return '—';
+        if (Array.isArray(v)) return v.length ? v.map((x, i) => <span key={i} className="inline-block mr-1 mb-1 px-2 py-0.5 bg-muted/30 dark:bg-muted/20 rounded text-xs">{String(x)}</span>) : '—';
+        if (typeof v === 'object') return <pre className="whitespace-pre-wrap break-words text-xs bg-muted/20 dark:bg-muted/30 p-2 rounded ring-1 ring-border/20 dark:ring-white/5">{JSON.stringify(v, null, 2)}</pre>;
+        if (String(v).startsWith('http')) return <a href={v} className="text-primary" target="_blank" rel="noreferrer">{String(v)}</a>;
+        return String(v);
+    };
+    return (
+        <div className="px-4">
+            <div className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-background/90 backdrop-blur supports-[backdrop-filter]:backdrop-blur border-b border-border/40 dark:border-white/10 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <TabBtn id="overview">Overview</TabBtn>
+                <TabBtn id="contact">Contact</TabBtn>
+                <TabBtn id="locations">Locations</TabBtn>
+                <TabBtn id="tech">Tech Stack</TabBtn>
+                <TabBtn id="social">Social</TabBtn>
+                <TabBtn id="all">All Fields</TabBtn>
+            </div>
+            <div className="mt-4 max-h-[60vh] overflow-auto pr-3 pb-6">
+                {tab === 'overview' && (
+                    <div className="space-y-3">
+                        <KeyVal k="Industry" v={company.industry} />
+                        <KeyVal k="Headquarters" v={company.headquarters} />
+                        <KeyVal k="Website" v={company.website} />
+                        <KeyVal k="Description" v={company.description} />
+                    </div>
+                )}
+                {tab === 'contact' && (
+                    <div className="space-y-1">
+                        <KeyVal k="Contact Email" v={company.contact_email} />
+                        <KeyVal k="Contact Phone" v={company.contact_phone} />
+                        <KeyVal k="HR Contact Name" v={company.hr_contact_name} />
+                        <KeyVal k="HR Contact Email" v={company.hr_contact_email} />
+                    </div>
+                )}
+                {tab === 'locations' && (
+                    <div>
+                        {Array.isArray(company.locations) && company.locations.length ? (
+                            <ul className="list-disc list-inside text-sm">
+                                {company.locations.map((loc, i) => <li key={i}>{loc}</li>)}
+                            </ul>
+                        ) : <div className="text-sm text-muted-foreground">—</div>}
+                    </div>
+                )}
+                {tab === 'tech' && (
+                    <div>
+                        {Array.isArray(company.tech_stack) && company.tech_stack.length ? (
+                            <div className="flex flex-wrap gap-1">
+                                {company.tech_stack.map((t, i) => <span key={i} className="px-2 py-0.5 rounded bg-muted text-xs">{t}</span>)}
+                            </div>
+                        ) : <div className="text-sm text-muted-foreground">—</div>}
+                    </div>
+                )}
+                {tab === 'social' && (
+                    <div className="space-y-1">
+                        <KeyVal k="LinkedIn" v={company.linkedin_url} />
+                        <KeyVal k="Twitter" v={company.twitter_url} />
+                        <KeyVal k="Facebook" v={company.facebook_url} />
+                        <KeyVal k="Glassdoor" v={company.glassdoor_url} />
+                    </div>
+                )}
+                {tab === 'all' && (
+                    <div className="space-y-2">
+                        {Object.entries(company).map(([k, v]) => (
+                            <KeyVal key={k} k={k} v={v} />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }
