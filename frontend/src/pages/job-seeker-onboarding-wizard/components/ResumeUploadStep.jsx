@@ -10,6 +10,10 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [aiParsed, setAiParsed] = useState(null);
+  const [readiness, setReadiness] = useState(null);
   const fileInputRef = useRef(null);
 
   const allowedTypes = ['.pdf', '.doc', '.docx'];
@@ -43,6 +47,7 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
 
   const handleFileUpload = async (file) => {
     setError('');
+    setAiError('');
 
     // Validate file type
     const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
@@ -155,6 +160,115 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
       setTimeout(() => {
         setUploadProgress(0);
       }, 1000);
+
+      // After successful upload, trigger backend resume parsing (Gemini)
+      try {
+        setAiLoading(true);
+        const parseRes = await fetch(getApiUrl('/auth/resume/parse/'), {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const parseJson = await parseRes.json();
+        if (!parseRes.ok) {
+          setReadiness(parseJson.readiness || null);
+          // Clear the uploaded file locally if backend rejected it as invalid/non-resume
+          setUploadedFile(null);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          throw new Error(parseJson.error || parseJson.detail || 'Failed to analyze resume');
+        }
+        const parsed = parseJson.parsed || {};
+        setReadiness(parseJson.readiness || null);
+        setAiParsed(parsed);
+
+        // Derive quick insights for the preview card
+        const skillsCount = Array.isArray(parsed.skills) ? parsed.skills.length : 0;
+        const years = typeof parsed.years_experience === 'number' ? parsed.years_experience : null;
+        const experienceLevel = years == null ? 'Not specified' : years >= 6 ? 'Senior (6+ years)' : years >= 3 ? 'Mid-level (3-5 years)' : 'Junior (0-2 years)';
+        const matchReadiness = (() => {
+          const base = 50;
+          const skillsBoost = Math.min(30, skillsCount * 3);
+          const expBoost = Math.min(20, (years || 0) * 4);
+          return Math.max(50, Math.min(95, Math.round(base + skillsBoost + expBoost)));
+        })();
+
+        // Autofill onboarding fields (respect rules: don't change name/email)
+        const firstName = data.firstName || '';
+        const lastName = data.lastName || '';
+        const normalizeSkills = (skillsArray) => {
+          if (!Array.isArray(skillsArray)) return [];
+          const base = Date.now();
+          return skillsArray.map((s, i) => {
+            if (!s) return null;
+            if (typeof s === 'string') {
+              return {
+                id: base + i,
+                name: s,
+                proficiency: 'intermediate',
+                category: 'Other',
+              };
+            }
+            return {
+              id: base + i,
+              name: s.name || s.role || '',
+              proficiency: s.proficiency || 'intermediate',
+              category: s.category || 'Other',
+            };
+          }).filter(Boolean);
+        };
+
+        const updatePayload = {
+          // camelCase used in UI
+          firstName: firstName || data.firstName || '',
+          lastName: lastName || data.lastName || '',
+          // Do not override email from AI
+          email: data.email || '',
+          phone: parsed.phone || data.phone || '',
+          location: parsed.location || data.location || '',
+          years_of_experience: years ?? data.years_of_experience,
+          // Normalize skills to objects expected by SkillAssessmentStep
+          skills: Array.isArray(parsed.skills) ? normalizeSkills(parsed.skills) : (Array.isArray(data.skills) ? data.skills : []),
+          education: Array.isArray(parsed.education) ? parsed.education : (data.education || []),
+          bio: parsed.summary || data.bio || '',
+          // Use camelCase jobTitle for onboarding UI
+          jobTitle: Array.isArray(parsed.job_titles) && parsed.job_titles.length ? parsed.job_titles[0] : (data.jobTitle || data.job_title || ''),
+          // suited_roles may be strings or objects; normalize to role names
+          suited_job_roles: Array.isArray(parsed.suited_roles)
+            ? parsed.suited_roles.map(r => (typeof r === 'string' ? r : r?.role)).filter(Boolean)
+            : (data.suited_job_roles || data.suitedJobRoles || []),
+          // preferred roles follow suited roles by default (use camelCase for UI)
+          preferredRoles: Array.isArray(parsed.suited_roles)
+            ? parsed.suited_roles.map(r => (typeof r === 'string' ? r : r?.role)).filter(Boolean).slice(0, 5)
+            : (data.preferredRoles || data.preferred_roles || []),
+          // Map preferred roles into desiredRoles so CareerPreferencesStep shows them
+          desiredRoles: Array.isArray(parsed.suited_roles)
+            ? parsed.suited_roles.map(r => (typeof r === 'string' ? r : r?.role)).filter(Boolean).slice(0, 5)
+            : (data.desiredRoles || data.desired_roles || []),
+          // salary hints if provided; force INR
+          salary_currency: 'INR',
+          // Ensure we always pass defined values (empty string fallback) so inputs render
+          salaryMin: (parsed?.expected_salary_range?.min ?? (data.salaryMin ?? data.salary_min ?? '')) || '',
+          salaryMax: (parsed?.expected_salary_range?.max ?? (data.salaryMax ?? data.salary_max ?? '')) || '',
+          // store analysis snapshot to show in UI card
+          ai_analysis: {
+            skillsCount,
+            experienceLevel,
+            matchReadiness,
+            suitedRoles: Array.isArray(parsed.suited_roles)
+              ? parsed.suited_roles.map(r => (typeof r === 'string' ? r : r?.role)).filter(Boolean)
+              : [],
+            readinessScore: (parseJson.readiness && typeof parseJson.readiness.score === 'number') ? parseJson.readiness.score : undefined,
+            readinessChecklist: parseJson.readiness?.checklist || undefined,
+          },
+        };
+        onUpdate(updatePayload);
+      } catch (e) {
+        console.error('Resume analysis error:', e);
+        setAiError(e.message || 'Failed to analyze resume');
+      } finally {
+        setAiLoading(false);
+      }
 
     } catch (error) {
       console.error('Upload error:', error);
@@ -279,7 +393,9 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
 
                 <div className="flex items-center space-x-2 text-sm text-success">
                   <Icon name="CheckCircle" size={16} />
-                  <span>Resume analyzed and processed</span>
+                  <span>
+                    {aiParsed && !aiLoading && !aiError ? 'Resume analyzed and processed' : 'Resume uploaded'}
+                  </span>
                 </div>
               </div>
 
@@ -311,11 +427,11 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
           </div>
         )}
 
-        {/* Error Message */}
-        {error && (
+        {/* Error Message (persists until a new resume is uploaded) */}
+        {(error || aiError) && (
           <div className="mt-4 p-3 bg-error/10 border border-error/20 rounded-card flex items-center space-x-2 text-error">
             <Icon name="AlertCircle" size={16} />
-            <span className="text-sm">{error}</span>
+            <span className="text-sm">{aiError || error}</span>
           </div>
         )}
 
@@ -324,23 +440,62 @@ const ResumeUploadStep = ({ data, onUpdate, onNext, onPrev }) => {
           <div className="mt-6 p-4 bg-accent/5 border border-accent/20 rounded-card">
             <div className="flex items-center space-x-2 mb-3">
               <Icon name="Sparkles" size={16} className="text-accent" />
-              <span className="text-sm font-medium text-accent">AI Analysis Complete</span>
+              <span className="text-sm font-medium text-accent">
+                {aiLoading ? 'Analyzing your resume…' : aiError ? 'AI Analysis Unavailable' : 'AI Analysis'}
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Skills Detected</p>
-                <p className="font-medium text-foreground">12 technical skills</p>
+            {!aiLoading && !aiError && (data.ai_analysis || aiParsed) && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Skills Detected</p>
+                  <p className="font-medium text-foreground">
+                    {(data.ai_analysis?.skillsCount) ?? (Array.isArray(aiParsed?.skills) ? aiParsed.skills.length : 0)} technical skills
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Experience Level</p>
+                  <p className="font-medium text-foreground">
+                    {data.ai_analysis?.experienceLevel || (() => {
+                      const yrs = typeof aiParsed?.years_experience === 'number' ? aiParsed.years_experience : null;
+                      if (yrs == null) return 'Not specified';
+                      return yrs >= 6 ? 'Senior (6+ years)' : yrs >= 3 ? 'Mid-level (3-5 years)' : 'Junior (0-2 years)';
+                    })()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Match Readiness</p>
+                  <p className="font-medium text-success">
+                    {(() => {
+                      const explicit = readiness?.score ?? data.ai_analysis?.readinessScore;
+                      if (typeof explicit === 'number') return `${explicit}% Ready`;
+                      const skillsCount = Array.isArray(aiParsed?.skills) ? aiParsed.skills.length : 0;
+                      const yrs = typeof aiParsed?.years_experience === 'number' ? aiParsed.years_experience : 0;
+                      const base = 50 + Math.min(30, skillsCount * 3) + Math.min(20, yrs * 4);
+                      return `${Math.max(50, Math.min(95, Math.round(base)))}% Ready`;
+                    })()}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-muted-foreground">Experience Level</p>
-                <p className="font-medium text-foreground">Mid-level (3-5 years)</p>
+            )}
+
+            {!aiLoading && readiness?.checklist && (
+              <div className="mt-4 text-xs text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">Readiness Checklist</p>
+                <ul className="grid grid-cols-2 md:grid-cols-3 gap-1">
+                  {Object.entries(readiness.checklist).map(([key, val]) => (
+                    <li key={key} className="flex items-center space-x-2">
+                      <Icon name={val ? 'CheckCircle' : 'XCircle'} size={14} className={val ? 'text-success' : 'text-muted-foreground'} />
+                      <span className="capitalize">{key.replaceAll('_', ' ')}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div>
-                <p className="text-muted-foreground">Match Readiness</p>
-                <p className="font-medium text-success">85% Ready</p>
-              </div>
-            </div>
+            )}
+
+            {aiError && (
+              <div className="mt-2 text-sm text-error">{aiError}</div>
+            )}
           </div>
         )}
       </div>

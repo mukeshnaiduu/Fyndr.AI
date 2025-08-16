@@ -113,6 +113,7 @@ const ProfileManagement = () => {
           // Resume-like sections
           experiences: Array.isArray(profile.experiences) ? profile.experiences : [],
           education: Array.isArray(profile.education) ? profile.education : [],
+          projects: Array.isArray(profile.projects) ? profile.projects : [],
           onboarding_complete: data.onboarding_complete,
           // normalize role for UI checks
           role: roleRaw === 'job_seeker' ? 'jobseeker' : roleRaw
@@ -221,6 +222,7 @@ const ProfileManagement = () => {
         // New: Resume-like sections
         ...(updatedData.experiences !== undefined && { experiences: Array.isArray(updatedData.experiences) ? updatedData.experiences : [] }),
         ...(updatedData.education !== undefined && { education: Array.isArray(updatedData.education) ? updatedData.education : [] }),
+        ...(updatedData.projects !== undefined && { projects: Array.isArray(updatedData.projects) ? updatedData.projects : [] }),
         ...(updatedData.salary_min !== undefined && { salary_min: updatedData.salary_min || null }),
         ...(updatedData.salary_max !== undefined && { salary_max: updatedData.salary_max || null }),
         ...(updatedData.salary_currency !== undefined && { salary_currency: updatedData.salary_currency || 'INR' }),
@@ -319,6 +321,7 @@ const ProfileManagement = () => {
         certifications: profile.certifications || [],
         experiences: Array.isArray(profile.experiences) ? profile.experiences : [],
         education: Array.isArray(profile.education) ? profile.education : [],
+        projects: Array.isArray(profile.projects) ? profile.projects : [],
         onboarding_complete: data.onboarding_complete,
         role: data.role === 'job_seeker' ? 'jobseeker' : data.role,
       };

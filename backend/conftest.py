@@ -16,3 +16,8 @@ def test_settings_overrides():
     settings.REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
         'rest_framework.permissions.AllowAny',
     ]
+    # Enable session auth so Django test client force_login works with DRF views
+    settings.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ]

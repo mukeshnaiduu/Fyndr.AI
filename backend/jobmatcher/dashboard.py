@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from django.db.models import Avg, Count, Q, Max, Min
 from django.utils import timezone
 from fyndr_auth.models import JobSeekerProfile
+from fyndr_auth.utils.profile_utils import normalize_skills_field
 from jobscraper.models import JobPosting
 from .models import JobScore, PreparedJob, UserPreferences
 
@@ -117,7 +118,7 @@ class JobMatcherDashboard:
             },
             'skills': {
                 'weight': 25,
-                'completed': bool(user_profile.skills and len(user_profile.skills) >= 5)
+                'completed': bool(normalize_skills_field(user_profile.skills if isinstance(user_profile.skills, list) else [])[0] and len(normalize_skills_field(user_profile.skills if isinstance(user_profile.skills, list) else [])[0]) >= 5)
             },
             'experience': {
                 'weight': 15,

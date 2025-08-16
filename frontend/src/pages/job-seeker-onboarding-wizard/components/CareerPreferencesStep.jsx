@@ -313,24 +313,44 @@ const CareerPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
           Preferred Locations <span className="text-error">*</span>
         </label>
         <div className="space-y-3">
-          <LocationInput
-            label={null}
-            value={preferredLocationInput}
-            onChange={setPreferredLocationInput}
-            onSelect={(val) => {
-              if (!val) return;
-              setPreferences(prev => ({
-                ...prev,
-                preferredLocations: prev.preferredLocations.includes(val)
-                  ? prev.preferredLocations
-                  : [...prev.preferredLocations, val]
-              }));
-              setPreferredLocationInput('');
-              if (errors.preferredLocations) setErrors(prev => ({ ...prev, preferredLocations: '' }));
-            }}
-            clearOnSelect
-            placeholder="e.g., Bengaluru, Hyderabad, Remote"
-          />
+          <div className="flex items-center gap-2">
+            <LocationInput
+              label={null}
+              value={preferredLocationInput}
+              onChange={setPreferredLocationInput}
+              onSelect={(val) => {
+                if (!val) return;
+                setPreferences(prev => ({
+                  ...prev,
+                  preferredLocations: prev.preferredLocations.includes(val)
+                    ? prev.preferredLocations
+                    : [...prev.preferredLocations, val]
+                }));
+                setPreferredLocationInput('');
+                if (errors.preferredLocations) setErrors(prev => ({ ...prev, preferredLocations: '' }));
+              }}
+              clearOnSelect
+              placeholder="e.g., Bengaluru, Hyderabad, Remote"
+            />
+            <button
+              type="button"
+              className="btn btn-sm px-3 py-1 bg-primary text-white rounded"
+              onClick={() => {
+                const val = (preferredLocationInput || '').trim();
+                if (!val) return;
+                setPreferences(prev => ({
+                  ...prev,
+                  preferredLocations: prev.preferredLocations.includes(val)
+                    ? prev.preferredLocations
+                    : [...prev.preferredLocations, val]
+                }));
+                setPreferredLocationInput('');
+                if (errors.preferredLocations) setErrors(prev => ({ ...prev, preferredLocations: '' }));
+              }}
+            >
+              Add
+            </button>
+          </div>
           {errors.preferredLocations && (
             <p className="text-xs text-error">{errors.preferredLocations}</p>
           )}

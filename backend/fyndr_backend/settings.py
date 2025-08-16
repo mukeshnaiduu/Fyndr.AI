@@ -5,8 +5,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 from dotenv import load_dotenv
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = 'your-secret-key'
-DEBUG = True
+# Load sensitive settings from environment for safety. Defaults are safe for local dev.
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-local-dev-key')
+# Default DEBUG to True for development, allow override via env var 'DJANGO_DEBUG'
+DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes')
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
@@ -250,6 +252,16 @@ LOGGING = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Security settings applied when not in DEBUG (production)
+if not DEBUG:
+    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))  # 1 year
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() in ('1', 'true', 'yes')
+    SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'True').lower() in ('1', 'true', 'yes')
+    CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'True').lower() in ('1', 'true', 'yes')
+    # Ensure SECRET_KEY is not the insecure default in production
+    if SECRET_KEY == 'django-insecure-local-dev-key':
+        raise RuntimeError('SECRET_KEY must be set in production environment')
 
 # ========================================
 # JOB APPLICATION AUTOMATION SETTINGS

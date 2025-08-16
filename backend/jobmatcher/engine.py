@@ -22,6 +22,7 @@ from django.core.cache import cache
 from asgiref.sync import sync_to_async
 from jobscraper.models import JobPosting
 from fyndr_auth.models import JobSeekerProfile
+from fyndr_auth.utils.profile_utils import normalize_skills_field
 from .models import JobScore, UserPreferences
 from .ai_service import AIEnhancementService
 
@@ -338,7 +339,9 @@ class DynamicJobMatchingEngine:
             job_requirements = self.extract_skills_from_text(job_text)
             
             # Extract user skills from profile
-            user_skills_list = user_profile.skills if isinstance(user_profile.skills, list) else []
+            user_skills_list = []
+            if isinstance(user_profile.skills, list):
+                user_skills_list = normalize_skills_field(user_profile.skills)[0]
             user_skills_text = " ".join(user_skills_list) + f" {user_profile.bio or ''}"
             if hasattr(user_profile, 'job_title') and user_profile.job_title:
                 user_skills_text += f" {user_profile.job_title}"

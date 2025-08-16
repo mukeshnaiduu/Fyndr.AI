@@ -3,7 +3,7 @@ from .views import (
     RegisterView, LoginView, ProfileView,
     JobSeekerProfileView, RecruiterProfileView, CompanyProfileView,
     JobSeekerOnboardingView, RecruiterOnboardingView, CompanyOnboardingView,  # Backward compatibility
-    FileUploadView, FileServeView,
+    FileUploadView, FileServeView, ResumeParseView,
     GoogleAuthInitView, GoogleAuthCallbackView, GoogleDisconnectView, GoogleAuthStatusView
 )
 from .views import LocationsListView, SkillsListView, JobRolesListView, IndustriesListView, SalaryBandsListView, RecruitersListView, RecruiterDetailView, CompaniesListView, CompanyDetailView
@@ -21,6 +21,7 @@ urlpatterns = [
     
     # File Upload and Serving
     path('upload/', FileUploadView.as_view(), name='file-upload'),
+    path('resume/parse/', ResumeParseView.as_view(), name='resume-parse'),
     path('files/<str:model_type>/<int:profile_id>/<str:file_type>/', FileServeView.as_view(), name='file-serve'),
     path('locations/', LocationsListView.as_view(), name='locations-list'),
     path('skills/', SkillsListView.as_view(), name='skills-list'),

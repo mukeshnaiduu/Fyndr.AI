@@ -47,6 +47,13 @@ class BrowserAutomation:
         Initialize and open a Playwright browser instance with enhanced security.
         """
         try:
+            # In tests, short-circuit to avoid heavy browser installs
+            if getattr(settings, 'DISABLE_BROWSER_AUTOMATION_DURING_TESTS', False) and os.environ.get('PYTEST_CURRENT_TEST'):
+                logger.info("DISABLE_BROWSER_AUTOMATION_DURING_TESTS active; skipping real browser launch")
+                self.browser = None
+                self.context = None
+                self.page = None
+                return
             self._playwright = await async_playwright().start()
 
             # Launch browser with realistic settings

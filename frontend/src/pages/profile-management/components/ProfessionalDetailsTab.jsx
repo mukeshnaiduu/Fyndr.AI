@@ -31,10 +31,13 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
     certifications: userProfile.certifications || [],
     // New: resume-like sections
     experiences: Array.isArray(userProfile.experiences) ? userProfile.experiences : [],
-    education: Array.isArray(userProfile.education) ? userProfile.education : []
+    education: Array.isArray(userProfile.education) ? userProfile.education : [],
+    // Projects: list of {title, link, description, domain, tech_stack}
+    projects: Array.isArray(userProfile.projects) ? userProfile.projects : []
   });
 
   const [errors, setErrors] = useState({});
+  const [projectErrors, setProjectErrors] = useState({});
   const [newSkill, setNewSkill] = useState('');
   const [newSkillProficiency, setNewSkillProficiency] = useState('intermediate');
   const [newCertification, setNewCertification] = useState('');
@@ -213,6 +216,34 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
         setNewCertification('');
       }
     }
+  };
+
+  // Projects helpers
+  const addProject = () => {
+    setFormData(prev => {
+      const next = [
+        ...(prev.projects || []),
+        { title: '', link: '', description: '', domain: '', tech_stack: [] }
+      ];
+      if (onDraftChange) onDraftChange({ projects: next });
+      return { ...prev, projects: next };
+    });
+  };
+
+  const removeProject = (idx) => {
+    setFormData(prev => {
+      const next = (prev.projects || []).filter((_, i) => i !== idx);
+      if (onDraftChange) onDraftChange({ projects: next });
+      return { ...prev, projects: next };
+    });
+  };
+
+  const setProjectField = (idx, key, value) => {
+    setFormData(prev => {
+      const next = (prev.projects || []).map((p, i) => (i === idx ? { ...p, [key]: value } : p));
+      if (onDraftChange) onDraftChange({ projects: next });
+      return { ...prev, projects: next };
+    });
   };
 
   const removeCertification = (certToRemove) => {
@@ -825,6 +856,52 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
 
             <Button type="button" variant="outline" iconName="Plus" iconSize={16} onClick={addEducation}>
               Add Education
+            </Button>
+          </div>
+        </div>
+
+        {/* Projects (Both roles) */}
+        <div className="glassmorphic p-6 rounded-squircle">
+          <h3 className="font-heading font-heading-semibold text-foreground mb-4 flex items-center">
+            <Icon name="Layers" size={20} className="mr-2" />
+            Projects
+          </h3>
+
+          <div className="space-y-4">
+            {(!formData.projects || formData.projects.length === 0) && (
+              <p className="text-sm text-muted-foreground">No projects added yet.</p>
+            )}
+
+            {formData.projects.map((p, idx) => (
+              <div key={idx} className="p-4 rounded-card border border-border">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-sm font-medium text-foreground">Project #{idx + 1}</div>
+                  <button type="button" className="text-muted-foreground hover:text-error" onClick={() => removeProject(idx)}>
+                    <Icon name="Trash2" size={16} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Input label="Title" value={p.title || ''} onChange={(e) => setProjectField(idx, 'title', e.target.value)} placeholder="Project title" />
+                  <Input label="Link" value={p.link || ''} onChange={(e) => setProjectField(idx, 'link', e.target.value)} placeholder="https://..." />
+                  <Input label="Domain" value={p.domain || ''} onChange={(e) => setProjectField(idx, 'domain', e.target.value)} placeholder="e.g., Web, Mobile, Data" />
+                  <Input label="Tech Stack (comma separated)" value={(p.tech_stack || []).join(', ')} onChange={(e) => setProjectField(idx, 'tech_stack', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} placeholder="React, Node.js, PostgreSQL" />
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-body font-body-medium text-foreground mb-1">Description</label>
+                    <textarea
+                      rows={3}
+                      value={p.description || ''}
+                      onChange={(e) => setProjectField(idx, 'description', e.target.value)}
+                      className="w-full px-3 py-2 bg-input border border-border rounded-squircle text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent spring-transition resize-none"
+                      placeholder="Short description of the project and your role"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <Button type="button" variant="outline" iconName="Plus" iconSize={16} onClick={addProject}>
+              Add Project
             </Button>
           </div>
         </div>

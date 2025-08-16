@@ -18,6 +18,7 @@ from datetime import datetime
 from django.template import Template, Context
 from jobscraper.models import JobPosting
 from fyndr_auth.models import JobSeekerProfile
+from fyndr_auth.utils.profile_utils import normalize_skills_field
 from .models import PreparedJob
 
 logger = logging.getLogger(__name__)
@@ -131,10 +132,10 @@ class CoverLetterGenerator:
             achievements.append("Brought fresh perspectives and modern technical skills")
         
         # Add skill-based achievements
-        user_skills = user_profile.skills if isinstance(user_profile.skills, list) else []
-        if 'python' in [skill.lower() for skill in user_skills]:
+    user_skills = normalize_skills_field(user_profile.skills)[0]
+    if 'python' in [skill.lower() for skill in user_skills]:
             achievements.append("Developed robust Python applications and automation scripts")
-        if 'leadership' in [skill.lower() for skill in user_skills]:
+    if 'leadership' in [skill.lower() for skill in user_skills]:
             achievements.append("Successfully led teams and drove project initiatives")
         
         return achievements[:3]  # Return top 3 achievements
@@ -153,13 +154,14 @@ class CoverLetterGenerator:
         hooks = [
             f"I was excited to discover the {job.title} position at {company_info['name']}, as it perfectly aligns with my passion for {company_info['industry']} and my {user_profile.years_of_experience or 'several'} years of experience in {user_profile.job_title or 'software development'}.",
             
-            f"As a {user_profile.experience_level or 'dedicated'} {user_profile.job_title or 'professional'} with expertise in {', '.join((user_profile.skills or [])[:2])}, I am thrilled to apply for the {job.title} role at {company_info['name']}.",
+            f"As a {user_profile.experience_level or 'dedicated'} {user_profile.job_title or 'professional'} with expertise in {', '.join((normalize_skills_field(user_profile.skills)[0] or [])[:2])}, I am thrilled to apply for the {job.title} role at {company_info['name']}.",
             
             f"Your recent job posting for {job.title} immediately caught my attention because of {company_info['name']}'s commitment to {company_info['mission']} and my background in {user_profile.job_title or 'technology'}."
         ]
-        
+
         # Choose hook based on available user data
-        if user_profile.skills and len(user_profile.skills) >= 2:
+        user_skill_names = normalize_skills_field(user_profile.skills)[0]
+        if user_skill_names and len(user_skill_names) >= 2:
             return hooks[1]
         elif user_profile.years_of_experience and user_profile.years_of_experience > 3:
             return hooks[0]
@@ -171,7 +173,7 @@ class CoverLetterGenerator:
         """
         Generate a compelling value proposition paragraph
         """
-        user_skills = user_profile.skills if isinstance(user_profile.skills, list) else []
+    user_skills = normalize_skills_field(user_profile.skills)[0]
         experience_years = user_profile.years_of_experience or 0
         
         value_prop = f"With my background in {user_profile.job_title or 'technology'}"
@@ -197,13 +199,13 @@ class CoverLetterGenerator:
         # TODO: Match specific experiences to job requirements
         highlight = f"In my role as {user_profile.job_title or 'a professional'}, I have successfully "
         
-        user_skills = user_profile.skills if isinstance(user_profile.skills, list) else []
+    user_skills = normalize_skills_field(user_profile.skills)[0]
         
-        if any('python' in skill.lower() for skill in user_skills):
+    if any('python' in skill.lower() for skill in user_skills):
             highlight += "developed scalable Python applications, "
-        if any('javascript' in skill.lower() for skill in user_skills):
+    if any('javascript' in skill.lower() for skill in user_skills):
             highlight += "built responsive web applications, "
-        if any('leadership' in skill.lower() for skill in user_skills):
+    if any('leadership' in skill.lower() for skill in user_skills):
             highlight += "led cross-functional teams, "
         
         highlight += "consistently delivering high-quality solutions that meet business objectives."

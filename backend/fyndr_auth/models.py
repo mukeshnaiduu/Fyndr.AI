@@ -80,6 +80,8 @@ class JobSeekerProfile(BaseProfile):
     experiences = models.JSONField(default=list, blank=True)
     education = models.JSONField(default=list, blank=True)
     certifications = models.JSONField(default=list, blank=True)
+    # Projects: list of {title, link, description, tech_stack, domain}
+    projects = models.JSONField(default=list, blank=True)
     
     # Career Preferences
     job_title = models.CharField(max_length=100, blank=True)
@@ -99,6 +101,35 @@ class JobSeekerProfile(BaseProfile):
     availability_date = models.DateField(null=True, blank=True)
     # Track progress through onboarding; default to 1 to satisfy NOT NULL
     onboarding_step = models.IntegerField(default=1)
+    # Detailed suited roles with match_percent: list of {role, match_percent}
+    suited_job_roles_detailed = models.JSONField(default=list, blank=True)
+
+    @property
+    def suited_job_roles(self):
+        """Backward-compatible accessor: return list of role names derived from suited_job_roles_detailed."""
+        try:
+            items = self.suited_job_roles_detailed or []
+            return [i.get('role') for i in items if isinstance(i, dict) and i.get('role')]
+        except Exception:
+            return []
+
+    @suited_job_roles.setter
+    def suited_job_roles(self, value):
+        """Allow assigning legacy list[str] or list[dict] to update suited_job_roles_detailed."""
+        if value is None:
+            self.suited_job_roles_detailed = []
+            return
+        norm = []
+        for v in value:
+            if isinstance(v, dict) and v.get('role'):
+                try:
+                    mp = float(v.get('match_percent')) if v.get('match_percent') is not None else None
+                except Exception:
+                    mp = None
+                norm.append({'role': v.get('role'), 'match_percent': mp})
+            elif isinstance(v, str):
+                norm.append({'role': v, 'match_percent': None})
+        self.suited_job_roles_detailed = norm
     
     # Additional Information
     bio = models.TextField(blank=True)

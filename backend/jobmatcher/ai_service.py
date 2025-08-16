@@ -15,6 +15,7 @@ from datetime import datetime
 from django.conf import settings
 from jobscraper.models import JobPosting
 from fyndr_auth.models import JobSeekerProfile
+from fyndr_auth.utils.profile_utils import normalize_skills_field
 from .models import JobScore, PreparedJob
 
 logger = logging.getLogger(__name__)
@@ -80,6 +81,7 @@ class AIEnhancementService:
             return self._fallback_reasoning(score, matched_skills, missing_skills)
         
         try:
+            names, _ = normalize_skills_field(user_profile.skills if isinstance(user_profile.skills, list) else [])
             prompt = f"""
             Analyze this job match and provide clear, actionable reasoning:
 
@@ -87,7 +89,7 @@ class AIEnhancementService:
             Job Description: {job.description[:500] if job.description else 'Not provided'}
             
             Candidate Profile:
-            - Skills: {', '.join(user_profile.skills) if user_profile.skills else 'Not specified'}
+            - Skills: {', '.join(names) if names else 'Not specified'}
             - Experience: {user_profile.years_of_experience or 'Not specified'} years
             - Bio: {user_profile.bio[:200] if user_profile.bio else 'Not provided'}
             

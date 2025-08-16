@@ -20,6 +20,7 @@ from django.template import Template, Context
 from django.utils.html import strip_tags
 from jobscraper.models import JobPosting
 from fyndr_auth.models import JobSeekerProfile
+from fyndr_auth.utils.profile_utils import normalize_skills_field
 from .models import PreparedJob, JobScore
 
 logger = logging.getLogger(__name__)
@@ -125,7 +126,7 @@ class ResumeCustomizer:
                 'portfolio': user_profile.portfolio_url,
                 'website': user_profile.website_url,
             },
-            'skills': user_profile.skills if isinstance(user_profile.skills, list) else [],
+            'skills': normalize_skills_field(user_profile.skills if isinstance(user_profile.skills, list) else [])[0],
             'experience_level': user_profile.experience_level,
             'years_experience': user_profile.years_of_experience,
             'education': user_profile.education if isinstance(user_profile.education, list) else [],

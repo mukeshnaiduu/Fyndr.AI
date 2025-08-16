@@ -12,6 +12,7 @@ from .serializers import (
     JobSeekerProfileSerializer, RecruiterProfileSerializer, CompanyProfileSerializer,
     JobSeekerOnboardingSerializer, LocationSerializer, SkillSerializer, JobRoleSerializer
 )
+from .utils.resume_ai import extract_text_from_resume, call_gemini_for_resume, merge_into_jobseeker_profile, compute_readiness
 
 # Profile view for authenticated user
 class ProfileView(APIView):
@@ -345,6 +346,29 @@ class FileUploadView(APIView):
         try:
             # Read file data
             file_data = uploaded_file.read()
+
+            # Basic file integrity validation for document uploads
+            def _invalid_response(msg: str):
+                return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
+
+            if file_type in ('resume', 'cover_letter', 'portfolio'):
+                if file_extension == '.pdf':
+                    # PDF files start with %PDF-
+                    if not file_data.startswith(b'%PDF-'):
+                        return _invalid_response('Invalid PDF file. Please upload a valid PDF resume.')
+                elif file_extension == '.docx':
+                    # DOCX are zip archives (PK header) and should be readable by python-docx
+                    if not file_data.startswith(b'PK'):
+                        return _invalid_response('Invalid DOCX file. Please upload a valid .docx resume.')
+                    try:
+                        from docx import Document
+                        Document(io.BytesIO(file_data))
+                    except Exception:
+                        return _invalid_response('Corrupted DOCX file. Please re-export your resume as .docx or PDF and try again.')
+                elif file_extension == '.doc':
+                    # Legacy DOC (OLE) header signature
+                    if not file_data.startswith(b'\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1'):
+                        return _invalid_response('Invalid DOC file. Please upload a valid .doc resume or convert to PDF/DOCX.')
             
             # Get or create the user's profile
             if request.user.role == 'job_seeker':
@@ -479,6 +503,222 @@ class FileUploadView(APIView):
             print('FILE UPLOAD ERROR:', str(e))
             print(traceback.format_exc())
             return Response({'error': f'Upload failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ResumeParseView(APIView):
+    """Parse the latest uploaded resume and extract details via Gemini.
+
+    - For job_seekers: reads resume binary from profile, extracts text, calls Gemini,
+      and updates missing fields + suited_job_roles. Returns parsed data and changes applied.
+    - For recruiters: similar behavior but only parses and returns; no profile field updates except skills/bio if desired (v1: return only).
+    """
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def _clear_resume_fields(profile):
+        try:
+            fields = ['resume_data', 'resume_filename', 'resume_content_type', 'resume_size', 'resume_url']
+            for f in fields:
+                setattr(profile, f, None if f in ('resume_data', 'resume_size') else '')
+            profile.save(update_fields=fields + ['updated_at'])
+        except Exception:
+            # Best-effort cleanup; ignore if model differs
+            pass
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        role = getattr(user, 'role', None)
+        try:
+            if role == 'job_seeker':
+                profile = JobSeekerProfile.objects.filter(user=user).order_by('-id').first()
+                if not profile or not profile.resume_data:
+                    return Response({'error': 'No resume found on profile'}, status=404)
+                text = extract_text_from_resume(profile.resume_content_type or '', profile.resume_filename or '', profile.resume_data)
+                # For backward compatibility we still use extract_text_from_resume here to check emptiness.
+                if not text.strip():
+                    self._clear_resume_fields(profile)
+                    return Response({'error': 'Uploaded file is empty or unsupported. Please upload a valid resume (PDF/DOC/DOCX).', 'readiness': {'score': 0, 'checklist': {}}}, status=400)
+                # Use new extractor that also returns detected links (annotations, hyperlinks)
+                try:
+                    from .utils.resume_ai import extract_text_and_links_from_resume
+                    text, detected_links = extract_text_and_links_from_resume(profile.resume_content_type or '', profile.resume_filename or '', profile.resume_data)
+                except Exception:
+                    detected_links = []
+                if not (text or '').strip():
+                    self._clear_resume_fields(profile)
+                    return Response({'error': 'Uploaded file is empty or unsupported. Please upload a valid resume (PDF/DOC/DOCX).', 'readiness': {'score': 0, 'checklist': {}}}, status=400)
+                ai = call_gemini_for_resume(text)
+                if not ai:
+                    return Response({'parsed': None, 'message': 'AI extraction unavailable or failed'}, status=200)
+                    # Normalize suited_roles / preferred_roles in AI output to handle model variance
+                    try:
+                        import json as _json, re as _re
+                        if isinstance(ai, dict):
+                            # Helper to coerce possible stringified JSON or comma-separated lists into Python lists
+                            def _coerce_list(key):
+                                val = ai.get(key)
+                                if val is None:
+                                    ai[key] = []
+                                    return
+                                # If it's a JSON string, try to parse
+                                if isinstance(val, str):
+                                    s = val.strip()
+                                    try:
+                                        parsed = _json.loads(s)
+                                        ai[key] = parsed if parsed is not None else []
+                                        return
+                                    except Exception:
+                                        # Fallback: split on commas/newlines/semicolons
+                                        parts = [p.strip() for p in _re.split(r"[,\n;]+", s) if p.strip()]
+                                        ai[key] = parts
+                                        return
+                                # If it's a dict (single object), wrap
+                                if isinstance(val, dict):
+                                    ai[key] = [val]
+                                    return
+                                # If it's a list, leave as-is
+                                if isinstance(val, list):
+                                    ai[key] = val
+                                    return
+                                # Otherwise, coerce to empty
+                                ai[key] = []
+
+                            _coerce_list('suited_roles')
+                            _coerce_list('preferred_roles')
+
+                            # Normalize suited_roles items: strings -> {role, match_percent: None}
+                            norm_suited = []
+                            for item in ai.get('suited_roles') or []:
+                                if isinstance(item, str):
+                                    role = item.strip()
+                                    if role:
+                                        norm_suited.append({'role': role, 'match_percent': None})
+                                elif isinstance(item, dict):
+                                    role = item.get('role') or item.get('name') or ''
+                                    mp = item.get('match_percent') if 'match_percent' in item else item.get('percent') if isinstance(item.get('percent', None), (int, float)) else item.get('score')
+                                    try:
+                                        mp = float(mp) if mp is not None else None
+                                    except Exception:
+                                        mp = None
+                                    if role:
+                                        norm_suited.append({'role': role.strip(), 'match_percent': mp})
+                            ai['suited_roles'] = norm_suited
+
+                            # Ensure preferred_roles is list[str]
+                            pref = ai.get('preferred_roles') or []
+                            if isinstance(pref, list):
+                                ai['preferred_roles'] = [str(p).strip() for p in pref if p]
+                            elif isinstance(pref, str):
+                                try:
+                                    ai['preferred_roles'] = _json.loads(pref)
+                                except Exception:
+                                    ai['preferred_roles'] = [p.strip() for p in _re.split(r"[,\n;]+", pref) if p.strip()]
+                            else:
+                                ai['preferred_roles'] = []
+
+                            # Log normalized values for debugging
+                            try:
+                                logger.debug(f"ResumeParseView: normalized suited_roles={ai.get('suited_roles')} preferred_roles={ai.get('preferred_roles')}")
+                            except Exception:
+                                pass
+                    except Exception:
+                        logger.exception('Error normalizing AI suited/preferred roles')
+                # Merge any detected links into AI output (ensure unique)
+                try:
+                    if isinstance(ai, dict):
+                        ai_links = ai.get('links') or []
+                        # normalize strings
+                        norm = list({*(ai_links or []), *(detected_links or [])})
+                        ai['links'] = norm
+                        # Heuristic: extract projects from text and merge into ai['projects'] when available
+                        try:
+                            from .utils.resume_ai import _heuristic_extract_projects_from_text
+                            detected_projects = _heuristic_extract_projects_from_text(text)
+                            ai_projects = ai.get('projects') or []
+                            # prefer AI projects but append heuristic ones not already present by title
+                            titles = {p.get('title', '').strip().lower() for p in ai_projects if isinstance(p, dict) and p.get('title')}
+                            merged = list(ai_projects)
+                            for p in detected_projects:
+                                if p.get('title') and p.get('title').strip().lower() not in titles:
+                                    merged.append(p)
+                            ai['projects'] = merged
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+                # Validate resume nature
+                is_resume = ai.get('is_resume') if isinstance(ai, dict) else None
+                if is_resume is False:
+                    readiness = compute_readiness(ai, is_resume=False)
+                    self._clear_resume_fields(profile)
+                    return Response({'error': 'Please upload a valid resume file', 'readiness': readiness, 'parsed': None}, status=400)
+                changes, suited = merge_into_jobseeker_profile(profile, ai, force=True)
+                readiness = compute_readiness(ai, is_resume=True)
+                # Apply non-destructive updates
+                applied_fields = []
+                if changes:
+                    for k, v in changes.items():
+                        setattr(profile, k, v)
+                        applied_fields.append(k)
+                # Note: suited job roles are stored only in `suited_job_roles_detailed` (list of {role, match_percent}).
+                # `merge_into_jobseeker_profile` will have already prepared `suited_job_roles_detailed` in `changes` when applicable.
+                # No legacy `suited_job_roles` field is written; consumers should derive names from the detailed field.
+                if applied_fields:
+                    profile.save(update_fields=list(set(applied_fields + ['updated_at'])))
+                return Response({
+                    'parsed': ai,
+                    'applied_fields': applied_fields,
+                    'readiness': readiness,
+                })
+            elif role == 'recruiter':
+                profile = RecruiterProfile.objects.filter(user=user).order_by('-id').first()
+                if not profile or not profile.resume_data:
+                    return Response({'error': 'No resume found on profile'}, status=404)
+                # Use new extractor for text+links
+                try:
+                    from .utils.resume_ai import extract_text_and_links_from_resume
+                    text, detected_links = extract_text_and_links_from_resume(profile.resume_content_type or '', profile.resume_filename or '', profile.resume_data)
+                except Exception:
+                    detected_links = []
+                if not (text or '').strip():
+                    self._clear_resume_fields(profile)
+                    return Response({'error': 'Uploaded file is empty or unsupported. Please upload a valid resume (PDF/DOC/DOCX).', 'readiness': {'score': 0, 'checklist': {}}}, status=400)
+                ai = call_gemini_for_resume(text)
+                if not ai:
+                    return Response({'parsed': None, 'message': 'AI extraction unavailable or failed'}, status=200)
+                # Merge detected links into AI response
+                try:
+                    if isinstance(ai, dict):
+                        ai_links = ai.get('links') or []
+                        ai['links'] = list({*(ai_links or []), *(detected_links or [])})
+                        # Heuristic: extract projects from text and merge into ai['projects']
+                        try:
+                            from .utils.resume_ai import _heuristic_extract_projects_from_text
+                            detected_projects = _heuristic_extract_projects_from_text(text)
+                            ai_projects = ai.get('projects') or []
+                            titles = {p.get('title', '').strip().lower() for p in ai_projects if isinstance(p, dict) and p.get('title')}
+                            merged = list(ai_projects)
+                            for p in detected_projects:
+                                if p.get('title') and p.get('title').strip().lower() not in titles:
+                                    merged.append(p)
+                            ai['projects'] = merged
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+                is_resume = ai.get('is_resume') if isinstance(ai, dict) else None
+                readiness = compute_readiness(ai, is_resume=bool(is_resume))
+                if is_resume is False:
+                    self._clear_resume_fields(profile)
+                    return Response({'error': 'Please upload a valid resume file', 'readiness': readiness, 'parsed': None}, status=400)
+                return Response({'parsed': ai, 'readiness': readiness})
+            else:
+                return Response({'error': 'Unsupported role for resume parsing'}, status=400)
+        except Exception as e:
+            import traceback
+            logger = __import__('logging').getLogger(__name__)
+            logger.error(f"ResumeParseView failed: {e}\n{traceback.format_exc()}")
+            return Response({'error': f'Parsing failed: {str(e)}'}, status=500)
 
 
 # ==========================

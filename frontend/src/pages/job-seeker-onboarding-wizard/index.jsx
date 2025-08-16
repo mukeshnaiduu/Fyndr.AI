@@ -156,6 +156,31 @@ const JobSeekerOnboardingWizard = () => {
               : (response.profile_image_url ? { url: response.profile_image_url } : undefined),
             ...response // Include any other existing onboarding data
           };
+
+          // Normalize common backend snake_case keys into camelCase UI keys so
+          // onboarding components (which expect camelCase) render values like salary
+          // and desired roles correctly.
+          const normalize = (src) => {
+            const dst = { ...src };
+            const map = {
+              salary_min: 'salaryMin',
+              salary_max: 'salaryMax',
+              desired_roles: 'desiredRoles',
+              preferred_roles: 'preferredRoles',
+              job_title: 'jobTitle',
+              first_name: 'firstName',
+              last_name: 'lastName'
+            };
+            Object.keys(map).forEach(snake => {
+              const camel = map[snake];
+              if (src[snake] !== undefined && dst[camel] === undefined) {
+                dst[camel] = src[snake];
+              }
+            });
+            return dst;
+          };
+
+          backendData = normalize(backendData);
           console.log('Loaded user data from backend:', backendData);
           // Print fname, lname, email in console
           console.log('fname:', backendData.firstName, 'lname:', backendData.lastName, 'email:', backendData.email);
