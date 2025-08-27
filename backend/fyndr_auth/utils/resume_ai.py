@@ -149,12 +149,28 @@ def extract_text_from_resume(content_type: str, filename: str, data: bytes) -> s
 	name = (filename or "").lower()
 	if ct.endswith("pdf") or name.endswith(".pdf"):
 		return _read_pdf_text(data)
-	if "word" in ct or name.endswith(".docx"):
-		return _read_docx_text(data)
+	# Handle legacy .doc before checking for generic 'word' content-types
 	if name.endswith(".doc"):
-		# .doc (legacy) unsupported without antiword; return empty for now
-		logger.info(".doc format not supported in v1; skipping text extraction")
-		return ""
+		# Legacy .doc: if it's a true OLE file, we can't parse without antiword; if not OLE (fake .doc), try text decode.
+		is_ole = data.startswith(b"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1")
+		if is_ole:
+			logger.info(".doc (OLE) detected; skipping text extraction without antiword")
+			return ""
+		# Non-OLE .doc (often plain text saved with .doc extension). Attempt safe decode.
+		try:
+			text = data.decode("utf-8", errors="ignore")
+			if text and any(ch.isalpha() for ch in text):
+				return text
+		except Exception:
+			pass
+		try:
+			text = data.decode("latin-1", errors="ignore")
+			return text
+		except Exception:
+			return ""
+	# DOCX (Office Open XML)
+	if "vnd.openxmlformats" in ct or name.endswith(".docx"):
+		return _read_docx_text(data)
 	# Fallback: try decode as text
 	try:
 		return data.decode("utf-8", errors="ignore")
@@ -172,13 +188,29 @@ def extract_text_and_links_from_resume(content_type: str, filename: str, data: b
 		text = _read_pdf_text(data)
 		links = _extract_links_from_pdf(data, text)
 		return text, links
-	if "word" in ct or name.endswith(".docx"):
+	# Handle legacy .doc before generic 'word' content-type
+	if name.endswith(".doc"):
+		is_ole = data.startswith(b"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1")
+		if is_ole:
+			logger.info(".doc (OLE) detected; skipping text+link extraction without antiword")
+			return "", []
+		# Non-OLE .doc: treat as plain text and extract URLs by regex
+		try:
+			text = data.decode("utf-8", errors="ignore")
+		except Exception:
+			try:
+				text = data.decode("latin-1", errors="ignore")
+			except Exception:
+				text = ""
+		try:
+			links = _find_urls_in_text(text)
+		except Exception:
+			links = []
+		return text, links
+	if "vnd.openxmlformats" in ct or name.endswith(".docx"):
 		text = _read_docx_text(data)
 		links = _extract_links_from_docx(data, text)
 		return text, links
-	if name.endswith(".doc"):
-		logger.info(".doc format not supported in v1; skipping text+link extraction")
-		return "", []
 	try:
 		text = data.decode("utf-8", errors="ignore")
 		links = _find_urls_in_text(text)

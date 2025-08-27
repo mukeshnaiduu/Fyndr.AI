@@ -60,6 +60,46 @@ const AuthenticationPage = () => {
       let endpoint = authMode === 'login' ? '/auth/login/' : '/auth/register/';
       let payload = { ...formData };
       if (authMode === 'register') {
+        // Client-side required validation before hitting the API
+        const localErrors = {};
+        if (!formData.firstName || !formData.firstName.trim()) {
+          localErrors.firstName = 'First name is required.';
+        }
+        if (!formData.lastName || !formData.lastName.trim()) {
+          localErrors.lastName = 'Last name is required.';
+        }
+        if (!formData.role) {
+          localErrors.role = 'Please select your role.';
+        }
+        if (!formData.agreeToTerms) {
+          localErrors.agreeToTerms = 'You must agree to the Terms to continue.';
+        }
+
+        // Client-side password validation before hitting the API
+        const pw = formData.password || '';
+        const cpw = formData.confirmPassword || '';
+        const unmet = [];
+        if (pw.length < 8) unmet.push('at least 8 characters');
+        if (!/[A-Z]/.test(pw)) unmet.push('an uppercase letter');
+        if (!/[a-z]/.test(pw)) unmet.push('a lowercase letter');
+        if (!/[0-9]/.test(pw)) unmet.push('a number');
+        if (!/[^A-Za-z0-9]/.test(pw)) unmet.push('a special character');
+        const hasSpaces = /\s/.test(pw);
+
+        if (unmet.length > 0 || hasSpaces) {
+          const req = unmet.length > 0 ? `Password must include ${unmet.join(', ')}.` : '';
+          const noSpaces = hasSpaces ? ' No spaces allowed.' : '';
+          localErrors.password = `${req}${noSpaces}`.trim();
+        }
+        if (pw !== cpw) {
+          localErrors.confirmPassword = 'Passwords do not match.';
+        }
+        if (Object.keys(localErrors).length > 0) {
+          setFormErrors(localErrors);
+          setIsLoading(false);
+          setLoadingMessage('');
+          return;
+        }
         // Prepare registration payload
         payload.username = formData.email; // Django requires username
         payload.confirm_password = formData.confirmPassword;
@@ -78,10 +118,13 @@ const AuthenticationPage = () => {
         return;
       }
       // LOGIN FLOW
-      const result = await apiRequest(endpoint, 'POST', payload);
+      // Include rememberMe in payload so backend can adjust token lifetimes
+      const result = await apiRequest(endpoint, 'POST', { ...payload, rememberMe: formData.rememberMe });
       if (result && result.access) {
         // Store JWT tokens using token manager
         tokenManager.setTokens(result.access, result.refresh);
+        // Persist rememberMe preference for client-side decisions (e.g., storage, warnings)
+        localStorage.setItem('rememberMe', formData.rememberMe ? 'true' : 'false');
 
         setLoadingMessage('Successfully authenticated! Checking onboarding status...');
         // Fetch onboarding status from backend
@@ -170,38 +213,56 @@ const AuthenticationPage = () => {
 
       // Map backend validation errors to form field keys
       const mappedErrors = {};
-      if (error && typeof error === 'object') {
-        Object.entries(error).forEach(([key, value]) => {
-          const messages = Array.isArray(value) ? value : [value];
+
+      const resp = (error && typeof error === 'object' && error.response && typeof error.response === 'object')
+        ? error.response
+        : null;
+
+      if (resp) {
+        // DRF usually returns { field: [messages], detail: '...' }
+        Object.entries(resp).forEach(([key, value]) => {
           if (key === 'detail' || key === 'non_field_errors') {
-            // Keep non-field errors as array for banner display
-            mappedErrors.non_field_errors = messages;
-          } else {
-            // Convert snake_case to camelCase for field errors
-            const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-            // Join multiple messages into one string for inline display
-            mappedErrors[camelKey] = messages.join(' ');
+            const arr = Array.isArray(value) ? value : [String(value)];
+            mappedErrors.non_field_errors = arr;
+            return;
           }
+          const messages = Array.isArray(value)
+            ? value.map(v => (typeof v === 'string' ? v : JSON.stringify(v)))
+            : [typeof value === 'string' ? value : JSON.stringify(value)];
+          const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+          mappedErrors[camelKey] = messages.join(' ');
         });
+      } else if (error && typeof error.message === 'string' && error.message.includes(':')) {
+        // Parse patterns like "email: Enter a valid email address." or "password: Incorrect password."
+        const pairs = [...error.message.matchAll(/([a-zA-Z_]+)\s*:\s*([^|\n]+)/g)];
+        if (pairs.length > 0) {
+          pairs.forEach((m) => {
+            const field = m[1];
+            const msg = m[2].trim();
+            const camelKey = field.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+            if (field === 'detail' || field === 'non_field_errors') {
+              mappedErrors.non_field_errors = [msg];
+            } else {
+              mappedErrors[camelKey] = msg;
+            }
+          });
+        } else {
+          mappedErrors.non_field_errors = [error.message];
+        }
       } else {
         mappedErrors.non_field_errors = ['Authentication failed.'];
       }
 
-      // Special handling for email uniqueness errors
-      if (mappedErrors.email) {
-        const emailError = mappedErrors.email.toLowerCase();
-        if (emailError.includes('exists') || emailError.includes('already') || emailError.includes('unique')) {
-          mappedErrors.non_field_errors = ['User with this email already exists. Please sign in instead.'];
-          delete mappedErrors.email;
-        }
-      }
-
-      // Special handling for username uniqueness errors (since we use email as username)
-      if (mappedErrors.username) {
-        const usernameError = mappedErrors.username.toLowerCase();
-        if (usernameError.includes('exists') || usernameError.includes('already') || usernameError.includes('unique')) {
-          mappedErrors.non_field_errors = ['User with this email already exists. Please sign in instead.'];
+      // Uniqueness collision: collapse username/email messages into a single inline email field error (register flow)
+      if (authMode === 'register') {
+        const emailErrText = (mappedErrors.email || '').toString().toLowerCase();
+        const usernameErrText = (mappedErrors.username || '').toString().toLowerCase();
+        const emailTaken = emailErrText.includes('exists') || emailErrText.includes('already') || emailErrText.includes('unique');
+        const usernameTaken = usernameErrText.includes('exists') || usernameErrText.includes('already') || usernameErrText.includes('unique');
+        if (emailTaken || usernameTaken) {
+          mappedErrors.email = 'An account with this email already exists. Please sign in or use “Forgot password”.';
           delete mappedErrors.username;
+          delete mappedErrors.non_field_errors; // keep errors inside the specific field box
         }
       }
 
@@ -276,14 +337,14 @@ const AuthenticationPage = () => {
         </header>
 
         {/* Main Content */}
-        <main className="relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)] p-4">
-          <div className="w-full max-w-md">
+        <main className="relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)] p-6">
+          <div className="w-full max-w-2xl">
             {/* Auth Card */}
-            <div className="glassmorphic rounded-squircle p-8 elevation-3 border bg-white/85 dark:bg-neutral-900/90">
+            <div className="rounded-xl p-10 elevation-2 border border-border/50 bg-white/90 dark:bg-neutral-900/85 shadow-xl backdrop-blur">
               {/* Welcome Section */}
               <div className="text-center mb-8">
                 <div className="mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-squircle flex items-center justify-center mx-auto glow-primary blob-animate">
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center mx-auto glow-primary blob-animate">
                     <Icon name="Users" size={32} color="white" />
                   </div>
                 </div>
@@ -305,63 +366,18 @@ const AuthenticationPage = () => {
               />
 
               {/* Auth Form */}
-              {/* Show error messages from backend */}
-              {formErrors.non_field_errors && formErrors.non_field_errors.length > 0 && (
-                <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-400 rounded-md">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <Icon name="AlertCircle" size={20} className="text-red-400" />
-                    </div>
-                    <div className="ml-3">
-                      {formErrors.non_field_errors.map((err, i) => (
-                        <p key={i} className="text-sm text-red-700 font-medium">{err}</p>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Show general error messages in a clean format */}
-              {Object.entries(formErrors)
-                .filter(([key, value]) => key !== 'non_field_errors' && value && String(value).trim() !== '')
-                .length > 0 && (
-                  <div className="mb-4 p-4 bg-orange-50 border-l-4 border-orange-400 rounded-md">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <Icon name="AlertTriangle" size={20} className="text-orange-400" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm text-orange-700 font-medium">Please check the following:</p>
-                        <ul className="mt-2 text-sm text-orange-600 list-disc list-inside">
-                          {Object.entries(formErrors)
-                            .filter(([key, value]) => key !== 'non_field_errors' && value && String(value).trim() !== '')
-                            .map(([key, value], i) => (
-                              <li key={i}>
-                                {key === 'email' && 'Email address issue'}
-                                {key === 'username' && 'This email is already registered'}
-                                {key === 'password' && 'Password requirements not met'}
-                                {key === 'confirmPassword' && 'Password confirmation issue'}
-                                {key === 'firstName' && 'First name is required'}
-                                {key === 'lastName' && 'Last name is required'}
-                                {key === 'role' && 'Please select your role'}
-                                {!['email', 'username', 'password', 'confirmPassword', 'firstName', 'lastName', 'role'].includes(key) && `${key} issue`}
-                              </li>
-                            ))
-                          }
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              <AuthForm
-                mode={authMode}
-                onSubmit={handleFormSubmit}
-                isLoading={isLoading}
-                errors={formErrors}
-              />
+              {/* Errors render inline near fields; top-level summaries removed to avoid duplication */}
+              <div className="mt-6">
+                <AuthForm
+                  mode={authMode}
+                  onSubmit={handleFormSubmit}
+                  isLoading={isLoading}
+                  errors={formErrors}
+                />
+              </div>
 
               {/* Social Auth */}
-              <div className="mt-6">
+              <div className="mt-8">
                 <SocialAuthButtons
                   onSocialAuth={handleSocialAuth}
                   isLoading={isLoading}
@@ -369,7 +385,7 @@ const AuthenticationPage = () => {
               </div>
 
               {/* Footer Links */}
-              <div className="mt-8 text-center space-y-2">
+              <div className="mt-10 text-center space-y-2">
                 <p className="text-xs text-foreground">
                   By continuing, you agree to our{' '}
                   <button className="text-primary hover:text-primary/80 spring-transition">
@@ -393,7 +409,7 @@ const AuthenticationPage = () => {
               </div>
 
               {/* Ambient Particles */}
-              <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden rounded-squircle">
+              <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
                 <div className="absolute top-8 left-8 w-1 h-1 bg-primary/20 rounded-full particle-float"></div>
                 <div className="absolute top-16 right-12 w-1.5 h-1.5 bg-accent/30 rounded-full particle-float" style={{ animationDelay: '2s' }}></div>
                 <div className="absolute bottom-12 left-16 w-1 h-1 bg-secondary/25 rounded-full particle-float" style={{ animationDelay: '4s' }}></div>

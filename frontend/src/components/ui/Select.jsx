@@ -140,7 +140,7 @@ const Select = React.forwardRef((props, ref) => {
                     id={selectId}
                     type="button"
                     className={cn(
-                        "relative flex h-10 w-full items-center flex-nowrap rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                        "relative flex h-10 w-full items-center flex-nowrap rounded-lg border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
                         theme === 'dark' ? "bg-[#23232a] text-[#e0e7ff] border-[#334155]" : "bg-white text-black border-input",
                         error && "border-destructive focus:ring-destructive",
                         !hasValue && (theme === 'dark' ? "text-[#94a3b8]" : "text-muted-foreground"),
@@ -195,7 +195,7 @@ const Select = React.forwardRef((props, ref) => {
 
                 {/* Dropdown */}
                 {isOpen && (
-                    <div className={cn("absolute left-0 z-50 w-full mt-1 border rounded-md shadow-md", theme === 'dark' ? "bg-[#23232a] text-[#e0e7ff] border-[#334155]" : "bg-white text-black border-border")}>
+                    <div className={cn("absolute left-0 z-50 w-full mt-1 border rounded-lg shadow-md", theme === 'dark' ? "bg-[#23232a] text-[#e0e7ff] border-[#334155]" : "bg-white text-black border-border")}>
                         {searchable && (
                             <div className="p-2 border-b">
                                 <div className="relative">

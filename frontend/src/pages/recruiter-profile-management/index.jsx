@@ -7,6 +7,7 @@ import ProfessionalDetailsTab from 'pages/profile-management/components/Professi
 import PreferencesTab from 'pages/profile-management/components/PreferencesTab';
 import SecurityTab from 'pages/profile-management/components/SecurityTab';
 import ProfileCompletionMeter from 'pages/profile-management/components/ProfileCompletionMeter';
+import RecruiterResumeUpdatesTab from './components/RecruiterResumeUpdatesTab';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -94,10 +95,8 @@ const RecruiterProfileManagement = () => {
                     company: profile.company_name || '',
                     experience: profile.experience_level || '',
                     skills: profile.skills || [],
-                    // desired roles from DB-backed profile
-                    desiredRoles: Array.isArray(profile.desired_roles)
-                        ? profile.desired_roles
-                        : (Array.isArray(profile.preferred_roles) ? profile.preferred_roles : []),
+                    // desired roles removed for recruiters
+                    desiredRoles: [],
                     // For recruiters: allow single primary industry; preserve industries[] too
                     industry: profile.primary_industry || profile.industry || (Array.isArray(profile.industries) && profile.industries[0]) || '',
                     industries: Array.isArray(profile.industries) ? profile.industries : (profile.industry ? [profile.industry] : []),
@@ -143,6 +142,7 @@ const RecruiterProfileManagement = () => {
     const tabs = [
         { id: 'personal', label: 'Personal Info', icon: 'User', component: PersonalInfoTab },
         { id: 'professional', label: 'Professional Details', icon: 'Briefcase', component: ProfessionalDetailsTab },
+        { id: 'resume', label: 'Resume Updates', icon: 'FileText', component: RecruiterResumeUpdatesTab },
         { id: 'preferences', label: 'Preferences', icon: 'Settings', component: PreferencesTab },
         { id: 'security', label: 'Security', icon: 'Shield', component: SecurityTab }
     ];
@@ -176,7 +176,7 @@ const RecruiterProfileManagement = () => {
                 ...(updatedData.linkedin !== undefined && { linkedin_url: updatedData.linkedin }),
                 // Professional
                 ...(updatedData.jobTitle !== undefined && { job_title: updatedData.jobTitle }),
-                ...(updatedData.desiredRoles !== undefined && { preferred_roles: Array.isArray(updatedData.desiredRoles) ? updatedData.desiredRoles : [] }),
+                // desired roles removed for recruiters; ignore if present in UI data
                 ...(updatedData.skills !== undefined && { skills: Array.isArray(updatedData.skills) ? updatedData.skills : [] }),
                 ...(updatedData.certifications !== undefined && { certifications: Array.isArray(updatedData.certifications) ? updatedData.certifications : [] }),
                 ...(updatedData.industries !== undefined && { industries: Array.isArray(updatedData.industries) ? updatedData.industries : [] }),
@@ -265,9 +265,7 @@ const RecruiterProfileManagement = () => {
                 company: profile.company_name || '',
                 experience: profile.experience_level || '',
                 skills: profile.skills || [],
-                desiredRoles: Array.isArray(profile.desired_roles)
-                    ? profile.desired_roles
-                    : (Array.isArray(profile.preferred_roles) ? profile.preferred_roles : []),
+                desiredRoles: [],
                 industry: profile.primary_industry || profile.industry || (Array.isArray(profile.industries) && profile.industries[0]) || '',
                 industries: Array.isArray(profile.industries) ? profile.industries : (profile.industry ? [profile.industry] : []),
                 salary: profile.salary || '',

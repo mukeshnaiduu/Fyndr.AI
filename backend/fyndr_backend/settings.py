@@ -134,6 +134,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+    {
+        'NAME': 'fyndr_auth.validators.WeakPasswordPatternValidator',
+    },
 ]
 
 LANGUAGE_CODE = 'en-us'

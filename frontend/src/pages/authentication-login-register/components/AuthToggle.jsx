@@ -3,15 +3,14 @@ import Button from 'components/ui/Button';
 
 const AuthToggle = ({ activeMode, onModeChange }) => {
   return (
-    <div className="flex items-center space-x-1 p-1 bg-muted rounded-squircle mb-8">
+    <div className="flex items-center space-x-1 p-1 bg-muted rounded-lg mb-8">
       <Button
         variant={activeMode === 'login' ? 'default' : 'ghost'}
         size="sm"
         fullWidth
         onClick={() => onModeChange('login')}
-        className={`relative spring-transition ${
-          activeMode === 'login' ? 'glow-primary' : ''
-        }`}
+        className={`relative spring-transition ${activeMode === 'login' ? 'glow-primary' : ''
+          }`}
       >
         Sign In
         {activeMode === 'login' && (
@@ -23,9 +22,8 @@ const AuthToggle = ({ activeMode, onModeChange }) => {
         size="sm"
         fullWidth
         onClick={() => onModeChange('register')}
-        className={`relative spring-transition ${
-          activeMode === 'register' ? 'glow-primary' : ''
-        }`}
+        className={`relative spring-transition ${activeMode === 'register' ? 'glow-primary' : ''
+          }`}
       >
         Sign Up
         {activeMode === 'register' && (

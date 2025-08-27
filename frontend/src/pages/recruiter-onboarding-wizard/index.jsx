@@ -275,7 +275,6 @@ const RecruiterOnboardingWizard = () => {
                 salary_currency: (salaryFrom || salaryTo) ? 'INR' : undefined,
                 salary_range_from: salaryFrom,
                 salary_range_to: salaryTo,
-                recruiting_areas: Array.isArray(formData.focusRoles) ? formData.focusRoles : undefined,
                 bio: formData.notes || undefined,
                 // Attach ATS/Tools to skills so backend can normalize
                 skills: skillsFromATSTools,

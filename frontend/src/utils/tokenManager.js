@@ -8,6 +8,22 @@ class TokenManager {
   constructor() {
     this.refreshPromise = null; // Prevent multiple concurrent refresh attempts
     this.isRefreshing = false;
+
+    // If user chose not to be remembered, clear tokens on browser/tab close
+    try {
+      window.addEventListener('beforeunload', () => {
+        const remember = localStorage.getItem('rememberMe');
+        if (remember !== 'true') {
+          try {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.setItem('isAuthenticated', 'false');
+          } catch (_) { /* noop */ }
+        }
+      });
+    } catch (_) {
+      // window may be unavailable in some environments
+    }
   }
 
   /**
@@ -35,7 +51,7 @@ class TokenManager {
       // Decode JWT payload (without verification since we're just checking expiration)
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Date.now() / 1000;
-      
+
       // Add 30 second buffer before expiration
       return payload.exp < (currentTime + 30);
     } catch (error) {
@@ -101,7 +117,7 @@ class TokenManager {
       const url = `${baseURL}/auth/token/refresh/`;
 
       console.log('🔄 Refreshing access token...');
-      
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -115,18 +131,18 @@ class TokenManager {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('Token refresh failed:', response.status, errorData);
-        
+
         if (response.status === 401) {
           // Refresh token is invalid/expired
           this.clearTokens();
           throw new Error('REFRESH_TOKEN_EXPIRED');
         }
-        
+
         throw new Error(`Token refresh failed: ${response.status}`);
       }
 
       const data = await response.json();
-      
+
       if (!data.access) {
         throw new Error('No access token in refresh response');
       }
@@ -142,11 +158,11 @@ class TokenManager {
 
     } catch (error) {
       console.error('Error refreshing token:', error);
-      
+
       if (error.message === 'REFRESH_TOKEN_EXPIRED') {
         this.clearTokens();
       }
-      
+
       throw error;
     }
   }
@@ -156,7 +172,7 @@ class TokenManager {
    */
   async getValidAccessToken() {
     const accessToken = this.getAccessToken();
-    
+
     if (!accessToken) {
       throw new Error('NO_ACCESS_TOKEN');
     }
@@ -178,7 +194,8 @@ class TokenManager {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     localStorage.setItem('isAuthenticated', 'false');
-    
+    // Keep rememberMe preference so UX can honor user's last choice
+
     // Dispatch event to notify components
     window.dispatchEvent(new CustomEvent('authStateChanged', {
       detail: { authenticated: false, reason: 'tokens_cleared' }
@@ -206,7 +223,7 @@ class TokenManager {
     const accessToken = this.getAccessToken();
     const refreshToken = this.getRefreshToken();
     const isAuthFlag = localStorage.getItem('isAuthenticated') === 'true';
-    
+
     return !!(accessToken && refreshToken && isAuthFlag);
   }
 
@@ -214,10 +231,11 @@ class TokenManager {
    * Set authentication tokens
    */
   setTokens(accessToken, refreshToken) {
+    // Store tokens in localStorage. RememberMe is recorded separately by login flow.
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('isAuthenticated', 'true');
-    
+
     // Dispatch event to notify components
     window.dispatchEvent(new CustomEvent('authStateChanged', {
       detail: { authenticated: true, reason: 'tokens_set' }

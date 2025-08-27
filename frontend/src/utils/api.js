@@ -50,7 +50,9 @@ export async function apiRequest(endpoint, method = 'GET', data = null, customTo
       }
     }
 
-    const headers = getAuthHeaders(authToken);
+    // Avoid sending Authorization for open auth endpoints
+    const isAuthEndpoint = /\/auth\/(login|register)\/?$/.test(endpoint);
+    const headers = isAuthEndpoint ? { 'Content-Type': 'application/json' } : getAuthHeaders(authToken);
     const options = {
       method,
       headers,
@@ -92,7 +94,10 @@ export async function apiRequest(endpoint, method = 'GET', data = null, customTo
 
           if (!retryResponse.ok) {
             console.error('Request failed even after token refresh:', retryResponse.status);
-            throw new Error(retryResult.detail || retryResult.message || `HTTP error! status: ${retryResponse.status}`);
+            const err = new Error(retryResult.detail || retryResult.message || `HTTP error! status: ${retryResponse.status}`);
+            err.response = retryResult;
+            err.status = retryResponse.status;
+            throw err;
           }
 
           return retryResult;
@@ -117,7 +122,10 @@ export async function apiRequest(endpoint, method = 'GET', data = null, customTo
           }
         } catch { /* noop */ }
       }
-      throw new Error(message || `HTTP error! status: ${response.status}`);
+      const err = new Error(message || `HTTP error! status: ${response.status}`);
+      err.response = result;
+      err.status = response.status;
+      throw err;
     }
 
     return result;

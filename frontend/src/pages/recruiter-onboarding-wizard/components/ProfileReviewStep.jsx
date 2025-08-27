@@ -17,7 +17,7 @@ const ProfileReviewStep = ({ data, onPrev, onComplete, isLoading }) => {
         if (data.location) score += 5;
         if (data.profileImage) score += 5;
         if (data.resume) score += 20;
-        if (Array.isArray(data.focusRoles) && data.focusRoles.length > 0) score += 10;
+        // focusRoles removed for recruiters
         if (Array.isArray(data.candidateTypes) && data.candidateTypes.length > 0) score += 10;
         if (Array.isArray(data.workArrangements) && data.workArrangements.length > 0) score += 10;
         if (Array.isArray(data.industries) && data.industries.length > 0) score += 10;
@@ -155,15 +155,7 @@ const ProfileReviewStep = ({ data, onPrev, onComplete, isLoading }) => {
                     <div className="space-y-3">
                         <div>
                             <p className="text-sm font-medium text-muted-foreground">Focus Roles</p>
-                            {Array.isArray(data.focusRoles) && data.focusRoles.length > 0 ? (
-                                <div className="flex flex-wrap gap-2 mt-1">
-                                    {data.focusRoles.map((role) => (
-                                        <span key={role} className="px-2.5 py-1.5 bg-accent/10 text-accent text-sm font-semibold rounded-full">{role}</span>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-sm">Not specified</p>
-                            )}
+                            <p className="text-sm text-muted-foreground">Role targets not collected in this flow</p>
                         </div>
 
                         <div>

@@ -13,6 +13,7 @@ import PreferencesTab from './components/PreferencesTab';
 import SecurityTab from './components/SecurityTab';
 import ApplicationsTab from './components/ApplicationsTab';
 import ProfileCompletionMeter from './components/ProfileCompletionMeter';
+import ResumeUpdatesTab from './components/ResumeUpdatesTab';
 
 
 const ProfileManagement = () => {
@@ -72,6 +73,11 @@ const ProfileManagement = () => {
           ...data,
           profile, // preserve original for reference
           role_raw: roleRaw,
+          // expose suited roles suggestions saved in profile (detailed + names)
+          suitedRolesDetailed: Array.isArray(profile.suited_job_roles_detailed) ? profile.suited_job_roles_detailed : [],
+          suitedRoles: Array.isArray(profile.suited_job_roles_detailed)
+            ? profile.suited_job_roles_detailed.map(r => (typeof r === 'string' ? r : (r && r.role))).filter(Boolean)
+            : [],
           // camelCase duplicates for UI components
           id: data.id,
           username: data.username,
@@ -159,6 +165,12 @@ const ProfileManagement = () => {
       component: ProfessionalDetailsTab
     },
     ...((userProfile?.role === 'jobseeker' || userProfile?.role === 'job_seeker') ? [{
+      id: 'resume',
+      label: 'Resume Updates',
+      icon: 'FileText',
+      component: ResumeUpdatesTab
+    }] : []),
+    ...((userProfile?.role === 'jobseeker' || userProfile?.role === 'job_seeker') ? [{
       id: 'applications',
       label: 'Applications',
       icon: 'ClipboardCheck',
@@ -216,6 +228,8 @@ const ProfileManagement = () => {
         ...(updatedData.jobTitle !== undefined && { job_title: updatedData.jobTitle }),
         // Serializer expects preferred_roles; /auth/profile does not normalize aliases
         ...(updatedData.desiredRoles !== undefined && { preferred_roles: Array.isArray(updatedData.desiredRoles) ? updatedData.desiredRoles : [] }),
+        // Persist detailed suggested roles (role + match_percent)
+        ...(updatedData.suitedRolesDetailed !== undefined && { suited_job_roles_detailed: Array.isArray(updatedData.suitedRolesDetailed) ? updatedData.suitedRolesDetailed : [] }),
         ...(updatedData.skills !== undefined && { skills: Array.isArray(updatedData.skills) ? updatedData.skills : [] }),
         ...(updatedData.certifications !== undefined && { certifications: Array.isArray(updatedData.certifications) ? updatedData.certifications : [] }),
         ...(updatedData.industries !== undefined && { industries: Array.isArray(updatedData.industries) ? updatedData.industries : [] }),
@@ -288,6 +302,10 @@ const ProfileManagement = () => {
         ...data,
         profile,
         role_raw: data.role,
+        suitedRolesDetailed: Array.isArray(profile.suited_job_roles_detailed) ? profile.suited_job_roles_detailed : [],
+        suitedRoles: Array.isArray(profile.suited_job_roles_detailed)
+          ? profile.suited_job_roles_detailed.map(r => (typeof r === 'string' ? r : (r && r.role))).filter(Boolean)
+          : [],
         id: data.id,
         username: data.username,
         email: data.email || profile.email || '',

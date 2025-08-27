@@ -3,13 +3,11 @@ import { motion } from 'framer-motion';
 import Input from 'components/ui/Input';
 import { Checkbox, CheckboxGroup } from 'components/ui/Checkbox';
 import Button from 'components/ui/Button';
-import RoleInput from 'components/ui/RoleInput';
 import { INDUSTRY_OPTIONS } from 'constants/industries';
 import Select from 'components/ui/Select';
 
 const RecruiterPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
     const [prefs, setPrefs] = useState({
-        focusRoles: data.focusRoles || [],
         candidateTypes: data.candidateTypes || [],
         workArrangements: data.workArrangements || [],
         salaryMin: data.salaryMin || '',
@@ -23,7 +21,6 @@ const RecruiterPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
         ...data
     });
 
-    const [roleInput, setRoleInput] = useState('');
     const [errors, setErrors] = useState({});
     const MAX_SALARY_ALLOWED = 99999999; // 8 digits before decimal
 
@@ -113,7 +110,6 @@ const RecruiterPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
 
     const validate = () => {
         const e = {};
-        if (prefs.focusRoles.length === 0) e.focusRoles = 'Add at least one target role';
         if (!prefs.industries || prefs.industries.length === 0) e.industries = 'Select at least one industry';
         const minN = prefs.salaryMin === '' ? null : Number(prefs.salaryMin);
         const maxN = prefs.salaryMax === '' ? null : Number(prefs.salaryMax);
@@ -147,41 +143,7 @@ const RecruiterPreferencesStep = ({ data, onUpdate, onNext, onPrev }) => {
         >
             <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-foreground mb-2">Your recruiting focus</h2>
-                <p className="text-muted-foreground">Tell us which roles and industries you typically recruit for</p>
-            </div>
-
-            {/* Focus Roles */}
-            <div className="max-w-2xl mx-auto space-y-3">
-                <RoleInput
-                    label="Target Roles"
-                    value={roleInput}
-                    onChange={setRoleInput}
-                    audience="jobseeker"
-                    required
-                    onSelect={(val) => {
-                        if (!val) return;
-                        setPrefs(prev => ({
-                            ...prev,
-                            focusRoles: prev.focusRoles.includes(val) ? prev.focusRoles : [...prev.focusRoles, val]
-                        }));
-                        setRoleInput('');
-                        if (errors.focusRoles) setErrors(prev => ({ ...prev, focusRoles: '' }));
-                    }}
-                    clearOnSelect
-                    placeholder="e.g., Frontend Developer, Data Scientist"
-                />
-                <div className="flex flex-wrap gap-2">
-                    {prefs.focusRoles.map((role) => (
-                        <span key={role} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full flex items-center gap-1">
-                            {role}
-                            <button type="button" className="ml-1 text-primary hover:text-primary/80" onClick={() => setPrefs(prev => ({
-                                ...prev,
-                                focusRoles: prev.focusRoles.filter(r => r !== role)
-                            }))}>×</button>
-                        </span>
-                    ))}
-                    {errors.focusRoles && <p className="text-xs text-error">{errors.focusRoles}</p>}
-                </div>
+                <p className="text-muted-foreground">Tell us which industries you typically recruit for</p>
             </div>
 
             {/* Candidate Types */}

@@ -4,6 +4,7 @@ import Button from 'components/ui/Button';
 import { Checkbox } from 'components/ui/Checkbox';
 import RoleSelector from './RoleSelector';
 import PasswordStrengthIndicator from './PasswordStrengthIndicator';
+import Icon from 'components/AppIcon';
 
 const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
   const [formData, setFormData] = useState({
@@ -20,14 +21,6 @@ const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Mock credentials for different roles
-  const mockCredentials = {
-    job_seeker: { email: 'jobseeker@fyndrai.com', password: 'JobSeeker123!' },
-    recruiter: { email: 'recruiter@fyndrai.com', password: 'Recruiter123!' },
-    company: { email: 'company@fyndrai.com', password: 'Company123!' },
-    administrator: { email: 'admin@fyndrai.com', password: 'Admin123!' }
-  };
-
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -38,7 +31,7 @@ const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-sm mx-auto bg-white/95 dark:bg-neutral-900 dark:shadow-xl rounded-squircle p-6 shadow-lg">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {mode === 'register' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
@@ -50,6 +43,7 @@ const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
             error={errors.firstName}
             required
             disabled={isLoading}
+            className="rounded-lg"
           />
           <Input
             label="Last Name"
@@ -60,6 +54,7 @@ const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
             error={errors.lastName}
             required
             disabled={isLoading}
+            className="rounded-lg"
           />
         </div>
       )}
@@ -73,72 +68,81 @@ const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
         error={errors.email}
         required
         disabled={isLoading}
-        className="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300"
+        className="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300 rounded-lg"
       />
-      {errors.email && (
-        <p className="text-xs text-error mt-1">{errors.email}</p>
-      )}
 
-      <Input
-        label={<span className="text-foreground">Password</span>}
-        type={showPassword ? "text" : "password"}
-        placeholder="Enter your password"
-        value={formData.password}
-        onChange={(e) => handleInputChange('password', e.target.value)}
-        className="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300"
-        error={errors.password}
-        required
-        disabled={isLoading}
-      />
-      <Checkbox
-        label="Show password"
-        checked={showPassword}
-        onChange={(e) => setShowPassword(e.target.checked)}
-        size="sm"
-      />
-      {errors.password && (
-        <p className="text-xs text-error mt-1">{errors.password}</p>
-      )}
-
-      {formData.password.length > 0 && (
-        <PasswordStrengthIndicator
-          password={formData.password}
-          isVisible={formData.password.length > 0}
+      {mode === 'login' && (
+        <Input
+          label={<span className="text-foreground">Password</span>}
+          type={showPassword ? "text" : "password"}
+          placeholder="Enter your password"
+          value={formData.password}
+          onChange={(e) => handleInputChange('password', e.target.value)}
+          className="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300 rounded-lg pr-10"
+          error={errors.password}
+          required
+          disabled={isLoading}
+          endAdornment={
+            <span onClick={() => setShowPassword(v => !v)} role="button" aria-label={showPassword ? 'Hide password' : 'Show password'}>
+              <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={18} />
+            </span>
+          }
         />
       )}
 
       {mode === 'register' && (
         <>
-          <div className="space-y-2">
-            <Input
-              label="Confirm Password"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
-              onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-              error={errors.confirmPassword}
-              required
-              disabled={isLoading}
-            />
-            <Checkbox
-              label="Show confirm password"
-              checked={showConfirmPassword}
-              onChange={(e) => setShowConfirmPassword(e.target.checked)}
-              size="sm"
-            />
-            {errors.confirmPassword && (
-              <p className="text-xs text-error mt-1">{errors.confirmPassword}</p>
-            )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Input
+                label={<span className="text-foreground">Password</span>}
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                className="text-foreground bg-background dark:bg-neutral-900 dark:text-white dark:placeholder:text-gray-300 rounded-lg pr-10"
+                error={errors.password}
+                required
+                disabled={isLoading}
+                endAdornment={
+                  <span onClick={() => setShowPassword(v => !v)} role="button" aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                    <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={18} />
+                  </span>
+                }
+              />
+            </div>
+            <div>
+              <Input
+                label="Confirm Password"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                error={errors.confirmPassword}
+                required
+                disabled={isLoading}
+                className="rounded-lg pr-10"
+                endAdornment={
+                  <span onClick={() => setShowConfirmPassword(v => !v)} role="button" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
+                    <Icon name={showConfirmPassword ? 'EyeOff' : 'Eye'} size={18} />
+                  </span>
+                }
+              />
+            </div>
           </div>
+
+          {formData.password.length > 0 && (
+            <PasswordStrengthIndicator
+              password={formData.password}
+              isVisible={formData.password.length > 0}
+            />
+          )}
 
           <RoleSelector
             selectedRole={formData.role}
             onRoleChange={(value) => handleInputChange('role', value)}
             error={errors.role}
           />
-          {errors.role && (
-            <p className="text-xs text-error mt-1">{errors.role}</p>
-          )}
 
           <div className="space-y-3">
             <Checkbox
@@ -148,9 +152,6 @@ const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
               error={errors.agreeToTerms}
               required
             />
-            {errors.agreeToTerms && (
-              <p className="text-xs text-error mt-1">{errors.agreeToTerms}</p>
-            )}
           </div>
         </>
       )}
@@ -172,7 +173,7 @@ const AuthForm = ({ mode, onSubmit, isLoading, errors = {} }) => {
         iconName={mode === 'login' ? "LogIn" : "UserPlus"}
         iconPosition="left"
         iconSize={18}
-        className="glow-primary"
+        className="rounded-lg glow-primary"
       >
         {mode === 'login' ? 'Sign In' : 'Create Account'}
       </Button>

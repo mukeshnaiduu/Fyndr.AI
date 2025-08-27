@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from 'components/AppIcon';
 import Input from 'components/ui/Input';
 import Button from 'components/ui/Button';
@@ -37,6 +37,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
   });
 
   const [errors, setErrors] = useState({});
+  // Resume parsing moved to ResumeUpdatesTab
   const [projectErrors, setProjectErrors] = useState({});
   const [newSkill, setNewSkill] = useState('');
   const [newSkillProficiency, setNewSkillProficiency] = useState('intermediate');
@@ -252,42 +253,7 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
     if (onDraftChange) onDraftChange({ certifications: next });
   };
 
-  const handleResumeUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      setErrors(prev => ({ ...prev, resume: 'File size must be less than 10MB' }));
-      return;
-    }
-    if (!file.type.includes('pdf') && !file.type.includes('doc')) {
-      setErrors(prev => ({ ...prev, resume: 'Please upload a PDF or DOC file' }));
-      return;
-    }
-
-    // Optimistic UI: show file name
-    setFormData(prev => ({ ...prev, resume: file }));
-    setErrors(prev => ({ ...prev, resume: '' }));
-
-    try {
-      const authToken = localStorage.getItem('accessToken');
-      const formDataFd = new FormData();
-      formDataFd.append('file', file);
-      formDataFd.append('type', 'resume');
-      const res = await fetch(getApiUrl('/auth/upload/'), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${authToken}` },
-        body: formDataFd
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success) throw new Error(data?.error || 'Upload failed');
-      // Notify parent/draft so checklist updates
-      const tokenParam = localStorage.getItem('accessToken') || '';
-      const urlWithToken = data.url ? `${data.url}${data.url.includes('?') ? '&' : '?'}token=${tokenParam}` : '';
-      if (onDraftChange) onDraftChange({ resume: urlWithToken || true, resume_url: urlWithToken });
-    } catch (err) {
-      setErrors(prev => ({ ...prev, resume: 'Upload failed. Try again.' }));
-    }
-  };
+  // Removed resume upload/parse/apply functions; handled in ResumeUpdatesTab
 
   const validateForm = () => {
     const newErrors = {};
@@ -1038,85 +1004,6 @@ const ProfessionalDetailsTab = ({ userProfile, onUpdateProfile, onDraftChange })
           </div>
         </div>
 
-        {/* Resume Upload (Job Seekers only) */}
-        {userProfile.role === 'jobseeker' && (
-          <div className="glassmorphic p-6 rounded-squircle">
-            <h3 className="font-heading font-heading-semibold text-foreground mb-4 flex items-center">
-              <Icon name="FileText" size={20} className="mr-2" />
-              Resume
-            </h3>
-
-            <div className="space-y-4">
-              <div className="border-2 border-dashed border-border rounded-squircle p-6 text-center hover:border-primary/50 spring-transition">
-                <Icon name="Upload" size={32} className="text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground mb-2">
-                  Upload your resume (PDF or DOC, max 10MB)
-                </p>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleResumeUpload}
-                  className="hidden"
-                  id="resume-upload"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('resume-upload').click()}
-                  iconName="Upload"
-                  iconPosition="left"
-                  iconSize={16}
-                >
-                  Choose File
-                </Button>
-              </div>
-
-              {formData.resume && (
-                <div className="flex items-center justify-between bg-muted p-3 rounded-squircle">
-                  <div className="flex items-center space-x-2">
-                    <Icon name="FileText" size={16} className="text-primary" />
-                    <span className="text-sm font-body font-body-medium">
-                      {formData.resume.name || 'Resume uploaded'}
-                    </span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setFormData(prev => ({ ...prev, resume: null }))}
-                    iconName="Trash2"
-                    iconSize={14}
-                    className="text-error hover:text-error"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              )}
-
-              {errors.resume && (
-                <p className="text-sm text-error">{errors.resume}</p>
-              )}
-              {userProfile.resume_url && (
-                <div className="flex items-center gap-2 justify-end">
-                  <a
-                    href={userProfile.resume_url}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="px-3 py-1 text-xs rounded-squircle bg-primary text-primary-foreground hover:opacity-90 spring-transition"
-                  >
-                    View
-                  </a>
-                  <a
-                    href={`${userProfile.resume_url}${userProfile.resume_url.includes('?') ? '&' : '?'}download=1`}
-                    className="px-3 py-1 text-xs rounded-squircle bg-secondary text-secondary-foreground hover:opacity-90 spring-transition"
-                  >
-                    Download
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
         {/* Submit */}
         <div className="flex justify-end">
           <Button type="submit" iconName="Save" iconSize={16}>

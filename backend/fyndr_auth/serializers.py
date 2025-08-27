@@ -23,6 +23,19 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
             raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
+        # Re-run password validation with a user-like object so validators
+        # that use user attributes (name/username/email) can apply.
+        try:
+            temp_user = User(
+                username=attrs.get('username', ''),
+                email=attrs.get('email', ''),
+                first_name=attrs.get('first_name', ''),
+                last_name=attrs.get('last_name', ''),
+            )
+            validate_password(attrs['password'], user=temp_user)
+        except Exception as e:
+            # Normalize to DRF error shape
+            raise serializers.ValidationError({"password": [str(e)]})
         return attrs
 
     def create(self, validated_data):
@@ -41,6 +54,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+    # Optional flag from client to control token lifetimes
+    # True (default) = longer-lived refresh token, suitable for persistent login
+    # False = shorter-lived tokens (session-like behavior)
+    rememberMe = serializers.BooleanField(required=False, default=True)
 
 
 class EducationEntrySerializer(serializers.Serializer):

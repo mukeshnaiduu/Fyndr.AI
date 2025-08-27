@@ -173,6 +173,7 @@ from rest_framework import generics, status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.http import JsonResponse
+import io
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -292,33 +293,21 @@ class FileUploadView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request, *args, **kwargs):
-        print(f"=== FILE UPLOAD DEBUG ===")
-        print(f"User authenticated: {request.user.is_authenticated}")
-        print(f"User: {request.user}")
-        print(f"User type: {type(request.user)}")
-        print(f"Auth header: {request.META.get('HTTP_AUTHORIZATION', 'None')}")
+        logger = __import__('logging').getLogger(__name__)
         
         # Check if user is AnonymousUser
         from django.contrib.auth.models import AnonymousUser
         if isinstance(request.user, AnonymousUser):
-            print("User is AnonymousUser - JWT authentication failed")
             return Response({'error': 'Authentication required', 'detail': 'JWT token invalid or expired'}, status=status.HTTP_401_UNAUTHORIZED)
         
         if not request.user.is_authenticated:
-            print("User not authenticated")
             return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
         
         if 'file' not in request.FILES:
-            print("No file in request.FILES")
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         
         uploaded_file = request.FILES['file']
         file_type = request.POST.get('type', 'resume')  # resume, cover_letter, portfolio, logo, brochure
-        
-        print(f"Uploaded file: {uploaded_file.name}")
-        print(f"File size: {uploaded_file.size}")
-        print(f"File type: {file_type}")
-        print(f"Content type: {uploaded_file.content_type}")
         
         # Validate file size (10MB limit)
         if uploaded_file.size > 10 * 1024 * 1024:
@@ -333,16 +322,14 @@ class FileUploadView(APIView):
             'logo': ['.jpg', '.jpeg', '.png', '.gif'],
             'brochure': ['.pdf']
         }
-        
+
         file_extension = os.path.splitext(uploaded_file.name)[1].lower()
-        print(f"File extension detected: '{file_extension}'")
-        print(f"Allowed extensions for {file_type}: {allowed_extensions.get(file_type, [])}")
-        
+
         if file_extension not in allowed_extensions.get(file_type, []):
             return Response({
                 'error': f'Invalid file type. Allowed types for {file_type}: {", ".join(allowed_extensions.get(file_type, []))}'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             # Read file data
             file_data = uploaded_file.read()
@@ -366,8 +353,9 @@ class FileUploadView(APIView):
                     except Exception:
                         return _invalid_response('Corrupted DOCX file. Please re-export your resume as .docx or PDF and try again.')
                 elif file_extension == '.doc':
-                    # Legacy DOC (OLE) header signature
-                    if not file_data.startswith(b'\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1'):
+                    # Legacy DOC (OLE) header signature, but many browsers/apps upload with generic msword type without OLE header.
+                    # Accept if it has a valid OLE header OR if the reported content-type is application/msword.
+                    if not (file_data.startswith(b'\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1') or (uploaded_file.content_type or '').lower() == 'application/msword'):
                         return _invalid_response('Invalid DOC file. Please upload a valid .doc resume or convert to PDF/DOCX.')
             
             # Get or create the user's profile
@@ -500,8 +488,7 @@ class FileUploadView(APIView):
             
         except Exception as e:
             import traceback
-            print('FILE UPLOAD ERROR:', str(e))
-            print(traceback.format_exc())
+            logger.error('FILE UPLOAD ERROR: %s\n%s', str(e), traceback.format_exc())
             return Response({'error': f'Upload failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -679,6 +666,7 @@ class ResumeParseView(APIView):
                     from .utils.resume_ai import extract_text_and_links_from_resume
                     text, detected_links = extract_text_and_links_from_resume(profile.resume_content_type or '', profile.resume_filename or '', profile.resume_data)
                 except Exception:
+                    text = ''
                     detected_links = []
                 if not (text or '').strip():
                     self._clear_resume_fields(profile)
@@ -874,6 +862,9 @@ class GoogleAuthStatusView(APIView):
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
+    # Explicitly allow unauthenticated access and bypass JWT auth parsing
+    permission_classes = [AllowAny]
+    authentication_classes = []
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -893,12 +884,16 @@ class RegisterView(generics.CreateAPIView):
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
+    # Explicitly allow unauthenticated access and bypass JWT auth parsing
+    permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
+        remember_me = serializer.validated_data.get('rememberMe', True)
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
@@ -907,9 +902,23 @@ class LoginView(generics.GenericAPIView):
         user = authenticate(username=user.username, password=password)
         if user is not None:
             refresh = RefreshToken.for_user(user)
+            # If remember_me is False, shorten token lifetimes for this response only.
+            if not remember_me:
+                try:
+                    from datetime import timedelta
+                    # Override lifetime on the token instances (does not affect global settings)
+                    refresh.set_exp(lifetime=timedelta(days=1))  # 1 day refresh
+                    access = refresh.access_token
+                    access.set_exp(lifetime=timedelta(minutes=30))  # 30 minutes access
+                except Exception:
+                    # Fallback to defaults if anything goes wrong
+                    access = refresh.access_token
+            else:
+                access = refresh.access_token
+
             return Response({
                 'refresh': str(refresh),
-                'access': str(refresh.access_token),
+                'access': str(access),
                 'role': user.role,
                 'email': user.email,
                 'first_name': user.first_name,
@@ -986,14 +995,14 @@ class JobSeekerProfileView(generics.RetrieveUpdateAPIView):
         if not data.get('email') and user.email:
             data['email'] = user.email
             
-        # Handle empty string date fields - convert to None for Django DateField
+    # Handle empty string date fields - convert to None for Django DateField (we'll prune None later)
         date_fields = ['availability_date']
         for field in date_fields:
             if field in data and data[field] == '':
                 data[field] = None
                 print(f"Converted empty string to None for date field: {field}")
         
-        # Handle empty string decimal fields - convert to None for Django DecimalField
+    # Handle empty string decimal fields - convert to None for Django DecimalField (we'll prune None later)
         decimal_fields = ['salary_min', 'salary_max']
         for field in decimal_fields:
             if field in data and data[field] == '':
@@ -1154,7 +1163,42 @@ class JobSeekerProfileView(generics.RetrieveUpdateAPIView):
         except Exception as e:
             print(f"Alias field normalization skipped due to error: {e}")
             
-        print(f"Processed data: {data}")
+        # Prune empty/blank values to avoid overwriting existing resume-derived data
+        def _prune_empty(d):
+            keys_to_delete = []
+            for k, v in d.items():
+                # Keep valid falsy values like False and numeric 0
+                if v is False or v == 0:
+                    continue
+                if v is None:
+                    keys_to_delete.append(k)
+                elif isinstance(v, str):
+                    if v.strip() == '' or v.strip().lower() in ('null', 'undefined'):
+                        keys_to_delete.append(k)
+                elif isinstance(v, (list, tuple)) and len(v) == 0:
+                    keys_to_delete.append(k)
+                elif isinstance(v, dict) and len(v.keys()) == 0:
+                    keys_to_delete.append(k)
+            for k in keys_to_delete:
+                d.pop(k, None)
+
+        # Additional guard: drop explicitly empty arrays for known list fields
+        for list_field in ['skills', 'preferred_roles', 'benefits_preferences', 'work_arrangements', 'industries', 'job_types', 'preferred_locations', 'education', 'experiences']:
+            if list_field in data:
+                try:
+                    val = data[list_field]
+                    if isinstance(val, str):
+                        import json
+                        parsed = json.loads(val)
+                        if isinstance(parsed, list) and len(parsed) == 0:
+                            del data[list_field]
+                    elif isinstance(val, list) and len(val) == 0:
+                        del data[list_field]
+                except Exception:
+                    pass
+
+        _prune_empty(data)
+        print(f"Processed (pruned) data: {data}")
             
         # Only one profile per user: update if exists, else create
         try:
@@ -1273,21 +1317,21 @@ class RecruiterProfileView(generics.RetrieveUpdateAPIView):
         if not data.get('email') and user.email:
             data['email'] = user.email
             
-        # Handle empty string date fields - convert to None for Django DateField
+    # Handle empty string date fields - convert to None for Django DateField (we'll prune None later)
         date_fields = ['availability_start_date']
         for field in date_fields:
             if field in data and data[field] == '':
                 data[field] = None
                 print(f"Converted empty string to None for date field: {field}")
         
-        # Handle empty string integer fields - convert to None for Django IntegerField
+    # Handle empty string integer fields - convert to None for Django IntegerField (we'll prune None later)
         integer_fields = ['years_of_experience', 'current_company_id']
         for field in integer_fields:
             if field in data and (data[field] == '' or data[field] is None):
                 data[field] = None
                 print(f"Converted empty value to None for integer field: {field}")
 
-        # Handle decimal fields
+    # Handle decimal fields (we'll prune None later)
         decimal_fields = ['salary_range_from', 'salary_range_to']
         for field in decimal_fields:
             if field in data and data[field] == '':
@@ -1333,6 +1377,41 @@ class RecruiterProfileView(generics.RetrieveUpdateAPIView):
                 data['skills'] = normalized_skills
             except Exception as e:
                 print(f"Recruiter skills normalization skipped due to error: {e}")
+        
+            # Prune empty/blank values to avoid overwriting existing resume-derived data
+            def _prune_empty(d):
+                keys_to_delete = []
+                for k, v in d.items():
+                    if v is False or v == 0:
+                        continue
+                    if v is None:
+                        keys_to_delete.append(k)
+                    elif isinstance(v, str):
+                        if v.strip() == '' or v.strip().lower() in ('null', 'undefined'):
+                            keys_to_delete.append(k)
+                    elif isinstance(v, (list, tuple)) and len(v) == 0:
+                        keys_to_delete.append(k)
+                    elif isinstance(v, dict) and len(v.keys()) == 0:
+                        keys_to_delete.append(k)
+                for k in keys_to_delete:
+                    d.pop(k, None)
+
+            for list_field in ['skills', 'preferred_roles', 'company_associations', 'industries', 'work_arrangements']:
+                if list_field in data:
+                    try:
+                        val = data[list_field]
+                        if isinstance(val, str):
+                            import json
+                            parsed = json.loads(val)
+                            if isinstance(parsed, list) and len(parsed) == 0:
+                                del data[list_field]
+                        elif isinstance(val, list) and len(val) == 0:
+                            del data[list_field]
+                    except Exception:
+                        pass
+
+            _prune_empty(data)
+            print(f"Processed (pruned) recruiter data: {data}")
             
         # Only one profile per user: update if exists, else create
         try:

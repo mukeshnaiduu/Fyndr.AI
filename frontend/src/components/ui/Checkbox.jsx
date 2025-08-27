@@ -43,7 +43,7 @@ const Checkbox = React.forwardRef(({
                     htmlFor={checkboxId}
                     className={cn(
                         // base styles
-                        "flex items-center justify-center shrink-0 rounded-[4px] border bg-background text-transparent cursor-pointer transition-colors ring-offset-background",
+                        "flex items-center justify-center shrink-0 rounded-[6px] border bg-background text-transparent cursor-pointer transition-colors ring-offset-background",
                         // sizes
                         sizeClasses[size],
                         // states

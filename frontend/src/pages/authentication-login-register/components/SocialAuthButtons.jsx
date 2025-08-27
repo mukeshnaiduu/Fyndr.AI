@@ -52,7 +52,7 @@ const SocialAuthButtons = ({ onSocialAuth, isLoading }) => {
           fullWidth
           onClick={() => handleSocialClick('google')}
           disabled={isLoading}
-          className={`relative overflow-hidden ${rippleButton === 'google' ? 'ripple' : ''
+          className={`relative overflow-hidden rounded-lg ${rippleButton === 'google' ? 'ripple' : ''
             }`}
         >
           <div className="flex items-center justify-center space-x-2">
@@ -84,7 +84,7 @@ const SocialAuthButtons = ({ onSocialAuth, isLoading }) => {
           fullWidth
           onClick={() => handleSocialClick('linkedin')}
           disabled={isLoading}
-          className={`relative overflow-hidden ${rippleButton === 'linkedin' ? 'ripple' : ''
+          className={`relative overflow-hidden rounded-lg ${rippleButton === 'linkedin' ? 'ripple' : ''
             }`}
         >
           <div className="flex items-center justify-center space-x-2">

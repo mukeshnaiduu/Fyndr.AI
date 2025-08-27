@@ -41,7 +41,7 @@ const RoleSelector = ({ selectedRole, onRoleChange, error }) => {
       />
 
       {selectedRole && (
-        <div className="glassmorphic p-3 rounded-squircle border border-primary/20">
+        <div className="glassmorphic p-3 rounded-lg border border-primary/20">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
             <span className="text-sm font-body font-body-medium text-foreground">
