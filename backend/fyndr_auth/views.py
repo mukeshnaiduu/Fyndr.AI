@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.http import HttpResponse
 from django.utils import timezone
-from .models import User, JobSeekerProfile, RecruiterProfile, CompanyProfile, CompanyRecruiterRelationship, Location, Skill, JobRole
+from .models import User, JobSeekerProfile, RecruiterProfile, CompanyProfile, CompanyRecruiterRelationship, Location, Skill, JobRole, ChatConversation, ChatMessage
 from django.db.models import Q
 from .serializers import (
     RegisterSerializer, LoginSerializer, 
@@ -13,6 +13,207 @@ from .serializers import (
     JobSeekerOnboardingSerializer, LocationSerializer, SkillSerializer, JobRoleSerializer
 )
 from .utils.resume_ai import extract_text_from_resume, call_gemini_for_resume, merge_into_jobseeker_profile, compute_readiness
+from django.conf import settings
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
+class AIChatView(APIView):
+    """
+    Simple AI chat endpoint powered by Google Gemini.
+    Accepts JSON body: {
+      message: string,                # current user message
+      history: [{role, content}],     # optional prior messages for context
+      context: object                 # optional extra context (page, ids)
+    }
+    Returns: { reply, usage?, model }
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data or {}
+            user_message = (data.get('message') or '').strip()
+            history = data.get('history') or []
+            extra_context = data.get('context') or {}
+            conversation_id = data.get('conversation_id')
+
+            if not user_message:
+                return Response({"detail": "message is required"}, status=400)
+
+            # Build a lightweight system prompt with optional user profile context if authenticated
+            system_parts = [
+                "You are Fyndr.AI's career coach assistant. Be concise, helpful, and actionable.",
+                "If unsure, say so briefly. Prefer bullet points and short paragraphs.",
+                "Keep answers within a few sentences unless a table is specifically requested.",
+            ]
+
+            user = request.user if request.user and request.user.is_authenticated else None
+            profile_snippet = ""
+            if user:
+                try:
+                    if user.role == 'job_seeker':
+                        jp = JobSeekerProfile.objects.filter(user=user).first()
+                        if jp:
+                            name = f"{jp.first_name} {jp.last_name}".strip()
+                            skills = ", ".join([s if isinstance(s, str) else s.get('name', '') for s in (jp.skills or [])][:12])
+                            profile_snippet = f"User: {name}\nRole: Job Seeker\nDesired role: {jp.job_title or ''}\nExperience: {jp.years_of_experience or ''} years\nSkills: {skills}\nLocation: {jp.location or ''}"
+                    elif user.role == 'recruiter':
+                        rp = RecruiterProfile.objects.filter(user=user).first()
+                        if rp:
+                            name = f"{rp.first_name} {rp.last_name}".strip()
+                            skills = ", ".join([s if isinstance(s, str) else s.get('name', '') for s in (rp.skills or [])][:12])
+                            profile_snippet = f"User: {name}\nRole: Recruiter\nTitle: {rp.job_title or ''}\nExperience: {rp.years_of_experience or ''} years\nFocus: {', '.join(rp.specializations or [])}\nSkills: {skills}"
+                    elif user.role == 'company':
+                        cp = CompanyProfile.objects.filter(user=user).first()
+                        if cp:
+                            profile_snippet = f"Company: {cp.company_name} | Industry: {cp.industry} | Size: {cp.company_size}"
+                except Exception:
+                    pass
+
+            if profile_snippet:
+                system_parts.append("Context about the current user:\n" + profile_snippet)
+
+            if extra_context:
+                try:
+                    import json as _json
+                    system_parts.append("Page/app context (JSON):\n" + _json.dumps(extra_context)[:600])
+                except Exception:
+                    pass
+
+            system_prompt = "\n\n".join(system_parts)
+
+            # Call Gemini
+            api_key = getattr(settings, "GEMINI_API_KEY", None) or os.getenv("GEMINI_API_KEY")
+            if not api_key:
+                # Provide a graceful fallback reply
+                reply = (
+                    "AI is not configured on the server yet. Please set GEMINI_API_KEY. "
+                    "Meanwhile, tell me more about your resume, target roles, or interview prep."
+                )
+                return Response({"reply": reply, "model": "gemini-disabled"}, status=200)
+
+            try:
+                import google.generativeai as genai
+                genai.configure(api_key=api_key)
+                model_name = getattr(settings, "GEMINI_MODEL", None) or os.getenv("GEMINI_MODEL") or "gemini-1.5-flash-8b"
+                generation_config = {
+                    "max_output_tokens": 350,
+                    "temperature": 0.6,
+                    "top_p": 0.9,
+                }
+                model = genai.GenerativeModel(model_name, generation_config=generation_config)
+
+                # Compose parts respecting history
+                contents = []
+                # System instruction
+                contents.append({"role": "user", "parts": [{"text": system_prompt}]})
+                # Prior messages
+                for item in history[-6:]:  # last 6 for latency
+                    role = item.get('role', 'user')
+                    content = (item.get('content') or '').strip()
+                    if not content:
+                        continue
+                    # Truncate each message to reduce token count
+                    contents.append({"role": role, "parts": [{"text": content[:800]}]})
+                # Current user message
+                contents.append({"role": "user", "parts": [{"text": user_message[:1200]}]})
+
+                response = model.generate_content(contents)
+                text = getattr(response, 'text', None)
+                if not text and hasattr(response, 'candidates') and response.candidates:
+                    # older SDKs may return candidates
+                    text = response.candidates[0].content.parts[0].text
+
+                reply = (text or "Sorry, I couldn't generate a response.").strip()
+
+                # Persist conversation and messages if user is authenticated
+                conv_id = None
+                if request.user and request.user.is_authenticated:
+                    try:
+                        conversation = None
+                        if conversation_id:
+                            conversation = ChatConversation.objects.filter(id=conversation_id, user=request.user).first()
+                        if not conversation:
+                            # create new if none supplied
+                            title = (user_message[:48] + '…') if len(user_message) > 50 else user_message
+                            conversation = ChatConversation.objects.create(user=request.user, title=title or 'Conversation')
+                        conv_id = conversation.id
+                        ChatMessage.objects.create(conversation=conversation, role='user', content=user_message)
+                        ChatMessage.objects.create(conversation=conversation, role='assistant', content=reply)
+                        conversation.last_activity = timezone.now()
+                        conversation.save(update_fields=['last_activity', 'updated_at'])
+                    except Exception:
+                        logger.exception('Failed to persist chat messages')
+
+                return Response({"reply": reply, "model": model_name, "conversation_id": conv_id}, status=200)
+            except Exception as e:
+                logger.exception("Gemini chat failed")
+                return Response({"detail": f"AI error: {str(e)}"}, status=500)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=400)
+
+
+class ChatConversationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        qs = ChatConversation.objects.filter(user=request.user, archived=False).order_by('-last_activity')
+        data = []
+        for c in qs:
+            last_msg = c.messages.order_by('-created_at').first()
+            last_text = (last_msg.content[:120] + '…') if last_msg and len(last_msg.content) > 120 else (last_msg.content if last_msg else '')
+            data.append({
+                'id': c.id,
+                'title': c.title,
+                'last_activity': c.last_activity,
+                'message_count': c.messages.count(),
+                'last_message': last_text,
+            })
+        return Response({'conversations': data})
+
+    def post(self, request, *args, **kwargs):
+        title = (request.data.get('title') or '').strip() or 'Conversation'
+        c = ChatConversation.objects.create(user=request.user, title=title)
+        return Response({'id': c.id, 'title': c.title, 'last_activity': c.last_activity})
+
+
+class ChatMessagesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, conversation_id, *args, **kwargs):
+        conv = ChatConversation.objects.filter(id=conversation_id, user=request.user).first()
+        if not conv:
+            return Response({'detail': 'Conversation not found'}, status=404)
+        messages = conv.messages.all()
+        return Response({
+            'conversation': {
+                'id': conv.id,
+                'title': conv.title,
+            },
+            'messages': [
+                {
+                    'id': m.id,
+                    'role': m.role,
+                    'content': m.content,
+                    'created_at': m.created_at,
+                } for m in messages
+            ]
+        })
+
+class ChatConversationDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, conversation_id, *args, **kwargs):
+        conv = ChatConversation.objects.filter(id=conversation_id, user=request.user).first()
+        if not conv:
+            return Response({'detail': 'Conversation not found'}, status=404)
+        try:
+            conv.delete()  # cascades to ChatMessage via FK on_delete=models.CASCADE
+            return Response({'deleted': True})
+        except Exception as e:
+            return Response({'detail': f'Failed to delete: {str(e)}'}, status=500)
 
 # Profile view for authenticated user
 class ProfileView(APIView):

@@ -34,7 +34,7 @@ const SidebarLayout = ({
   };
 
   return (
-    <div 
+    <div
       className={cn(
         "flex h-full w-full",
         sidebarPosition === 'right' && "flex-row-reverse",
@@ -44,11 +44,12 @@ const SidebarLayout = ({
       {/* Sidebar */}
       <div
         className={cn(
-          "transition-all duration-300 ease-in-out border-border",
-          // Removed border to eliminate left/right line
-          collapsed ? "w-16" : `w-[${sidebarWidth}px]`,
+          "transition-all duration-300 ease-in-out border-border shrink-0",
+          // Keep a stable class for collapsed; expanded width handled via inline style
+          collapsed && "w-16",
           sidebarClassName
         )}
+        style={{ width: collapsed ? 64 : sidebarWidth }}
       >
         {collapsible && (
           <div className="flex justify-end p-2">
@@ -56,17 +57,17 @@ const SidebarLayout = ({
               onClick={handleToggleCollapse}
               className="p-1 rounded-md hover:bg-gray-100 text-gray-500"
             >
-              <Icon 
-                name={collapsed 
+              <Icon
+                name={collapsed
                   ? (sidebarPosition === 'left' ? "ChevronRight" : "ChevronLeft")
                   : (sidebarPosition === 'left' ? "ChevronLeft" : "ChevronRight")
-                } 
-                size={16} 
+                }
+                size={16}
               />
             </button>
           </div>
         )}
-        
+
         <div className={cn(
           "h-full",
           collapsed && "overflow-hidden"
@@ -77,7 +78,7 @@ const SidebarLayout = ({
 
       {/* Main Content */}
       <div className={cn(
-        "flex-1 overflow-auto",
+        "flex-1 overflow-auto min-w-0",
         contentClassName
       )}>
         {children}

@@ -7,73 +7,123 @@
 @layer base {
   :root {
     /* Core Colors */
-    --color-background: #fafbff; /* near-white with blue undertone */
-    --color-foreground: #1e293b; /* deep slate */
-    --color-border: rgba(255, 255, 255, 0.2); /* glassmorphic border */
-    --color-input: #f1f5ff; /* elevated surface */
-    --color-ring: #a78bfa; /* soft purple */
-    --color-card: #f1f5ff; /* elevated surface */
-    --color-card-foreground: #1e293b; /* deep slate */
-    --color-popover: #ffffff; /* white */
-    --color-popover-foreground: #1e293b; /* deep slate */
-    --color-muted: #f1f5ff; /* elevated surface */
-    --color-muted-foreground: #64748b; /* medium slate */
+    --color-background: #fafbff;
+    /* near-white with blue undertone */
+    --color-foreground: #1e293b;
+    /* deep slate */
+    --color-border: rgba(255, 255, 255, 0.2);
+    /* glassmorphic border */
+    --color-input: #f1f5ff;
+    /* elevated surface */
+    --color-ring: #a78bfa;
+    /* soft purple */
+    --color-card: #f1f5ff;
+    /* elevated surface */
+    --color-card-foreground: #1e293b;
+    /* deep slate */
+    --color-popover: #ffffff;
+    /* white */
+    --color-popover-foreground: #1e293b;
+    /* deep slate */
+    --color-muted: #f1f5ff;
+    /* elevated surface */
+    --color-muted-foreground: #64748b;
+    /* medium slate */
 
     /* Brand Colors */
-    --color-primary: #a78bfa; /* soft purple */
-    --color-primary-foreground: #ffffff; /* white */
-    --color-secondary: #cfd8ff; /* light periwinkle */
-    --color-secondary-foreground: #1e293b; /* deep slate */
+    --color-primary: #a78bfa;
+    /* soft purple */
+    --color-primary-foreground: #ffffff;
+    /* white */
+    --color-secondary: #cfd8ff;
+    /* light periwinkle */
+    --color-secondary-foreground: #1e293b;
+    /* deep slate */
 
     /* State Colors */
-    --color-destructive: #ef4444; /* clear red */
-    --color-destructive-foreground: #ffffff; /* white */
-    --color-accent: #fb923c; /* warm orange */
-    --color-accent-foreground: #ffffff; /* white */
-    --color-success: #4ade80; /* vibrant green */
-    --color-success-foreground: #ffffff; /* white */
-    --color-warning: #fbbf24; /* balanced amber */
-    --color-warning-foreground: #1e293b; /* deep slate */
-    --color-error: #ef4444; /* clear red */
-    --color-error-foreground: #ffffff; /* white */
-    
+    --color-destructive: #ef4444;
+    /* clear red */
+    --color-destructive-foreground: #ffffff;
+    /* white */
+    --color-accent: #fb923c;
+    /* warm orange */
+    --color-accent-foreground: #ffffff;
+    /* white */
+    --color-success: #4ade80;
+    /* vibrant green */
+    --color-success-foreground: #ffffff;
+    /* white */
+    --color-warning: #fbbf24;
+    /* balanced amber */
+    --color-warning-foreground: #1e293b;
+    /* deep slate */
+    --color-error: #ef4444;
+    /* clear red */
+    --color-error-foreground: #ffffff;
+    /* white */
+
     /* RGB values for opacity variants */
     --color-primary-rgb: 167, 139, 250;
     --color-accent-rgb: 251, 146, 60;
     --color-error-rgb: 239, 68, 68;
   }
-  
+
   .dark {
     /* Core Colors - Dark Mode */
-    --color-background: #0f172a; /* dark blue-gray */
-    --color-foreground: #f1f5f9; /* light gray */
-    --color-border: rgba(255, 255, 255, 0.1); /* darker glassmorphic border */
-    --color-input: #1e293b; /* dark elevated surface */
-    --color-ring: #a78bfa; /* keep purple */
-    --color-card: #1e293b; /* dark elevated surface */
-    --color-card-foreground: #f1f5f9; /* light gray */
-    --color-popover: #1e293b; /* dark surface */
-    --color-popover-foreground: #f1f5f9; /* light gray */
-    --color-muted: #334155; /* slightly lighter dark surface */
-    --color-muted-foreground: #94a3b8; /* medium gray */
+    --color-background: #0f172a;
+    /* dark blue-gray */
+    --color-foreground: #f1f5f9;
+    /* light gray */
+    --color-border: rgba(255, 255, 255, 0.1);
+    /* darker glassmorphic border */
+    --color-input: #1e293b;
+    /* dark elevated surface */
+    --color-ring: #a78bfa;
+    /* keep purple */
+    --color-card: #1e293b;
+    /* dark elevated surface */
+    --color-card-foreground: #f1f5f9;
+    /* light gray */
+    --color-popover: #1e293b;
+    /* dark surface */
+    --color-popover-foreground: #f1f5f9;
+    /* light gray */
+    --color-muted: #334155;
+    /* slightly lighter dark surface */
+    --color-muted-foreground: #94a3b8;
+    /* medium gray */
 
     /* Brand Colors - Slightly adjusted for dark mode */
-    --color-primary: #b197fc; /* slightly lighter purple for dark mode */
-    --color-primary-foreground: #ffffff; /* white */
-    --color-secondary: #334155; /* darker periwinkle for dark mode */
-    --color-secondary-foreground: #f1f5f9; /* light gray */
+    --color-primary: #b197fc;
+    /* slightly lighter purple for dark mode */
+    --color-primary-foreground: #ffffff;
+    /* white */
+    --color-secondary: #334155;
+    /* darker periwinkle for dark mode */
+    --color-secondary-foreground: #f1f5f9;
+    /* light gray */
 
     /* State Colors - Dark Mode */
-    --color-destructive: #f87171; /* softer red for dark mode */
-    --color-destructive-foreground: #ffffff; /* white */
-    --color-accent: #fb923c; /* warm orange */
-    --color-accent-foreground: #ffffff; /* white */
-    --color-success: #4ade80; /* vibrant green */
-    --color-success-foreground: #ffffff; /* white */
-    --color-warning: #fbbf24; /* balanced amber */
-    --color-warning-foreground: #0f172a; /* dark background */
-    --color-error: #f87171; /* softer red for dark mode */
-    --color-error-foreground: #ffffff; /* white */
+    --color-destructive: #f87171;
+    /* softer red for dark mode */
+    --color-destructive-foreground: #ffffff;
+    /* white */
+    --color-accent: #fb923c;
+    /* warm orange */
+    --color-accent-foreground: #ffffff;
+    /* white */
+    --color-success: #4ade80;
+    /* vibrant green */
+    --color-success-foreground: #ffffff;
+    /* white */
+    --color-warning: #fbbf24;
+    /* balanced amber */
+    --color-warning-foreground: #0f172a;
+    /* dark background */
+    --color-error: #f87171;
+    /* softer red for dark mode */
+    --color-error-foreground: #ffffff;
+    /* white */
   }
 
   :root {
@@ -148,6 +198,7 @@
 
   /* Reduced Motion */
   @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
@@ -158,26 +209,20 @@
     }
   }
 
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
+  /* Hide body scrollbar by default (scroll still works) */
+  body {
+    scrollbar-width: none;
+    /* Firefox */
   }
 
-  ::-webkit-scrollbar-track {
-    background: var(--color-muted);
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-accent);
+  body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
   }
 }
 
 @layer components {
+
   /* Elevation System */
   .elevation-1 {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -230,9 +275,12 @@
 
   /* Morphing Blob Animation */
   @keyframes blob-morph {
-    0%, 100% {
+
+    0%,
+    100% {
       border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
     }
+
     50% {
       border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
     }
@@ -244,10 +292,13 @@
 
   /* Particle Animation */
   @keyframes float-particle {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(0px) rotate(0deg);
       opacity: 0.3;
     }
+
     50% {
       transform: translateY(-20px) rotate(180deg);
       opacity: 0.6;
@@ -259,9 +310,65 @@
   }
 
   /* Stagger Animation Delays */
-  .stagger-1 { animation-delay: 0ms; }
-  .stagger-2 { animation-delay: 100ms; }
-  .stagger-3 { animation-delay: 200ms; }
-  .stagger-4 { animation-delay: 300ms; }
-  .stagger-5 { animation-delay: 400ms; }
+  .stagger-1 {
+    animation-delay: 0ms;
+  }
+
+  .stagger-2 {
+    animation-delay: 100ms;
+  }
+
+  .stagger-3 {
+    animation-delay: 200ms;
+  }
+
+  .stagger-4 {
+    animation-delay: 300ms;
+  }
+
+  .stagger-5 {
+    animation-delay: 400ms;
+  }
+}
+
+@layer utilities {
+
+  /* Utility to hide scrollbar visuals */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+  }
+
+  /* Utility to show a very slim, subtle scrollbar */
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: rgba(var(--color-primary-rgb), 0.5) transparent;
+    /* Firefox */
+  }
+
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background: rgba(var(--color-primary-rgb), 0.5);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--color-accent-rgb), 0.6);
+  }
 }

@@ -5,7 +5,8 @@ from .views import (
     JobSeekerProfileView, RecruiterProfileView, CompanyProfileView,
     JobSeekerOnboardingView, RecruiterOnboardingView, CompanyOnboardingView,  # Backward compatibility
     FileUploadView, FileServeView, ResumeParseView,
-    GoogleAuthInitView, GoogleAuthCallbackView, GoogleDisconnectView, GoogleAuthStatusView
+    GoogleAuthInitView, GoogleAuthCallbackView, GoogleDisconnectView, GoogleAuthStatusView,
+    AIChatView, ChatConversationsView, ChatMessagesView, ChatConversationDetailView
 )
 from .views import LocationsListView, SkillsListView, JobRolesListView, IndustriesListView, SalaryBandsListView, RecruitersListView, RecruiterDetailView, CompaniesListView, CompanyDetailView
 
@@ -39,6 +40,12 @@ urlpatterns = [
     path('jobseeker-profile/', JobSeekerProfileView.as_view(), name='jobseeker-profile'),
     path('recruiter-profile/', RecruiterProfileView.as_view(), name='recruiter-profile'),
     path('company-profile/', CompanyProfileView.as_view(), name='company-profile'),
+    
+    # AI Chatbot (Gemini-backed)
+    path('ai/chat/', AIChatView.as_view(), name='ai-chat'),
+    path('ai/chat/conversations/', ChatConversationsView.as_view(), name='ai-chat-conversations'),
+    path('ai/chat/conversations/<int:conversation_id>/messages/', ChatMessagesView.as_view(), name='ai-chat-messages'),
+    path('ai/chat/conversations/<int:conversation_id>/', ChatConversationDetailView.as_view(), name='ai-chat-conversation-detail'),
     
     # Team management endpoints moved to team_management app under /api/team/
     

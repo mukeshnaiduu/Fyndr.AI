@@ -3,6 +3,8 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from .utils.crypto import encrypt_text, decrypt_text
+from django.contrib.auth import get_user_model
+from django.utils.timezone import now
 
 class User(AbstractUser):
     ROLE_CHOICES = [
@@ -398,6 +400,46 @@ class PortalCredentials(models.Model):
             }
         )
         return obj
+
+
+# ==============================
+# AI Chat Persistence Models
+# ==============================
+
+class ChatConversation(models.Model):
+    """A chat conversation per user."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='chat_conversations')
+    title = models.CharField(max_length=255, blank=True)
+    archived = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_activity = models.DateTimeField(default=now)
+
+    class Meta:
+        ordering = ['-last_activity']
+
+    def __str__(self):
+        return f"ChatConversation({self.id}) - {self.user} - {self.title}".strip()
+
+
+class ChatMessage(models.Model):
+    """Messages within a conversation."""
+    ROLE_CHOICES = (
+        ('user', 'User'),
+        ('assistant', 'Assistant'),
+        ('system', 'System'),
+    )
+    conversation = models.ForeignKey(ChatConversation, on_delete=models.CASCADE, related_name='messages')
+    role = models.CharField(max_length=16, choices=ROLE_CHOICES)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.role}: {self.content[:40]}"
 
 
 class OAuthToken(models.Model):

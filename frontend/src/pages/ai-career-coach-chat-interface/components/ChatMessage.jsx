@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import Icon from 'components/AppIcon';
 
 
@@ -29,28 +31,40 @@ const ChatMessage = ({ message, isUser, timestamp, isTyping = false }) => {
 
   return (
     <div className={`flex items-start space-x-3 mb-4 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-        isUser 
-          ? 'bg-gradient-to-br from-accent to-primary' :'bg-gradient-to-br from-primary to-accent'
-      }`}>
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isUser
+        ? 'bg-gradient-to-br from-accent to-primary' : 'bg-gradient-to-br from-primary to-accent'
+        }`}>
         {isUser ? (
           <Icon name="User" size={16} color="white" />
         ) : (
           <Icon name="Bot" size={16} color="white" />
         )}
       </div>
-      
+
       <div className={`max-w-xs lg:max-w-md ${isUser ? 'text-right' : 'text-left'}`}>
-        <div className={`glassmorphic-card p-4 rounded-2xl ${
-          isUser 
-            ? 'bg-primary/20 border-primary/30 rounded-tr-md' :'bg-white/20 border-white/20 rounded-tl-md'
-        }`}>
+        <div className={`glassmorphic-card p-4 rounded-2xl ${isUser
+          ? 'bg-primary/20 border-primary/30 rounded-tr-md' : 'bg-white/20 border-white/20 rounded-tl-md'
+          }`}>
           {message.type === 'text' && (
-            <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap">
-              {message.content}
-            </p>
+            <div className="prose prose-invert max-w-none text-foreground text-sm leading-relaxed">
+              <style>{`
+                .prose table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  border: 1px solid rgba(255,255,255,0.2);
+                }
+                .prose thead tr {
+                  background: rgba(255,255,255,0.06);
+                }
+                .prose th, .prose td {
+                  border: 1px solid rgba(255,255,255,0.2);
+                  padding: 0.5rem 0.75rem;
+                }
+              `}</style>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+            </div>
           )}
-          
+
           {message.type === 'job_recommendation' && (
             <div className="space-y-3">
               <p className="text-foreground text-sm">{message.content}</p>
@@ -67,7 +81,7 @@ const ChatMessage = ({ message, isUser, timestamp, isTyping = false }) => {
               </div>
             </div>
           )}
-          
+
           {message.type === 'skill_assessment' && (
             <div className="space-y-3">
               <p className="text-foreground text-sm">{message.content}</p>
@@ -82,7 +96,7 @@ const ChatMessage = ({ message, isUser, timestamp, isTyping = false }) => {
                       <span className="text-foreground text-xs">{skill.name}</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-16 h-1 bg-white/20 rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className="h-full bg-accent rounded-full transition-all duration-500"
                             style={{ width: `${skill.level}%` }}
                           ></div>
@@ -95,7 +109,7 @@ const ChatMessage = ({ message, isUser, timestamp, isTyping = false }) => {
               </div>
             </div>
           )}
-          
+
           {message.type === 'course_suggestion' && (
             <div className="space-y-3">
               <p className="text-foreground text-sm">{message.content}</p>
@@ -113,7 +127,7 @@ const ChatMessage = ({ message, isUser, timestamp, isTyping = false }) => {
             </div>
           )}
         </div>
-        
+
         <div className={`text-xs text-muted-foreground mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
           {formatTime(timestamp)}
         </div>

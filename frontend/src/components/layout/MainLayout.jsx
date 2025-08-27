@@ -2,6 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import Footer from 'components/ui/Footer';
 import { cn } from '../../utils/cn';
+import ChatbotWidget from 'components/ChatbotWidget';
 
 /**
  * MainLayout - Global layout component for all pages
@@ -28,6 +29,7 @@ const MainLayout = ({
   fullWidth = false,
   noPadding = false,
   hideFooter = false,
+  hideFloatingChat = false,
   ogTitle,
   ogDescription,
   canonicalPath
@@ -58,6 +60,8 @@ const MainLayout = ({
           )}>
             {children}
           </div>
+          {/* Global floating chatbot */}
+          {!hideFloatingChat && <ChatbotWidget />}
         </div>
 
         {/* Footer */}

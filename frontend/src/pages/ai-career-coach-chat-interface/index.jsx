@@ -7,68 +7,99 @@ import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import PromptSuggestions from './components/PromptSuggestions';
 import ChatHistory from './components/ChatHistory';
-import MessageFeedback from './components/MessageFeedback';
+import { apiRequest } from 'utils/api.js';
 import ConversationExport from './components/ConversationExport';
-import SmartNotifications from './components/SmartNotifications';
-
 const AICareerCoachChatInterface = () => {
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [currentConversationId, setCurrentConversationId] = useState('current');
+  const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [currentConversationTitle, setCurrentConversationTitle] = useState('AI Career Coach');
   const [showPrompts, setShowPrompts] = useState(true);
   const messagesEndRef = useRef(null);
+  const initialLoadRef = useRef(true);
 
-  // Mock conversations data
-  const [conversations] = useState([
-    {
-      id: 'conv1',
-      title: 'Resume Review Session',
-      category: 'resume',
-      lastMessage: 'Your resume looks great! Consider adding more quantifiable achievements.',
-      lastActivity: new Date(Date.now() - 86400000), // 1 day ago
-      messageCount: 15,
-      hasUnread: false,
-      messages: []
-    },
-    {
-      id: 'conv2',
-      title: 'Frontend Developer Career Path',
-      category: 'career',
-      lastMessage: 'Based on your skills, I recommend focusing on React and TypeScript.',
-      lastActivity: new Date(Date.now() - 172800000), // 2 days ago
-      messageCount: 23,
-      hasUnread: true,
-      messages: []
-    },
-    {
-      id: 'conv3',
-      title: 'Interview Preparation',
-      category: 'interview',
-      lastMessage: 'Let\'s practice some common behavioral interview questions.',
-      lastActivity: new Date(Date.now() - 259200000), // 3 days ago
-      messageCount: 8,
-      hasUnread: false,
-      messages: []
-    }
-  ]);
+  const [conversations, setConversations] = useState([]);
 
-  // Initial welcome message
+  // Load conversations on mount
   useEffect(() => {
-    const welcomeMessage = {
-      id: 'welcome',
-      type: 'text',
-      content: `Hello! I'm your AI Career Coach. I'm here to help you with:\n\n• Resume and profile optimization\n• Job search strategies\n• Skill development planning\n• Interview preparation\n• Career path guidance\n\nWhat would you like to work on today?`,
-      timestamp: new Date(),
-      isUser: false
+    const loadConversations = async () => {
+      try {
+        const res = await apiRequest('/auth/ai/chat/conversations/');
+        const mapped = (res.conversations || []).map(c => ({
+          id: c.id,
+          title: c.title || 'Conversation',
+          category: 'career',
+          lastMessage: c.last_message || '',
+          lastActivity: c.last_activity ? new Date(c.last_activity) : new Date(),
+          messageCount: c.message_count ?? 0,
+          hasUnread: false,
+        }));
+        setConversations(mapped);
+        if (mapped.length > 0) {
+          selectConversation(mapped[0].id);
+        } else {
+          // show welcome
+          setMessages([{
+            id: 'welcome', type: 'text', isUser: false, timestamp: new Date(),
+            content: `Hello! I'm your AI Career Coach. Ask about resume, jobs, skills, or interviews.`
+          }]);
+          setCurrentConversationId(null);
+          setCurrentConversationTitle('New Conversation');
+        }
+      } catch {
+        // unauthenticated fallback welcome
+        setMessages([{
+          id: 'welcome', type: 'text', isUser: false, timestamp: new Date(),
+          content: `Hello! I'm your AI Career Coach. Sign in to save chat history.`
+        }]);
+        setCurrentConversationId(null);
+        setCurrentConversationTitle('Guest Session');
+      }
     };
-    setMessages([welcomeMessage]);
+    loadConversations();
   }, []);
 
-  // Auto-scroll to bottom
+  // Scroll helper and auto-scroll
+  const scrollToBottom = (smooth = false) => {
+    const el = messagesEndRef.current;
+    if (!el) return;
+    try {
+      el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+    } catch { }
+  };
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return; // don't auto-scroll on first load
+    }
+    scrollToBottom(true);
   }, [messages, isTyping]);
+  const ensureConversation = async (titleSeed) => {
+    if (currentConversationId) return currentConversationId;
+    try {
+      const title = (titleSeed && titleSeed.length > 0) ? (titleSeed.length > 48 ? `${titleSeed.slice(0, 48)}…` : titleSeed) : 'Conversation';
+      const created = await apiRequest('/auth/ai/chat/conversations/', 'POST', { title });
+      if (created?.id) {
+        setCurrentConversationId(created.id);
+        setCurrentConversationTitle(created.title || 'Conversation');
+        // Prepend to conversation list
+        setConversations(prev => [{
+          id: created.id,
+          title: created.title || title,
+          category: 'career',
+          lastMessage: '',
+          lastActivity: created.last_activity ? new Date(created.last_activity) : new Date(),
+          messageCount: 0,
+          hasUnread: false,
+        }, ...prev]);
+        return created.id;
+      }
+    } catch (e) {
+      // Likely unauthenticated; continue without persistence
+    }
+    return null;
+  };
 
   const handleSendMessage = async (messageText) => {
     const userMessage = {
@@ -80,90 +111,83 @@ const AICareerCoachChatInterface = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setShowPrompts(false);
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(messageText);
+    try {
+      const convId = await ensureConversation(messageText);
+      // Build history for backend (last 15 messages)
+      const history = messages.slice(-15).map(m => ({
+        role: m.isUser ? 'user' : 'model',
+        content: m.content,
+      }));
+
+      const payload = {
+        message: messageText,
+        history,
+        context: {
+          conversationId: currentConversationId,
+          page: 'ai-career-coach',
+        },
+        conversation_id: convId || currentConversationId,
+      };
+
+      const resp = await apiRequest('/auth/ai/chat/', 'POST', payload);
+
+      const aiResponse = {
+        id: Date.now() + 1,
+        type: 'text',
+        content: resp?.reply || 'Sorry, I could not generate a response.',
+        timestamp: new Date(),
+        isUser: false,
+      };
       setMessages(prev => [...prev, aiResponse]);
+      // Refresh conversations to update last message preview and counts
+      try {
+        const res = await apiRequest('/auth/ai/chat/conversations/');
+        const mapped = (res.conversations || []).map(c => ({
+          id: c.id,
+          title: c.title || 'Conversation',
+          category: 'career',
+          lastMessage: c.last_message || '',
+          lastActivity: c.last_activity ? new Date(c.last_activity) : new Date(),
+          messageCount: c.message_count ?? 0,
+          hasUnread: false,
+        }));
+        setConversations(mapped);
+      } catch { }
+      if (resp?.conversation_id && !currentConversationId) {
+        setCurrentConversationId(resp.conversation_id);
+        // Keep title if already set via ensureConversation; otherwise derive
+        if (!currentConversationTitle || currentConversationTitle === 'New Conversation' || currentConversationTitle === 'Guest Session') {
+          setCurrentConversationTitle(messageText.length > 48 ? `${messageText.slice(0, 48)}…` : messageText);
+        }
+        // refresh conversation list
+        try {
+          const res = await apiRequest('/auth/ai/chat/conversations/');
+          const mapped = (res.conversations || []).map(c => ({
+            id: c.id,
+            title: c.title || 'Conversation',
+            category: 'career',
+            lastMessage: c.last_message || '',
+            lastActivity: c.last_activity ? new Date(c.last_activity) : new Date(),
+            messageCount: c.message_count ?? 0,
+            hasUnread: false,
+          }));
+          setConversations(mapped);
+        } catch { }
+      }
+    } catch (e) {
+      const errMessage = {
+        id: Date.now() + 2,
+        type: 'text',
+        content: `AI error: ${e.message}`,
+        timestamp: new Date(),
+        isUser: false,
+      };
+      setMessages(prev => [...prev, errMessage]);
+    } finally {
       setIsTyping(false);
-    }, 2000);
-  };
-
-  const generateAIResponse = (userMessage) => {
-    const lowerMessage = userMessage.toLowerCase();
-
-    if (lowerMessage.includes('resume') || lowerMessage.includes('cv')) {
-      return {
-        id: Date.now() + 1,
-        type: 'text',
-        content: `I'd be happy to help you with your resume! Here are some key areas to focus on:\n\n• **Professional Summary**: Write a compelling 2-3 line summary highlighting your key strengths\n• **Quantifiable Achievements**: Use numbers and metrics to demonstrate your impact\n• **Relevant Keywords**: Include industry-specific terms that ATS systems look for\n• **Clean Formatting**: Ensure consistent formatting and easy readability\n\nWould you like me to review a specific section of your resume, or do you have questions about any of these areas?`,
-        timestamp: new Date(),
-        isUser: false
-      };
     }
-
-    if (lowerMessage.includes('job') || lowerMessage.includes('position')) {
-      return {
-        id: Date.now() + 1,
-        type: 'job_recommendation',
-        content: `Based on your profile, I found some relevant opportunities for you:`,
-        jobTitle: 'Senior Frontend Developer',
-        company: 'TechCorp Solutions',
-        salary: '₹20,00,000 - ₹26,00,000',
-        timestamp: new Date(),
-        isUser: false
-      };
-    }
-
-    if (lowerMessage.includes('skill') || lowerMessage.includes('learn')) {
-      return {
-        id: Date.now() + 1,
-        type: 'skill_assessment',
-        content: `Here's an assessment of your current skills and recommendations for improvement:`,
-        skills: [
-          { name: 'React', level: 85 },
-          { name: 'JavaScript', level: 90 },
-          { name: 'TypeScript', level: 70 },
-          { name: 'Node.js', level: 65 }
-        ],
-        timestamp: new Date(),
-        isUser: false
-      };
-    }
-
-    if (lowerMessage.includes('course') || lowerMessage.includes('training')) {
-      return {
-        id: Date.now() + 1,
-        type: 'course_suggestion',
-        content: `I recommend this course to enhance your skills:`,
-        courseTitle: 'Advanced React Patterns',
-        courseDescription: 'Master advanced React concepts including hooks, context, and performance optimization',
-        duration: '6 weeks',
-        timestamp: new Date(),
-        isUser: false
-      };
-    }
-
-    if (lowerMessage.includes('interview')) {
-      return {
-        id: Date.now() + 1,
-        type: 'text',
-        content: `Great! Let's prepare for your interviews. Here's a structured approach:\n\n**Technical Preparation:**\n• Review fundamental concepts in your tech stack\n• Practice coding problems on platforms like LeetCode\n• Prepare to explain your past projects in detail\n\n**Behavioral Questions:**\n• Use the STAR method (Situation, Task, Action, Result)\n• Prepare examples of challenges you've overcome\n• Think about times you've shown leadership or teamwork\n\n**Questions to Ask:**\n• "What does success look like in this role?"\n• "What are the biggest challenges facing the team?"\n• "How do you support professional development?"\n\nWould you like to practice answering specific questions?`,
-        timestamp: new Date(),
-        isUser: false
-      };
-    }
-
-    // Default response
-    return {
-      id: Date.now() + 1,
-      type: 'text',
-      content: `I understand you're asking about "${userMessage}". I'm here to help with all aspects of your career development.\n\nI can assist you with:\n• Resume and LinkedIn optimization\n• Job search strategies and applications\n• Skill development and learning paths\n• Interview preparation and practice\n• Career planning and goal setting\n• Salary negotiation tips\n• Professional networking advice\n\nWhat specific area would you like to focus on?`,
-      timestamp: new Date(),
-      isUser: false
-    };
   };
 
   const handlePromptSelect = (prompt) => {
@@ -175,26 +199,159 @@ const AICareerCoachChatInterface = () => {
     // Voice recording logic would go here
   };
 
-  const handleFeedbackSubmit = async (messageId, feedback) => {
-    console.log('Feedback submitted:', messageId, feedback);
-    // Feedback submission logic would go here
+  // Feedback feature disabled for now
+
+  const handleAnalyzeResume = async () => {
+    // Insert a system-like message to indicate parsing started
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      type: 'text',
+      content: 'Analyzing your uploaded resume…',
+      timestamp: new Date(),
+      isUser: false
+    }]);
+    setIsTyping(true);
+    try {
+      const res = await apiRequest('/auth/resume/parse/', 'POST');
+      const parsed = res?.parsed;
+      const readiness = res?.readiness;
+      let summary = '';
+      if (parsed) {
+        const name = parsed.name || '';
+        const title = parsed.title || parsed.target_title || '';
+        const years = parsed.years_of_experience || parsed.experience_years || '';
+        const skills = Array.isArray(parsed.skills) ? parsed.skills : [];
+        const topSkills = skills
+          .map(s => typeof s === 'string' ? s : (s?.name || s?.skill || s?.title || ''))
+          .filter(Boolean)
+          .slice(0, 10)
+          .join(', ');
+        const roles = (parsed.suited_roles || [])
+          .map(r => typeof r === 'string' ? r : (r?.role || r?.name || ''))
+          .filter(Boolean)
+          .slice(0, 5)
+          .join(', ');
+        summary = [
+          name && `Name: ${name}`,
+          title && `Target/Title: ${title}`,
+          years && `Experience: ${years} years`,
+          topSkills && `Top skills: ${topSkills}`,
+          roles && `Suited roles: ${roles}`,
+        ].filter(Boolean).join('\n');
+      }
+      const readinessLine = readiness?.score ? `Readiness score: ${readiness.score}/100` : '';
+      const content = summary || readinessLine ? `${summary}${summary && readinessLine ? '\n' : ''}${readinessLine}` : 'Resume analyzed.';
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        type: 'text',
+        content,
+        timestamp: new Date(),
+        isUser: false
+      }]);
+    } catch (e) {
+      setMessages(prev => [...prev, {
+        id: Date.now() + 2,
+        type: 'text',
+        content: `Could not analyze resume: ${e.message}`,
+        timestamp: new Date(),
+        isUser: false
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
-  const handleConversationSelect = (conversationId) => {
-    setCurrentConversationId(conversationId);
-    setShowHistory(false);
-    // Load conversation messages
-    console.log('Loading conversation:', conversationId);
+  const selectConversation = async (conversationId) => {
+    try {
+      const res = await apiRequest(`/auth/ai/chat/conversations/${conversationId}/messages/`);
+      const msgs = (res.messages || []).map(m => ({
+        id: m.id,
+        type: 'text',
+        content: m.content,
+        timestamp: new Date(m.created_at),
+        isUser: m.role === 'user',
+      }));
+      setMessages(msgs);
+      setCurrentConversationId(conversationId);
+      setCurrentConversationTitle(res?.conversation?.title || 'Conversation');
+      setShowHistory(false);
+      // After loading messages, refresh conversation list for accurate counts
+      try {
+        const list = await apiRequest('/auth/ai/chat/conversations/');
+        const mapped = (list.conversations || []).map(c => ({
+          id: c.id,
+          title: c.title || 'Conversation',
+          category: 'career',
+          lastMessage: c.last_message || '',
+          lastActivity: c.last_activity ? new Date(c.last_activity) : new Date(),
+          messageCount: c.message_count ?? 0,
+          hasUnread: false,
+        }));
+        setConversations(mapped);
+      } catch { }
+    } catch (e) {
+      console.error('Failed to load conversation', e);
+    }
   };
+
+  const handleConversationSelect = (conversationId) => selectConversation(conversationId);
 
   const handleExport = async (exportData) => {
-    console.log('Exporting conversation:', exportData);
-    // Export logic would go here
+    try {
+      const { format, title, messages } = exportData;
+      const safeTitle = (title || 'conversation').replace(/[^a-z0-9\-_]+/gi, '_').slice(0, 50);
+      const download = (filename, content, mime = 'text/plain;charset=utf-8') => {
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      };
+      if (format === 'json') {
+        const content = JSON.stringify({ title, messages }, null, 2);
+        download(`${safeTitle}.json`, content, 'application/json');
+        return;
+      }
+      if (format === 'txt') {
+        const lines = messages.map(m => `${m.isUser ? 'User' : 'Assistant'}: ${m.content}`);
+        download(`${safeTitle}.txt`, lines.join('\n\n'));
+        return;
+      }
+      if (format === 'email') {
+        const body = encodeURIComponent(messages.map(m => `${m.isUser ? 'User' : 'Assistant'}: ${m.content}`).join('\n\n'));
+        window.location.href = `mailto:?subject=${encodeURIComponent('Conversation - ' + title)}&body=${body}`;
+        return;
+      }
+      const fallback = messages.map(m => `${m.isUser ? 'User' : 'Assistant'}: ${m.content}`).join('\n\n');
+      download(`${safeTitle}.txt`, fallback);
+    } catch (e) {
+      console.error('Export failed:', e);
+    }
+  };
+
+  const handleDeleteConversation = async (conversationId) => {
+    try {
+      await apiRequest(`/auth/ai/chat/conversations/${conversationId}/`, 'DELETE');
+      setConversations(prev => prev.filter(c => c.id !== conversationId));
+      if (currentConversationId === conversationId) {
+        // Reset view when deleting the active conversation
+        setCurrentConversationId(null);
+        setCurrentConversationTitle('New Conversation');
+        setMessages([]);
+        setShowPrompts(true);
+      }
+    } catch (e) {
+      console.error('Failed to delete conversation', e);
+    }
   };
 
   const currentConversation = {
-    id: currentConversationId,
-    title: 'Current Session',
+    id: currentConversationId || 'current',
+    title: currentConversationTitle,
     messages: messages
   };
 
@@ -204,25 +361,56 @@ const AICareerCoachChatInterface = () => {
       description="Get personalized career guidance with AI-powered coaching. Resume reviews, job search strategies, and skill development recommendations."
       noPadding
       fullWidth
+      hideFloatingChat
     >
-      <div className="min-h-screen bg-white dark:bg-background">
+      <div className="h-screen overflow-hidden bg-white dark:bg-background no-scrollbar">
         <SidebarLayout
           sidebar={
             <ChatHistory
               conversations={conversations}
               onSelectConversation={handleConversationSelect}
               currentConversationId={currentConversationId}
+              onDeleteConversation={handleDeleteConversation}
+              onNewChat={async () => {
+                try {
+                  const created = await apiRequest('/auth/ai/chat/conversations/', 'POST', { title: 'New Conversation' });
+                  if (created?.id) {
+                    setConversations(prev => [{
+                      id: created.id,
+                      title: created.title || 'New Conversation',
+                      category: 'career',
+                      lastMessage: '',
+                      lastActivity: created.last_activity ? new Date(created.last_activity) : new Date(),
+                      messageCount: 0,
+                      hasUnread: false,
+                    }, ...prev]);
+                    setCurrentConversationId(created.id);
+                    setCurrentConversationTitle(created.title || 'New Conversation');
+                  } else {
+                    setCurrentConversationId(null);
+                    setCurrentConversationTitle('New Conversation');
+                  }
+                } catch {
+                  setCurrentConversationId(null);
+                  setCurrentConversationTitle('New Conversation');
+                } finally {
+                  setMessages([]);
+                  setShowHistory(false);
+                  setTimeout(() => scrollToBottom(false), 0);
+                }
+              }}
               className="h-full"
             />
           }
           sidebarWidth={320}
           collapsible
+          contentClassName="overflow-hidden"
         >
 
           {/* Main Chat Interface */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 h-full flex flex-col overflow-hidden no-scrollbar pt-3 sm:pt-4">
             {/* Chat Header */}
-            <div className="glassmorphic-card p-4 border-b border-white/20 flex items-center justify-between">
+            <div className="glassmorphic-card px-5 py-3 border-b border-white/20 flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center space-x-3">
                 <Button
                   variant="ghost"
@@ -238,8 +426,8 @@ const AICareerCoachChatInterface = () => {
                     <Icon name="Bot" size={16} color="white" />
                   </div>
                   <div>
-                    <h1 className="font-semibold text-foreground">AI Career Coach</h1>
-                    <p className="text-sm text-muted-foreground">
+                    <h1 className="font-semibold text-foreground">{currentConversation.title || 'AI Career Coach'}</h1>
+                    <p className="text-xs text-muted-foreground">
                       {isTyping ? 'Typing...' : 'Online'}
                     </p>
                   </div>
@@ -247,34 +435,21 @@ const AICareerCoachChatInterface = () => {
               </div>
 
               <div className="flex items-center space-x-2">
-                {/* Export and notifications controls */}
-                <SmartNotifications />
+                {/* Export control */}
                 <div className="flex items-center">
                   <ConversationExport
                     conversation={currentConversation}
                     onExport={handleExport}
                   />
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hover:bg-white/10"
-                >
-                  <Icon name="MoreVertical" size={18} />
-                </Button>
+                {/* 3-dots menu removed */}
               </div>
             </div>
 
-            {/* Prompt Suggestions */}
-            {showPrompts && messages.length <= 1 && (
-              <PromptSuggestions
-                onSelectPrompt={handlePromptSelect}
-                visible={showPrompts}
-              />
-            )}
+            {/* Quick Start (now always visible, positioned above input) */}
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Messages Area (only this scrolls) */}
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 scrollbar-slim">
               {messages.map((message) => (
                 <div key={message.id}>
                   <ChatMessage
@@ -282,13 +457,7 @@ const AICareerCoachChatInterface = () => {
                     isUser={message.isUser}
                     timestamp={message.timestamp}
                   />
-                  {!message.isUser && (
-                    <MessageFeedback
-                      messageId={message.id}
-                      onFeedbackSubmit={handleFeedbackSubmit}
-                      className="ml-11"
-                    />
-                  )}
+                  {/* Feedback removed per request */}
                 </div>
               ))}
 
@@ -304,7 +473,13 @@ const AICareerCoachChatInterface = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Chat Input */}
+            {/* Quick Start suggestions (always visible) */}
+            <PromptSuggestions
+              onSelectPrompt={handlePromptSelect}
+              onAnalyzeResume={handleAnalyzeResume}
+            />
+
+            {/* Chat Input (fixed at bottom of column) */}
             <ChatInput
               onSendMessage={handleSendMessage}
               onVoiceRecord={handleVoiceRecord}
@@ -320,6 +495,35 @@ const AICareerCoachChatInterface = () => {
                   conversations={conversations}
                   onSelectConversation={handleConversationSelect}
                   currentConversationId={currentConversationId}
+                  onDeleteConversation={handleDeleteConversation}
+                  onNewChat={async () => {
+                    try {
+                      const created = await apiRequest('/auth/ai/chat/conversations/', 'POST', { title: 'New Conversation' });
+                      if (created?.id) {
+                        setConversations(prev => [{
+                          id: created.id,
+                          title: created.title || 'New Conversation',
+                          category: 'career',
+                          lastMessage: '',
+                          lastActivity: created.last_activity ? new Date(created.last_activity) : new Date(),
+                          messageCount: 0,
+                          hasUnread: false,
+                        }, ...prev]);
+                        setCurrentConversationId(created.id);
+                        setCurrentConversationTitle(created.title || 'New Conversation');
+                      } else {
+                        setCurrentConversationId(null);
+                        setCurrentConversationTitle('New Conversation');
+                      }
+                    } catch {
+                      setCurrentConversationId(null);
+                      setCurrentConversationTitle('New Conversation');
+                    } finally {
+                      setMessages([]);
+                      setShowHistory(false);
+                      setTimeout(() => scrollToBottom(false), 0);
+                    }
+                  }}
                   className="h-full"
                 />
               </div>
